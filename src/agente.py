@@ -5,6 +5,7 @@ Uso: importar AgenteSentinela de src.agente
 
 import logging
 import math
+from http import HTTPStatus
 
 import joblib
 import pandas as pd
@@ -12,6 +13,12 @@ import requests
 
 from src.config import (
     CAMINHO_MODELO,
+    LIMIAR_DISTANCIA_KM,
+    LIMIAR_RAJADA_1MIN,
+    LIMIAR_RISCO_ESTABELECIMENTO,
+    LIMIAR_TOKEN_CARTEIRA,
+    LIMIAR_VALOR_ALTO,
+    LIMIAR_VELOCIDADE_TERMINAL,
     MIN_SINAIS_CONFIRMAR,
     NOTA_BLOQUEAR,
     NOTA_CONFIRMAR,
@@ -34,7 +41,7 @@ def granite_disponivel(timeout_s: float = OLLAMA_TIMEOUT_DISPONIBILIDADE_S) -> b
     """
     try:
         resp = requests.get(f"{OLLAMA_URL}/api/tags", timeout=timeout_s)
-        return resp.status_code == 200
+        return resp.status_code == HTTPStatus.OK
     except requests.RequestException as erro:
         logger.warning("Granite indisponível: %s", erro)
         return False
@@ -61,39 +68,43 @@ def calcular_sinais(transacao: dict) -> list[dict]:
     """
     sinais = []
 
-    # velocidade_terminal
     v = transacao.get("vel_cartao_terminal_1h")
-    if _valor_valido(v) and float(v) >= 10:
+    if _valor_valido(v) and float(v) >= LIMIAR_VELOCIDADE_TERMINAL:
         sinais.append(
             {
                 "id": "velocidade_terminal",
-                "descricao": f"Cartão usado {float(v):.0f} vezes em terminais na última hora (normal: até 5).",
+                "descricao": (
+                    f"Cartão usado {float(v):.0f} vezes em terminais"
+                    " na última hora (normal: até 5)."
+                ),
             }
         )
 
-    # rajada_1min
     v = transacao.get("qtd_transacoes_cartao_1min")
-    if _valor_valido(v) and float(v) >= 5:
+    if _valor_valido(v) and float(v) >= LIMIAR_RAJADA_1MIN:
         sinais.append(
             {
                 "id": "rajada_1min",
-                "descricao": f"{float(v):.0f} transações do cartão no último minuto (normal: 1 ou 2).",
+                "descricao": (
+                    f"{float(v):.0f} transações do cartão" " no último minuto (normal: 1 ou 2)."
+                ),
             }
         )
 
-    # token_carteira
     v = transacao.get("qtd_token_carteira_3m")
-    if _valor_valido(v) and float(v) >= 30:
+    if _valor_valido(v) and float(v) >= LIMIAR_TOKEN_CARTEIRA:
         sinais.append(
             {
                 "id": "token_carteira",
-                "descricao": f"Token de carteira digital usado {float(v):.0f} vezes em 3 meses (normal: até 14).",
+                "descricao": (
+                    f"Token de carteira digital usado {float(v):.0f} vezes"
+                    " em 3 meses (normal: até 14)."
+                ),
             }
         )
 
-    # salto_geografico
     v = transacao.get("dist_terminal_anterior_km")
-    if _valor_valido(v) and float(v) > 100:
+    if _valor_valido(v) and float(v) > LIMIAR_DISTANCIA_KM:
         sinais.append(
             {
                 "id": "salto_geografico",
@@ -101,7 +112,6 @@ def calcular_sinais(transacao: dict) -> list[dict]:
             }
         )
 
-    # madrugada
     mad = transacao.get("madrugada")
     hora = transacao.get("hora")
     if _valor_valido(mad) and int(mad) == 1:
@@ -113,17 +123,17 @@ def calcular_sinais(transacao: dict) -> list[dict]:
             }
         )
 
-    # valor_alto
     v = transacao.get("valor")
-    if _valor_valido(v) and float(v) > 150:
+    if _valor_valido(v) and float(v) > LIMIAR_VALOR_ALTO:
         sinais.append(
             {
                 "id": "valor_alto",
-                "descricao": f"Valor de R$ {float(v):.2f}, acima do padrão (mediana das compras: R$ 35).",
+                "descricao": (
+                    f"Valor de R$ {float(v):.2f}," " acima do padrão (mediana das compras: R$ 35)."
+                ),
             }
         )
 
-    # credito_nao_presente
     cred = transacao.get("credito")
     nao_pres = transacao.get("nao_presente")
     if _valor_valido(cred) and _valor_valido(nao_pres) and int(cred) == 1 and int(nao_pres) == 1:
@@ -134,7 +144,6 @@ def calcular_sinais(transacao: dict) -> list[dict]:
             }
         )
 
-    # ip_desconhecido
     v = transacao.get("ip_pais_desconhecido")
     if _valor_valido(v) and int(v) == 1:
         sinais.append(
@@ -144,13 +153,12 @@ def calcular_sinais(transacao: dict) -> list[dict]:
             }
         )
 
-    # estabelecimento_risco
     v = transacao.get("risco_estabelecimento")
-    if _valor_valido(v) and float(v) >= 40:
+    if _valor_valido(v) and float(v) >= LIMIAR_RISCO_ESTABELECIMENTO:
         sinais.append(
             {
                 "id": "estabelecimento_risco",
-                "descricao": f"Estabelecimento com risco {float(v):.0f} (normal: abaixo de 37).",
+                "descricao": (f"Estabelecimento com risco {float(v):.0f} (normal: abaixo de 37)."),
             }
         )
 
@@ -164,15 +172,12 @@ def decidir(nota: float, sinais: list[dict]) -> str:
     """
     ids_sinais = {s["id"] for s in sinais}
 
-    # 1. BLOQUEAR
     if nota >= NOTA_BLOQUEAR or "ip_desconhecido" in ids_sinais:
         return "BLOQUEAR"
 
-    # 2. PEDIR_CONFIRMACAO
     if nota >= NOTA_CONFIRMAR or len(sinais) >= MIN_SINAIS_CONFIRMAR:
         return "PEDIR_CONFIRMACAO"
 
-    # 3. APROVAR
     return "APROVAR"
 
 
@@ -239,7 +244,6 @@ class AgenteSentinela:
             if texto_llm:
                 return texto_llm, "granite"
 
-        # Texto de reserva
         texto = _texto_reserva(decisao_legivel, nota, sinais)
         return texto, "regras"
 
@@ -250,12 +254,13 @@ class AgenteSentinela:
         if not granite_disponivel():
             return ""
 
-        # Monta o prompt
         if sinais:
             linhas_sinais = "\n".join(f"- {s['descricao']}" for s in sinais)
         else:
             linhas_sinais = "- nenhum sinal de alerta"
 
+        tipo = transacao.get("tipo_transacao", "")
+        modalidade = transacao.get("modalidade_transacao", "")
         prompt = (
             "Você é um assistente de prevenção a fraudes de uma cooperativa de crédito.\n"
             "Explique para um analista, em exatamente 3 frases curtas em português do Brasil,\n"
@@ -265,7 +270,7 @@ class AgenteSentinela:
             f"Nota de risco: {nota}/100\n"
             f"Valor: R$ {transacao.get('valor', '')}\n"
             f"Data e hora: {transacao.get('data_hora', '')}\n"
-            f"Tipo: {transacao.get('tipo_transacao', '')}, {transacao.get('modalidade_transacao', '')}\n"
+            f"Tipo: {tipo}, {modalidade}\n"
             f"Sinais de alerta:\n{linhas_sinais}"
         )
 
@@ -280,11 +285,12 @@ class AgenteSentinela:
                 },
                 timeout=OLLAMA_TIMEOUT_S,
             )
-            if resp.status_code != 200:
+            if resp.status_code != HTTPStatus.OK:
                 return ""
             texto = resp.json().get("response", "").strip()
             return texto if texto else ""
-        except Exception:
+        except (requests.RequestException, ValueError, KeyError) as erro:
+            logger.warning("Falha ao chamar o Ollama: %s", erro)
             return ""
 
     def analisar(self, transacao: dict, usar_llm: bool = True) -> dict:
@@ -317,12 +323,10 @@ class AgenteSentinela:
         """
         resultado = df.copy()
 
-        # Pontuação em lote via predict_proba
-        X = df[VARIAVEIS_MODELO].copy()
-        probas = self._pipeline.predict_proba(X)[:, 1]
+        entradas = df[VARIAVEIS_MODELO].copy()
+        probas = self._pipeline.predict_proba(entradas)[:, 1]
         resultado["nota"] = (probas * 100).round(1)
 
-        # Sinais e decisão por linha
         n_sinais_list = []
         decisao_list = []
         for _, row in df.iterrows():

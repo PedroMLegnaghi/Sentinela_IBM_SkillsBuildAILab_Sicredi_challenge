@@ -8,7 +8,7 @@ import json
 import pandas as pd
 
 from src.agente import AgenteSentinela
-from src.config import CAMINHO_AVALIACAO, CAMINHO_PREPARADO
+from src.config import CAMINHO_AVALIACAO, CAMINHO_PREPARADO, FIM_TESTE, INICIO_TESTE
 
 
 def avaliar():
@@ -16,8 +16,7 @@ def avaliar():
     print("Carregando dados preparados...")
     df = pd.read_parquet(CAMINHO_PREPARADO)
 
-    # Filtro de teste: março de 2025 (igual à seção 7)
-    teste = df[(df["data_hora"] >= "2025-03-01") & (df["data_hora"] < "2025-04-01")].copy()
+    teste = df[(df["data_hora"] >= INICIO_TESTE) & (df["data_hora"] < FIM_TESTE)].copy()
     print(f"  Transações em março: {len(teste):,}")
 
     print("Carregando agente...")
@@ -66,7 +65,7 @@ def avaliar():
     }
 
     CAMINHO_AVALIACAO.parent.mkdir(parents=True, exist_ok=True)
-    with open(CAMINHO_AVALIACAO, "w", encoding="utf-8") as f:
+    with CAMINHO_AVALIACAO.open("w", encoding="utf-8") as f:
         json.dump(avaliacao, f, indent=2, ensure_ascii=False)
     print(f"Avaliação salva em {CAMINHO_AVALIACAO}")
 

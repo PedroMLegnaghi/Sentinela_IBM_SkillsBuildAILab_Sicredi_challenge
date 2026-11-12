@@ -3,6 +3,7 @@
 Uso: importar AgenteSentinela de src.agente
 """
 
+import logging
 import math
 
 import joblib
@@ -15,17 +16,29 @@ from src.config import (
     NOTA_BLOQUEAR,
     NOTA_CONFIRMAR,
     OLLAMA_MODELO,
+    OLLAMA_TIMEOUT_DISPONIBILIDADE_S,
     OLLAMA_TIMEOUT_S,
     OLLAMA_URL,
+    ROTULOS_DECISAO,
     VARIAVEIS_MODELO,
 )
 
-# Textos legíveis por decisão
-_DECISAO_LEGIVEL = {
-    "BLOQUEAR": "Bloquear e enviar ao analista",
-    "PEDIR_CONFIRMACAO": "Pedir confirmação ao cliente",
-    "APROVAR": "Aprovar",
-}
+logger = logging.getLogger(__name__)
+
+
+
+def granite_disponivel(timeout_s: float = OLLAMA_TIMEOUT_DISPONIBILIDADE_S) -> bool:
+    """Verifica se o IBM Granite (Ollama) está disponível.
+
+    Faz GET em {OLLAMA_URL}/api/tags e devolve True só se o status for 200.
+    Qualquer requests.RequestException devolve False (registrado em log).
+    """
+    try:
+        resp = requests.get(f"{OLLAMA_URL}/api/tags", timeout=timeout_s)
+        return resp.status_code == 200
+    except requests.RequestException as erro:
+        logger.warning("Granite indisponível: %s", erro)
+        return False
 
 
 def _valor_valido(v) -> bool:
@@ -203,7 +216,7 @@ class AgenteSentinela:
         Retorna (texto, fonte) onde fonte é "granite" ou "regras".
         Nunca levanta exceção de rede.
         """
-        decisao_legivel = _DECISAO_LEGIVEL.get(decisao, decisao)
+        decisao_legivel = ROTULOS_DECISAO.get(decisao, decisao)
 
         if usar_llm:
             texto_llm = self._chamar_ollama(transacao, nota, sinais, decisao_legivel)
@@ -217,11 +230,7 @@ class AgenteSentinela:
     def _chamar_ollama(self, transacao: dict, nota: float, sinais: list[dict],
                        decisao_legivel: str) -> str:
         """Tenta chamar o Ollama. Retorna string vazia em caso de qualquer falha."""
-        try:
-            resp = requests.get(f"{OLLAMA_URL}/api/tags", timeout=2)
-            if resp.status_code != 200:
-                return ""
-        except Exception:
+        if not granite_disponivel():
             return ""
 
         # Monta o prompt
@@ -270,7 +279,7 @@ class AgenteSentinela:
         sinais = calcular_sinais(transacao)
         nota = self.pontuar(transacao)
         decisao = decidir(nota, sinais)
-        decisao_legivel = _DECISAO_LEGIVEL.get(decisao, decisao)
+        decisao_legivel = ROTULOS_DECISAO.get(decisao, decisao)
         explicacao, fonte_explicacao = self.explicar(
             transacao, nota, sinais, decisao, usar_llm=usar_llm
         )

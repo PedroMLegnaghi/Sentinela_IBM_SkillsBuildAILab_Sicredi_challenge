@@ -47,6 +47,7 @@ max-statements = 50
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D", "S101", "PLR2004"]
+"tests/test_conformidade_*.py" = ["I001"]
 "conftest.py" = ["D"]
 "src/preparar_dados.py" = ["T201"]
 "src/treinar_modelo.py" = ["T201"]

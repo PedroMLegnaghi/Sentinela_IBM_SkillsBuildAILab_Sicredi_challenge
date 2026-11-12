@@ -42,6 +42,39 @@ sequenceDiagram
     P-->>A: Mostrar painel com legenda da fonte
 ```
 
+## Decisão imediata e auditoria em paralelo (Issue #38)
+
+```mermaid
+sequenceDiagram
+    actor C as Autorizador / Site
+    participant A as API (src/api/app.py)
+    participant S as servicos.py
+    participant N as Núcleo (agente.py)
+    participant T as Thread (auditorias.py)
+    participant AI as src/auditoria
+
+    C->>A: POST /api/analisar {transacao, auditar:true}
+    A->>S: analisar_transacao(transacao_dict)
+    S->>N: calcular_sinais + pontuar + decidir
+    N-->>S: nota, sinais, decisao
+    S->>S: explicar(usar_llm=False) — texto de reserva
+    S-->>A: dict Analise + latencia_ms
+    A->>T: registrar "pendente" + disparar thread
+    A-->>C: 200 {analise, id_auditoria} — resposta imediata
+
+    Note over T,AI: Em segundo plano (thread daemon)
+    T->>AI: auditar(transacao, analise)
+    alt src/auditoria existe (#39)
+        AI-->>T: Relatorio
+        T->>T: registrar "concluida" em memória
+    else src/auditoria não existe ainda
+        T->>T: registrar "erro" em memória
+    end
+
+    C->>A: GET /api/auditorias/{id}
+    A-->>C: Auditoria {status, relatorio, ...}
+```
+
 ## Registrar a resposta do analista (US007)
 
 O clique pode se repetir (duplo clique, ou o analista muda de ideia). Cada clique acrescenta

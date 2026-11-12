@@ -1,34 +1,15 @@
 """Testes unitários do agente Sentinela (seção 9 da especificação).
 
 Não dependem da pasta data/ nem do Ollama.
-
-TODO (pendente — fazer manualmente):
-    Teste com Ollama + IBM Granite real (fonte_explicacao == "granite"):
-    1. Instalar Ollama: curl -fsSL https://ollama.com/install.sh | sh
-    2. Baixar o modelo: ollama pull granite4:micro
-    3. Garantir que o Ollama está rodando: ollama serve
-    4. Rodar o teste manual abaixo da raiz do projeto:
-         .venv/bin/python -c "
-         from src.agente import AgenteSentinela
-         agente = AgenteSentinela()
-         r = agente.analisar({'valor': 400.0, 'hora': 3, 'madrugada': 1, 'credito': 1,
-             'nao_presente': 1, 'ip_pais_desconhecido': 0, 'vel_cartao_terminal_1h': 45,
-             'qtd_transacoes_cartao_1min': 20, 'qtd_token_carteira_3m': 80,
-             'dist_terminal_anterior_km': 300.0, 'risco_estabelecimento': 45,
-             'tipo_transacao': 'credito', 'modalidade_transacao': 'cartao_nao_presente'},
-             usar_llm=True)
-         print('fonte:', r['fonte_explicacao'])
-         print('explicacao:', r['explicacao'])
-         "
-    5. Critério de aceite: fonte_explicacao == "granite" e explicacao com 3 frases em português.
-    Este teste também é validado pela Etapa 4 (streamlit run app.py com Ollama ligado).
 """
 
 import math
 
+import pandas as pd
 import pytest
+import requests
 
-from src.agente import calcular_sinais, decidir
+from src.agente import AgenteSentinela, calcular_sinais, decidir, granite_disponivel
 from src.config import CAMINHO_MODELO
 
 # ---------------------------------------------------------------------------
@@ -67,13 +48,17 @@ LEGITIMA = {
     "modalidade_transacao": "cartao_presente",
 }
 
+modelo_ausente = not CAMINHO_MODELO.exists()
+
+
 # ---------------------------------------------------------------------------
 # Teste 1: calcular_sinais(FRAUDE) devolve 8 sinais (todos menos ip_desconhecido)
 # ---------------------------------------------------------------------------
 
 
-def test_sinais_fraude():
+def test_sinais_fraude_devolve_oito_sinais():
     sinais = calcular_sinais(FRAUDE)
+
     ids = [s["id"] for s in sinais]
     assert len(sinais) == 8, f"Esperado 8 sinais, obtido {len(sinais)}: {ids}"
     assert "ip_desconhecido" not in ids
@@ -92,8 +77,9 @@ def test_sinais_fraude():
 # ---------------------------------------------------------------------------
 
 
-def test_sinais_legitima():
+def test_sinais_legitima_devolve_lista_vazia():
     sinais = calcular_sinais(LEGITIMA)
+
     assert sinais == [], f"Esperado [], obtido: {sinais}"
 
 
@@ -102,82 +88,86 @@ def test_sinais_legitima():
 # ---------------------------------------------------------------------------
 
 
-def test_sinais_todos_none():
+def test_sinais_com_todos_campos_none_devolve_lista_vazia():
     transacao_nula = {col: None for col in FRAUDE}
+
     sinais = calcular_sinais(transacao_nula)
+
     assert sinais == []
 
 
-def test_sinais_todos_nan():
+def test_sinais_com_todos_campos_nan_devolve_lista_vazia():
     transacao_nan = {col: math.nan for col in FRAUDE}
+
     sinais = calcular_sinais(transacao_nan)
+
     assert sinais == []
 
 
 # ---------------------------------------------------------------------------
-# Teste 4: decidir
+# Teste 4: decidir — casos via parametrize
 # ---------------------------------------------------------------------------
 
 
-def test_decidir_aprovar():
-    assert decidir(10, []) == "APROVAR"
+@pytest.mark.parametrize(
+    "nota, sinais, esperado",
+    [
+        (10, [], "APROVAR"),
+        (50, [], "PEDIR_CONFIRMACAO"),
+        (
+            10,
+            [
+                {"id": "valor_alto", "descricao": "x"},
+                {"id": "madrugada", "descricao": "x"},
+                {"id": "rajada_1min", "descricao": "x"},
+            ],
+            "PEDIR_CONFIRMACAO",
+        ),
+        (90, [], "BLOQUEAR"),
+        (
+            5,
+            [{"id": "ip_desconhecido", "descricao": "Endereço IP de país desconhecido."}],
+            "BLOQUEAR",
+        ),
+    ],
+)
+def test_decidir_retorna_decisao_correta(nota, sinais, esperado):
+    decisao = decidir(nota, sinais)
 
-
-def test_decidir_pedir_confirmacao_nota():
-    assert decidir(50, []) == "PEDIR_CONFIRMACAO"
-
-
-def test_decidir_pedir_confirmacao_sinais():
-    tres_sinais = [
-        {"id": "valor_alto", "descricao": "x"},
-        {"id": "madrugada", "descricao": "x"},
-        {"id": "rajada_1min", "descricao": "x"},
-    ]
-    assert decidir(10, tres_sinais) == "PEDIR_CONFIRMACAO"
-
-
-def test_decidir_bloquear_nota():
-    assert decidir(90, []) == "BLOQUEAR"
-
-
-def test_decidir_bloquear_ip_desconhecido():
-    sinal_ip = [{"id": "ip_desconhecido", "descricao": "Endereço IP de país desconhecido."}]
-    assert decidir(5, sinal_ip) == "BLOQUEAR"
+    assert decisao == esperado
 
 
 # ---------------------------------------------------------------------------
 # Testes 5 e 6: dependem do modelo — pulam se sentinela.joblib não existir
 # ---------------------------------------------------------------------------
 
-modelo_ausente = not CAMINHO_MODELO.exists()
-
 
 @pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
-def test_analisar_fraude():
-    from src.agente import AgenteSentinela
-
+def test_analisar_fraude_tem_decisao_bloquear_e_nota_alta():
     agente = AgenteSentinela()
+
     resultado = agente.analisar(FRAUDE, usar_llm=False)
+
     assert resultado["decisao"] == "BLOQUEAR", f"Esperado BLOQUEAR, obtido {resultado['decisao']}"
     assert resultado["nota"] >= 70, f"Esperado nota >= 70, obtido {resultado['nota']}"
 
 
 @pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
-def test_analisar_legitima():
-    from src.agente import AgenteSentinela
-
+def test_analisar_legitima_tem_decisao_aprovar_e_nota_baixa():
     agente = AgenteSentinela()
+
     resultado = agente.analisar(LEGITIMA, usar_llm=False)
+
     assert resultado["decisao"] == "APROVAR", f"Esperado APROVAR, obtido {resultado['decisao']}"
     assert resultado["nota"] < 30, f"Esperado nota < 30, obtido {resultado['nota']}"
 
 
 @pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
-def test_analisar_chaves_exatas():
-    from src.agente import AgenteSentinela
-
+def test_analisar_devolve_exatamente_seis_chaves():
     agente = AgenteSentinela()
+
     resultado = agente.analisar(FRAUDE, usar_llm=False)
+
     chaves_esperadas = {
         "nota",
         "sinais",
@@ -190,33 +180,23 @@ def test_analisar_chaves_exatas():
 
 
 @pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
-def test_analisar_fonte_regras_sem_llm():
-    from src.agente import AgenteSentinela
-
+def test_analisar_sem_llm_usa_fonte_regras():
     agente = AgenteSentinela()
+
     resultado = agente.analisar(FRAUDE, usar_llm=False)
+
     assert resultado["fonte_explicacao"] == "regras"
 
 
-# ---------------------------------------------------------------------------
-# Teste 6: analisar_lote dá as mesmas decisões que analisar
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
-def test_analisar_lote_consistente():
-    import pandas as pd
-
-    from src.agente import AgenteSentinela
-
+def test_analisar_lote_da_mesmas_decisoes_que_analisar_individual():
     agente = AgenteSentinela()
-
     df = pd.DataFrame([FRAUDE, LEGITIMA])
+
     resultado_lote = agente.analisar_lote(df)
 
     decisao_fraude_lote = resultado_lote.iloc[0]["decisao"]
     decisao_legitima_lote = resultado_lote.iloc[1]["decisao"]
-
     decisao_fraude_individual = agente.analisar(FRAUDE, usar_llm=False)["decisao"]
     decisao_legitima_individual = agente.analisar(LEGITIMA, usar_llm=False)["decisao"]
 
@@ -226,3 +206,94 @@ def test_analisar_lote_consistente():
     assert (
         decisao_legitima_lote == decisao_legitima_individual
     ), f"Lote: {decisao_legitima_lote} | Individual: {decisao_legitima_individual}"
+
+
+# ---------------------------------------------------------------------------
+# Testes do Granite com monkeypatch
+# ---------------------------------------------------------------------------
+
+
+def test_granite_disponivel_retorna_false_quando_conexao_falha(monkeypatch):
+    def get_falha(*args, **kwargs):
+        raise requests.ConnectionError("sem conexão")
+
+    monkeypatch.setattr(requests, "get", get_falha)
+
+    resultado = granite_disponivel()
+
+    assert resultado is False
+
+
+@pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
+def test_explicar_usa_fonte_regras_quando_post_estoura_timeout(monkeypatch):
+    def get_ok(*args, **kwargs):
+        class Resp:
+            status_code = 200
+
+        return Resp()
+
+    def post_timeout(*args, **kwargs):
+        raise requests.Timeout("timeout")
+
+    monkeypatch.setattr(requests, "get", get_ok)
+    monkeypatch.setattr(requests, "post", post_timeout)
+    agente = AgenteSentinela()
+
+    _, fonte = agente.explicar(FRAUDE, 90.0, [], "BLOQUEAR", usar_llm=True)
+
+    assert fonte == "regras"
+
+
+@pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
+def test_explicar_usa_fonte_regras_quando_response_vem_vazio(monkeypatch):
+    def get_ok(*args, **kwargs):
+        class Resp:
+            status_code = 200
+
+        return Resp()
+
+    def post_vazio(*args, **kwargs):
+        class Resp:
+            status_code = 200
+
+            def json(self):
+                return {"response": ""}
+
+        return Resp()
+
+    monkeypatch.setattr(requests, "get", get_ok)
+    monkeypatch.setattr(requests, "post", post_vazio)
+    agente = AgenteSentinela()
+
+    _, fonte = agente.explicar(FRAUDE, 90.0, [], "BLOQUEAR", usar_llm=True)
+
+    assert fonte == "regras"
+
+
+@pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
+def test_explicar_usa_fonte_granite_quando_resposta_valida(monkeypatch):
+    texto_esperado = "Explicação em 3 frases."
+
+    def get_ok(*args, **kwargs):
+        class Resp:
+            status_code = 200
+
+        return Resp()
+
+    def post_ok(*args, **kwargs):
+        class Resp:
+            status_code = 200
+
+            def json(self):
+                return {"response": texto_esperado}
+
+        return Resp()
+
+    monkeypatch.setattr(requests, "get", get_ok)
+    monkeypatch.setattr(requests, "post", post_ok)
+    agente = AgenteSentinela()
+
+    texto, fonte = agente.explicar(FRAUDE, 90.0, [], "BLOQUEAR", usar_llm=True)
+
+    assert fonte == "granite"
+    assert texto == texto_esperado

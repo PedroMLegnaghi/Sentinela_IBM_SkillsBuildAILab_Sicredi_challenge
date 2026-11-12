@@ -33,8 +33,11 @@ def test_pagina_fila_abre_sem_excecao():
     """pagina_fila.renderizar() carrega sem exceção."""
 
     def executar() -> None:
+        import streamlit as st  # noqa: PLC0415
+
         from src.interface import pagina_fila  # noqa: PLC0415
 
+        st.session_state["usar_granite"] = True
         pagina_fila.renderizar()
 
     app = AppTest.from_function(executar, default_timeout=120)

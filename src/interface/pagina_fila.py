@@ -16,6 +16,7 @@ from src.interface.formatacao import (
     formatar_data_hora,
     formatar_inteiro,
     formatar_modalidade,
+    formatar_moeda,
     formatar_nota,
     formatar_tipo,
     rotulo_resposta,
@@ -246,11 +247,7 @@ def _renderizar_historico(agente, transacao: dict) -> None:
             hist_exibido = pd.DataFrame(
                 {
                     "Data e hora": hist["data_hora"].map(formatar_data_hora),
-                    "Valor": hist["valor"].map(
-                        lambda v: f"R$ {v:,.2f}".replace(",", "X")
-                        .replace(".", ",")
-                        .replace("X", ".")
-                    ),
+                    "Valor": hist["valor"].map(formatar_moeda),
                     "Tipo": hist["tipo_transacao"].map(formatar_tipo),
                     "Modalidade": hist["modalidade_transacao"].map(formatar_modalidade),
                     "Distância do terminal anterior (km)": hist["dist_terminal_anterior_km"].map(
@@ -295,10 +292,14 @@ def _renderizar_painel(visiveis: pd.DataFrame, id_selecionado: int) -> None:
     st.caption(
         escapar_markdown(
             textos.RESUMO_PAINEL.format(
-                data_hora=formatar_data_hora(pd.Timestamp(transacao_base["data_hora"])),
+                data_hora=formatar_data_hora(
+                    pd.Timestamp(transacao_base["data_hora"])
+                    if pd.notna(transacao_base.get("data_hora"))
+                    else None
+                ),
                 tipo=formatar_tipo(transacao_base.get("tipo_transacao", "")),
                 modalidade=formatar_modalidade(transacao_base.get("modalidade_transacao", "")),
-                valor=f"R$ {transacao_base.get('valor', 0):.2f}",
+                valor=formatar_moeda(transacao_base.get("valor")),
             )
         )
     )

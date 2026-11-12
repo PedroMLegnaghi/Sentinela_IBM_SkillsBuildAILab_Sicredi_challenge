@@ -115,10 +115,10 @@ Módulos esqueleto criados na Issue #19; cada Issue subsequente implementa o seu
 | `src/interface/pagina_respostas.py` · `renderizar()` | Página Respostas do analista | #25 |
 
 
-## Arquitetura web (ADR-011 e ADR-012, Issue #37)
+## Arquitetura web (ADR-011 e ADR-012, Issues #37 e #38)
 
 A partir da Issue #37, o Streamlit fica como reserva e a aplicação passa a ter três contêineres
-além do núcleo. A Issue #38 detalha os diagramas.
+além do núcleo.
 
 | Contêiner | Tecnologia | Responsabilidade |
 | --- | --- | --- |
@@ -130,3 +130,37 @@ além do núcleo. A Issue #38 detalha os diagramas.
 Caminho de uma compra: autorizador ou site → `POST /api/analisar` → núcleo decide (milissegundos)
 → resposta imediata; em paralelo, a auditoria chama o watsonx.ai, que pede ferramentas do
 Sentinela, e o relatório fica disponível em `GET /api/auditorias/{id}` (segundos).
+
+```mermaid
+graph TB
+    ANA["Analista"]
+    AUT["Autorizador (externo)"]
+
+    subgraph Sentinela["Sentinela (máquina local)"]
+        SITE["<b>Site</b><br/>Next.js · web/<br/><small>fila, painel, desempenho</small>"]
+        API["<b>API</b><br/>FastAPI · src/api/<br/><small>decisão imediata + auditoria</small>"]
+        NUC["<b>Núcleo</b><br/>src/agente.py + src/explicabilidade.py<br/><small>sinais, nota, decisão, contribuições</small>"]
+        AUD["<b>Auditoria</b><br/>src/auditoria/ + watsonx.ai<br/><small>segunda opinião em paralelo</small>"]
+        ARQ[("<b>Arquivos locais</b><br/>data/ · modelos/")]
+    end
+
+    ANA -->|"localhost:3000"| SITE
+    AUT -->|"POST /api/analisar"| API
+    SITE -->|"HTTP · localhost:8000"| API
+    API -->|"calcular_sinais, pontuar, decidir"| NUC
+    API -->|"auditar() em thread"| AUD
+    NUC -->|"sentinela.joblib"| ARQ
+    API -->|"parquet, feedback.csv, JSON"| ARQ
+```
+
+### Módulos da API (`src/api/`)
+
+| Módulo | Responsabilidade |
+| --- | --- |
+| `app.py` | Objeto FastAPI, lifespan, rotas e CORS |
+| `esquemas.py` | Modelos Pydantic de entrada e saída |
+| `servicos.py` | Carga de dados, fila, análise, respostas e métricas |
+| `auditorias.py` | Execução em segundo plano e dicionário em memória |
+
+`src/explicabilidade.py` — esqueleto com `contribuicoes(pipeline, transacao) -> list[dict]`;
+implementado na Issue #41.

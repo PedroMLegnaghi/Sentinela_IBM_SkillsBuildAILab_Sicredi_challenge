@@ -95,6 +95,7 @@ TRANSACAO_ALTO_RISCO = {
 def cliente():
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient  # noqa: PLC0415
+
     from src.api.app import app  # noqa: PLC0415
 
     with TestClient(app) as cliente_teste:

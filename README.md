@@ -13,7 +13,7 @@ tudo numa interface Streamlit rodando na própria máquina.
 ## O problema
 
 Fraudes em cartões causam prejuízo imediato à cooperativa e ao associado. O sistema atual da
-Sicredi bloqueou 26 das 54 fraudes no período de teste (48 %), aprovando 28 fraudes. O Sentinela
+Sicredi bloqueou 26 das 54 fraudes no período de teste (48,1 %), deixando passar 28 fraudes. O Sentinela
 bloqueia as 54 (100 %), sem bloquear nenhuma compra legítima, e ainda sinaliza 159 transações para
 confirmação do cliente — tudo com dados 100 % sintéticos fornecidos pela Sicredi.
 
@@ -33,7 +33,7 @@ confirmação do cliente — tudo com dados 100 % sintéticos fornecidos pela Si
 
 | Indicador | Sentinela | Sistema atual |
 | --- | --- | --- |
-| Fraudes bloqueadas | **54 de 54** (100 %) | 26 de 54 (48 %) |
+| Fraudes bloqueadas | **54 de 54** (100,0 %) | 26 de 54 (48,1 %) |
 | Compras legítimas bloqueadas | **0** | — |
 | Pedidos de confirmação | **159** | — |
 | PR-AUC / ROC-AUC | **1,0 / 1,0** | — |
@@ -45,7 +45,7 @@ confirmação do cliente — tudo com dados 100 % sintéticos fornecidos pela Si
 
 ## Pré-requisitos
 
-- Python 3.11 ou mais novo
+- Python 3.14 (a versão usada no desenvolvimento e no CI)
 - O arquivo `data/case_transacoes_cartoes_sintetico_900k.csv` (fornecido pela Sicredi; ~294 MB;
   não versionado)
 - **Ollama com IBM Granite 4 (opcional):** sem ele, o agente usa o texto automático de reserva.
@@ -60,6 +60,7 @@ source .venv/bin/activate        # Linux/macOS
 
 # 2. Instalar dependências
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
 
 # 3. Preparar os dados (precisa do CSV em data/)
 python -m src.preparar_dados
@@ -70,7 +71,9 @@ python -m src.treinar_modelo
 # 5. Avaliar o agente (gera modelos/avaliacao_agente.json)
 python -m src.avaliar_agente
 
-# 6. Rodar os testes
+# 6. Verificar qualidade e rodar os testes
+python -m black --check .
+python -m ruff check .
 python -m pytest -q
 
 # 7. Abrir a interface
@@ -203,20 +206,3 @@ O IBM Bob escreveu e revisou todo o código desta reta final do projeto, seguind
 
 <!-- integrantes: preencher -->
 
----
-
-## Verificações manuais de acessibilidade (Issue #6, passo 4)
-
-As verificações abaixo são obrigatórias para fechar a Issue #6 e devem ser registradas no Pull
-Request com ✅ ou ❌ e achados de severidade alta:
-
-- [ ] Nota de Acessibilidade do **Lighthouse** (Chrome DevTools → aba Lighthouse → categoria
-  Accessibility) na página **Fila de alertas**, com a meta de **90 ou mais**. Se abaixo, listar
-  os problemas como Issue nova.
-- [ ] Interface usável com **zoom de 200 %** (Ctrl/⌘ + scroll ou configuração do navegador):
-  nenhum conteúdo cortado ou sobreposto.
-- [ ] Interface usável em **janela estreita** (~768 px): colunas se empilham sem perda de
-  informação.
-- [ ] **Revisão heurística** feita separadamente por duas pessoas (seção 15 do
-  `docs/08-design-da-interface.md`): anotar os achados de severidade alta encontrados por
-  cada revisor.

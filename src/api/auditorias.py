@@ -41,6 +41,84 @@ def registrar_auditoria(id_auditoria: str, estado: dict[str, Any]) -> None:
         _auditorias[id_auditoria] = estado
 
 
+def _registrar_resultado(
+    id_auditoria: str,
+    *,
+    status: str,
+    relatorio: dict[str, Any] | None,
+    latencia_ms: float,
+    mensagem: str | None,
+) -> None:
+    """Persiste o resultado final de uma auditoria no dicionário em memória.
+
+    Args:
+        id_auditoria: Identificador da auditoria.
+        status: "concluida" ou "erro".
+        relatorio: Relatório produzido por ``auditar``, ou None.
+        latencia_ms: Tempo total de execução em milissegundos.
+        mensagem: Mensagem de erro, ou None.
+    """
+    registrar_auditoria(
+        id_auditoria,
+        {
+            "id_auditoria": id_auditoria,
+            "status": status,
+            "relatorio": relatorio,
+            "latencia_ms": round(latencia_ms, 1),
+            "mensagem": mensagem,
+        },
+    )
+
+
+def _executar_auditoria(
+    id_auditoria: str,
+    transacao: dict[str, Any],
+    analise: dict[str, Any],
+) -> None:
+    """Executa a auditoria e persiste o resultado (chamada dentro de thread daemon).
+
+    Tenta importar ``src.auditoria.auditar``; captura ``ImportError`` quando o módulo
+    não existe ainda, e ``ValueError``, ``KeyError``, ``TypeError`` e ``OSError`` para
+    dados inválidos ou falhas de I/O.
+
+    Args:
+        id_auditoria: Identificador da auditoria já criada como "pendente".
+        transacao: Dicionário da transação a auditar.
+        analise: Dicionário de Analise já calculada.
+    """
+    import time  # noqa: PLC0415
+
+    inicio = time.perf_counter()
+    try:
+        from src.auditoria import auditar  # noqa: PLC0415
+
+        relatorio = auditar(transacao, analise)
+        _registrar_resultado(
+            id_auditoria,
+            status="concluida",
+            relatorio=relatorio,
+            latencia_ms=(time.perf_counter() - inicio) * 1000,
+            mensagem=None,
+        )
+    except ImportError:
+        _registrar_resultado(
+            id_auditoria,
+            status="erro",
+            relatorio=None,
+            latencia_ms=(time.perf_counter() - inicio) * 1000,
+            mensagem="Auditoria por IA ainda não instalada.",
+        )
+    except (ValueError, KeyError, TypeError, OSError) as erro:
+        logger.error("Falha na auditoria %s: %s", id_auditoria, erro)
+        _registrar_resultado(
+            id_auditoria,
+            status="erro",
+            relatorio=None,
+            latencia_ms=(time.perf_counter() - inicio) * 1000,
+            mensagem="Erro interno na auditoria.",
+        )
+
+
 def disparar_auditoria_em_segundo_plano(
     id_auditoria: str,
     transacao: dict[str, Any],
@@ -48,59 +126,14 @@ def disparar_auditoria_em_segundo_plano(
 ) -> None:
     """Inicia a auditoria em segundo plano (thread daemon).
 
-    Tenta chamar ``src.auditoria.auditar``; se o módulo não existir, encerra
-    com ``status="erro"`` e mensagem informativa.
-
     Args:
         id_auditoria: Identificador da auditoria já criada como "pendente".
         transacao: Dicionário da transação a auditar.
         analise: Dicionário de Analise já calculada.
     """
-
-    def _executar() -> None:
-        import time  # noqa: PLC0415
-
-        inicio = time.perf_counter()
-        try:
-            from src.auditoria import auditar  # noqa: PLC0415
-
-            relatorio = auditar(transacao, analise)
-            latencia_ms = (time.perf_counter() - inicio) * 1000
-            registrar_auditoria(
-                id_auditoria,
-                {
-                    "id_auditoria": id_auditoria,
-                    "status": "concluida",
-                    "relatorio": relatorio,
-                    "latencia_ms": round(latencia_ms, 1),
-                    "mensagem": None,
-                },
-            )
-        except ImportError:
-            latencia_ms = (time.perf_counter() - inicio) * 1000
-            registrar_auditoria(
-                id_auditoria,
-                {
-                    "id_auditoria": id_auditoria,
-                    "status": "erro",
-                    "relatorio": None,
-                    "latencia_ms": round(latencia_ms, 1),
-                    "mensagem": "Auditoria por IA ainda não instalada.",
-                },
-            )
-        except Exception as erro:  # noqa: BLE001
-            latencia_ms = (time.perf_counter() - inicio) * 1000
-            logger.error("Falha na auditoria %s: %s", id_auditoria, erro)
-            registrar_auditoria(
-                id_auditoria,
-                {
-                    "id_auditoria": id_auditoria,
-                    "status": "erro",
-                    "relatorio": None,
-                    "latencia_ms": round(latencia_ms, 1),
-                    "mensagem": "Erro interno na auditoria.",
-                },
-            )
-
-    thread = threading.Thread(target=_executar, daemon=True)
+    thread = threading.Thread(
+        target=_executar_auditoria,
+        args=(id_auditoria, transacao, analise),
+        daemon=True,
+    )
     thread.start()

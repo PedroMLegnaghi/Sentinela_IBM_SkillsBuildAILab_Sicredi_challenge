@@ -1,6 +1,27 @@
 """Testes unitários do agente Sentinela (seção 9 da especificação).
 
 Não dependem da pasta data/ nem do Ollama.
+
+TODO (pendente — fazer manualmente):
+    Teste com Ollama + IBM Granite real (fonte_explicacao == "granite"):
+    1. Instalar Ollama: curl -fsSL https://ollama.com/install.sh | sh
+    2. Baixar o modelo: ollama pull granite4:micro
+    3. Garantir que o Ollama está rodando: ollama serve
+    4. Rodar o teste manual abaixo da raiz do projeto:
+         .venv/bin/python -c "
+         from src.agente import AgenteSentinela
+         agente = AgenteSentinela()
+         r = agente.analisar({'valor': 400.0, 'hora': 3, 'madrugada': 1, 'credito': 1,
+             'nao_presente': 1, 'ip_pais_desconhecido': 0, 'vel_cartao_terminal_1h': 45,
+             'qtd_transacoes_cartao_1min': 20, 'qtd_token_carteira_3m': 80,
+             'dist_terminal_anterior_km': 300.0, 'risco_estabelecimento': 45,
+             'tipo_transacao': 'credito', 'modalidade_transacao': 'cartao_nao_presente'},
+             usar_llm=True)
+         print('fonte:', r['fonte_explicacao'])
+         print('explicacao:', r['explicacao'])
+         "
+    5. Critério de aceite: fonte_explicacao == "granite" e explicacao com 3 frases em português.
+    Este teste também é validado pela Etapa 4 (streamlit run app.py com Ollama ligado).
 """
 
 import math

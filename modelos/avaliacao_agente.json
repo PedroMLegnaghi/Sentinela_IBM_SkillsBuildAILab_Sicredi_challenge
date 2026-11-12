@@ -1,0 +1,18 @@
+{
+  "periodo": "2025-03",
+  "transacoes": 13608,
+  "fraudes_total": 54,
+  "sentinela": {
+    "bloqueadas": 54,
+    "fraudes_bloqueadas": 54,
+    "confirmacoes": 159,
+    "fraudes_em_confirmacao": 0,
+    "aprovadas": 13395,
+    "fraudes_aprovadas": 0
+  },
+  "sistema_atual": {
+    "bloqueadas": 26,
+    "fraudes_bloqueadas": 26,
+    "fraudes_nao_bloqueadas": 28
+  }
+}

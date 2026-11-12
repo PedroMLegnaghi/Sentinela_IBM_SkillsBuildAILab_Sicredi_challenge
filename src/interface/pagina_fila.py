@@ -51,8 +51,99 @@ def _renderizar_indicadores(fila: pd.DataFrame) -> None:
     col_fila, col_bloquear, col_confirmar, col_aprovar = st.columns(4)
     col_fila.metric(textos.METRICA_NA_FILA, formatar_inteiro(total), help=textos.AJUDA_NA_FILA)
     for col, chave in zip((col_bloquear, col_confirmar, col_aprovar), ORDEM_DECISOES, strict=True):
-        rotulo = DECISOES[chave].rotulo_curto
-        col.metric(rotulo, formatar_inteiro(contagens[chave]))
+        col.metric(DECISOES[chave].rotulo_curto, formatar_inteiro(contagens[chave]))
+
+
+def _montar_tabela_exibicao(visiveis: pd.DataFrame) -> pd.DataFrame:
+    """Constrói o DataFrame de exibição com as 8 colunas do design (seção 7.3).
+
+    Args:
+        visiveis: DataFrame filtrado da fila.
+
+    Returns:
+        DataFrame pronto para st.dataframe.
+    """
+    return pd.DataFrame(
+        {
+            "ID": visiveis["id_transacao"],
+            "Nota": visiveis["nota"],
+            "Decisão": visiveis["decisao"].map(
+                lambda d: f"{DECISOES[d].emoji} {DECISOES[d].rotulo_curto}"
+            ),
+            "Valor (R$)": visiveis["valor"],
+            "Data e hora": visiveis["data_hora"],
+            "Tipo": visiveis["tipo_transacao"].map(formatar_tipo),
+            "Modalidade": visiveis["modalidade_transacao"].map(formatar_modalidade),
+            "Sinais": visiveis["n_sinais"],
+        }
+    )
+
+
+def _atualizar_selecao(
+    ids_visiveis: list[int], evento, visiveis: pd.DataFrame  # noqa: ANN001
+) -> None:
+    """Sincroniza id_selecionado a partir do clique na tabela e do selectbox.
+
+    Atualiza st.session_state["id_selecionado"] se o analista clicou numa
+    linha diferente da última; depois renderiza o selectbox de busca por ID.
+
+    Args:
+        ids_visiveis: Lista de IDs na ordem da tabela filtrada.
+        evento: Objeto de evento devolvido por st.dataframe.
+        visiveis: DataFrame filtrado, usado para formatar as opções do selectbox.
+    """
+    linhas = evento.selection.rows
+    selecao_tabela = ids_visiveis[linhas[0]] if linhas else None
+    if selecao_tabela is not None and selecao_tabela != st.session_state.get(
+        "ultima_selecao_tabela"
+    ):
+        st.session_state["id_selecionado"] = selecao_tabela
+    st.session_state["ultima_selecao_tabela"] = selecao_tabela
+
+    st.session_state["busca_id"] = st.session_state["id_selecionado"]
+
+    def _formatar_id(id_t: int) -> str:
+        nota_val = float(visiveis.loc[visiveis["id_transacao"] == id_t, "nota"].iloc[0])
+        dec_val = visiveis.loc[visiveis["id_transacao"] == id_t, "decisao"].iloc[0]
+        return f"ID {id_t} · {formatar_nota(nota_val)} · {DECISOES[dec_val].rotulo_curto}"
+
+    st.selectbox(
+        textos.BUSCA_ID,
+        options=ids_visiveis,
+        key="busca_id",
+        format_func=_formatar_id,
+        on_change=_ao_escolher_id,
+    )
+
+
+def _exibir_dataframe_fila(tabela: pd.DataFrame):  # noqa: ANN201
+    """Renderiza o st.dataframe da fila com a configuração de colunas do design (seção 7.3).
+
+    Args:
+        tabela: DataFrame de exibição montado por _montar_tabela_exibicao.
+
+    Returns:
+        Objeto de evento do st.dataframe (usado para ler a seleção de linha).
+    """
+    return st.dataframe(
+        tabela,
+        key="tabela_fila",
+        on_select="rerun",
+        selection_mode="single-row",
+        hide_index=True,
+        height=ALTURA_TABELA_PX,
+        column_config={
+            "ID": st.column_config.NumberColumn(format="%d"),
+            "Nota": st.column_config.ProgressColumn(min_value=0, max_value=100, format="%.1f"),
+            "Decisão": st.column_config.TextColumn(),
+            "Valor (R$)": st.column_config.NumberColumn(format="%.2f"),
+            "Data e hora": st.column_config.DatetimeColumn(format="DD/MM/YYYY HH:mm"),
+            "Tipo": st.column_config.TextColumn(),
+            "Modalidade": st.column_config.TextColumn(),
+            "Sinais": st.column_config.NumberColumn(format="%d", help=textos.AJUDA_COLUNA_SINAIS),
+        },
+        use_container_width=True,
+    )
 
 
 def _renderizar_filtro_e_tabela(fila: pd.DataFrame) -> tuple[pd.DataFrame, int | None]:
@@ -86,74 +177,64 @@ def _renderizar_filtro_e_tabela(fila: pd.DataFrame) -> tuple[pd.DataFrame, int |
         )
     )
 
-    # Monta DataFrame de exibição
-    tabela = pd.DataFrame(
-        {
-            "ID": visiveis["id_transacao"],
-            "Nota": visiveis["nota"],
-            "Decisão": visiveis["decisao"].map(
-                lambda d: f"{DECISOES[d].emoji} {DECISOES[d].rotulo_curto}"
-            ),
-            "Valor (R$)": visiveis["valor"],
-            "Data e hora": visiveis["data_hora"],
-            "Tipo": visiveis["tipo_transacao"].map(formatar_tipo),
-            "Modalidade": visiveis["modalidade_transacao"].map(formatar_modalidade),
-            "Sinais": visiveis["n_sinais"],
-        }
-    )
-
     ids_visiveis = visiveis["id_transacao"].tolist()
-
-    # Garante que o id_selecionado está entre os visíveis (cenário 3)
     if st.session_state.get("id_selecionado") not in ids_visiveis:
         st.session_state["id_selecionado"] = ids_visiveis[0]
 
-    evento = st.dataframe(
-        tabela,
-        key="tabela_fila",
-        on_select="rerun",
-        selection_mode="single-row",
-        hide_index=True,
-        height=ALTURA_TABELA_PX,
-        column_config={
-            "ID": st.column_config.NumberColumn(format="%d"),
-            "Nota": st.column_config.ProgressColumn(min_value=0, max_value=100, format="%.1f"),
-            "Decisão": st.column_config.TextColumn(),
-            "Valor (R$)": st.column_config.NumberColumn(format="%.2f"),
-            "Data e hora": st.column_config.DatetimeColumn(format="DD/MM/YYYY HH:mm"),
-            "Tipo": st.column_config.TextColumn(),
-            "Modalidade": st.column_config.TextColumn(),
-            "Sinais": st.column_config.NumberColumn(format="%d", help=textos.AJUDA_COLUNA_SINAIS),
-        },
-        use_container_width=True,
-    )
-
-    # Clique na tabela atualiza id_selecionado (cenário 1 do US006)
-    linhas = evento.selection.rows
-    selecao_tabela = ids_visiveis[linhas[0]] if linhas else None
-    if selecao_tabela is not None and selecao_tabela != st.session_state.get(
-        "ultima_selecao_tabela"
-    ):
-        st.session_state["id_selecionado"] = selecao_tabela
-    st.session_state["ultima_selecao_tabela"] = selecao_tabela
-
-    # Selectbox sincronizado (cenário 2 do US006)
-    st.session_state["busca_id"] = st.session_state["id_selecionado"]
-
-    def _formatar_id(id_t: int) -> str:
-        nota_val = float(visiveis.loc[visiveis["id_transacao"] == id_t, "nota"].iloc[0])
-        dec_val = visiveis.loc[visiveis["id_transacao"] == id_t, "decisao"].iloc[0]
-        return f"ID {id_t} · {formatar_nota(nota_val)} · {DECISOES[dec_val].rotulo_curto}"
-
-    st.selectbox(
-        textos.BUSCA_ID,
-        options=ids_visiveis,
-        key="busca_id",
-        format_func=_formatar_id,
-        on_change=_ao_escolher_id,
-    )
+    evento = _exibir_dataframe_fila(_montar_tabela_exibicao(visiveis))
+    _atualizar_selecao(ids_visiveis, evento, visiveis)
 
     return visiveis, st.session_state["id_selecionado"]
+
+
+def _gravar_resposta(
+    transacao: dict, id_selecionado: int, resposta_analista: str, icone: str, toast: str
+) -> None:
+    """Tenta gravar uma resposta do analista; exibe toast ou erro.
+
+    Args:
+        transacao: Dicionário da transação em análise.
+        id_selecionado: ID da transação.
+        resposta_analista: "fraude" ou "legitima".
+        icone: Ícone do toast de sucesso.
+        toast: Texto do toast de sucesso.
+    """
+    try:
+        feedback.registrar_resposta(
+            CAMINHO_FEEDBACK,
+            feedback.RespostaAnalista(
+                id_transacao=id_selecionado,
+                nota=transacao.get("nota", 0.0),
+                decisao=transacao.get("decisao", ""),
+                resposta_analista=resposta_analista,
+                registrado_em=pd.Timestamp.now().to_pydatetime(),
+            ),
+        )
+        st.toast(toast, icon=icone)
+    except OSError as erro:
+        logger.error("Erro ao gravar resposta: %s", erro)
+        st.error(textos.ERRO_GRAVAR, icon=ICONE_ERRO)
+
+
+def _renderizar_resposta_atual(id_selecionado: int) -> None:
+    """Lê e exibe a última resposta registrada para a transação.
+
+    Args:
+        id_selecionado: ID da transação a consultar.
+    """
+    try:
+        ultima = feedback.ler_ultima_resposta(CAMINHO_FEEDBACK, id_selecionado)
+        if ultima is not None:
+            st.caption(
+                textos.RESPOSTA_ATUAL.format(
+                    resposta=rotulo_resposta(ultima.resposta_analista),
+                    data_hora=formatar_data_hora(pd.Timestamp(ultima.registrado_em)),
+                )
+            )
+        else:
+            st.caption(textos.SEM_RESPOSTA)
+    except ValueError:
+        st.warning(textos.ERRO_LER_RESPOSTAS)
 
 
 def _renderizar_resposta(transacao: dict, id_selecionado: int) -> None:
@@ -171,21 +252,7 @@ def _renderizar_resposta(transacao: dict, id_selecionado: int) -> None:
         key=f"fraude_{id_selecionado}",
         use_container_width=True,
     ):
-        try:
-            feedback.registrar_resposta(
-                CAMINHO_FEEDBACK,
-                feedback.RespostaAnalista(
-                    id_transacao=id_selecionado,
-                    nota=transacao.get("nota", 0.0),
-                    decisao=transacao.get("decisao", ""),
-                    resposta_analista="fraude",
-                    registrado_em=pd.Timestamp.now().to_pydatetime(),
-                ),
-            )
-            st.toast(textos.TOAST_FRAUDE, icon=ICONE_FRAUDE)
-        except OSError as erro:
-            logger.error("Erro ao gravar resposta: %s", erro)
-            st.error(textos.ERRO_GRAVAR, icon=ICONE_ERRO)
+        _gravar_resposta(transacao, id_selecionado, "fraude", ICONE_FRAUDE, textos.TOAST_FRAUDE)
 
     if col_legitima.button(
         textos.BOTAO_LEGITIMA,
@@ -193,38 +260,14 @@ def _renderizar_resposta(transacao: dict, id_selecionado: int) -> None:
         key=f"legitima_{id_selecionado}",
         use_container_width=True,
     ):
-        try:
-            feedback.registrar_resposta(
-                CAMINHO_FEEDBACK,
-                feedback.RespostaAnalista(
-                    id_transacao=id_selecionado,
-                    nota=transacao.get("nota", 0.0),
-                    decisao=transacao.get("decisao", ""),
-                    resposta_analista="legitima",
-                    registrado_em=pd.Timestamp.now().to_pydatetime(),
-                ),
-            )
-            st.toast(textos.TOAST_LEGITIMA, icon=ICONE_LEGITIMA)
-        except OSError as erro:
-            logger.error("Erro ao gravar resposta: %s", erro)
-            st.error(textos.ERRO_GRAVAR, icon=ICONE_ERRO)
+        _gravar_resposta(
+            transacao, id_selecionado, "legitima", ICONE_LEGITIMA, textos.TOAST_LEGITIMA
+        )
 
-    try:
-        ultima = feedback.ler_ultima_resposta(CAMINHO_FEEDBACK, id_selecionado)
-        if ultima is not None:
-            st.caption(
-                textos.RESPOSTA_ATUAL.format(
-                    resposta=rotulo_resposta(ultima.resposta_analista),
-                    data_hora=formatar_data_hora(pd.Timestamp(ultima.registrado_em)),
-                )
-            )
-        else:
-            st.caption(textos.SEM_RESPOSTA)
-    except ValueError:
-        st.warning(textos.ERRO_LER_RESPOSTAS)
+    _renderizar_resposta_atual(id_selecionado)
 
 
-def _renderizar_historico(agente, transacao: dict) -> None:
+def _renderizar_historico(agente, transacao: dict) -> None:  # noqa: ANN001
     """Renderiza o expander de histórico do cartão.
 
     Args:
@@ -244,48 +287,31 @@ def _renderizar_historico(agente, transacao: dict) -> None:
         if hist.empty:
             st.caption(textos.HISTORICO_VAZIO)
         else:
-            hist_exibido = pd.DataFrame(
-                {
-                    "Data e hora": hist["data_hora"].map(formatar_data_hora),
-                    "Valor": hist["valor"].map(formatar_moeda),
-                    "Tipo": hist["tipo_transacao"].map(formatar_tipo),
-                    "Modalidade": hist["modalidade_transacao"].map(formatar_modalidade),
-                    "Distância do terminal anterior (km)": hist["dist_terminal_anterior_km"].map(
-                        lambda v: f"{v:.0f}" if pd.notna(v) else "—"
-                    ),
-                }
+            st.table(
+                pd.DataFrame(
+                    {
+                        "Data e hora": hist["data_hora"].map(formatar_data_hora),
+                        "Valor": hist["valor"].map(formatar_moeda),
+                        "Tipo": hist["tipo_transacao"].map(formatar_tipo),
+                        "Modalidade": hist["modalidade_transacao"].map(formatar_modalidade),
+                        "Distância do terminal anterior (km)": hist[
+                            "dist_terminal_anterior_km"
+                        ].map(lambda v: f"{v:.0f}" if pd.notna(v) else "—"),
+                    }
+                )
             )
-            st.table(hist_exibido)
 
 
-def _renderizar_painel(visiveis: pd.DataFrame, id_selecionado: int) -> None:
-    """Renderiza o painel lateral com análise da transação selecionada.
+def _renderizar_cabecalho_painel(transacao_base: dict, analise: dict) -> None:
+    """Exibe cabeçalho, resumo, faixa de decisão e barra de nota do painel.
 
     Args:
-        visiveis: DataFrame filtrado.
-        id_selecionado: ID da transação a exibir.
+        transacao_base: Campos brutos da transação selecionada.
+        analise: Resultado de agente.analisar com nota, decisao e sinais.
     """
-    agente = dados.carregar_agente()
-    usar_llm = st.session_state.get("usar_granite", True)
-    chave_cache = (id_selecionado, usar_llm)
-    analises = st.session_state.setdefault("analises", {})
-
-    linha = visiveis[visiveis["id_transacao"] == id_selecionado].iloc[0]
-    transacao_base = linha.to_dict()
-
-    if chave_cache not in analises:
-        msg_spinner = textos.GERANDO_EXPLICACAO if usar_llm else textos.MONTANDO_EXPLICACAO
-        with st.spinner(msg_spinner):
-            analises[chave_cache] = agente.analisar(transacao_base, usar_llm=usar_llm)
-
-    analise = analises[chave_cache]
-    transacao = {**transacao_base, **analise}
-
+    id_selecionado = transacao_base["id_transacao"]
     decisao = analise["decisao"]
     nota = analise["nota"]
-    sinais = analise["sinais"]
-    explicacao = analise["explicacao"]
-    fonte = analise["fonte_explicacao"]
     estilo = DECISOES[decisao]
 
     st.header(textos.TITULO_PAINEL.format(id=id_selecionado))
@@ -303,37 +329,58 @@ def _renderizar_painel(visiveis: pd.DataFrame, id_selecionado: int) -> None:
             )
         )
     )
-
-    # Faixa de decisão
     getattr(st, estilo.tipo_alerta)(f"**{ROTULOS_DECISAO[decisao]}**", icon=estilo.icone)
-
-    # Barra de nota
     st.progress(nota / 100, text=textos.NOTA_TEXTO.format(nota=formatar_nota(nota)))
 
-    # Sinais
+
+def _renderizar_sinais(sinais: list[dict]) -> None:
+    """Exibe o título e a lista de sinais de alerta, ou a mensagem de ausência.
+
+    Args:
+        sinais: Lista de dicts com chave "descricao" retornada pelo agente.
+    """
     if sinais:
         st.markdown(f"**{textos.TITULO_SINAIS.format(quantidade=len(sinais))}**")
-        linhas_sinais = "\n".join(f"- {escapar_markdown(s['descricao'])}" for s in sinais)
-        st.markdown(linhas_sinais)
+        st.markdown("\n".join(f"- {escapar_markdown(s['descricao'])}" for s in sinais))
     else:
         st.markdown(f"**{textos.TITULO_SINAIS.format(quantidade=0)}**")
         st.markdown(textos.SEM_SINAIS)
 
-    # Explicação
+
+def _renderizar_painel(visiveis: pd.DataFrame, id_selecionado: int) -> None:
+    """Renderiza o painel lateral com análise da transação selecionada.
+
+    Args:
+        visiveis: DataFrame filtrado.
+        id_selecionado: ID da transação a exibir.
+    """
+    agente = dados.carregar_agente()
+    usar_llm = st.session_state["usar_granite"]
+    chave = (id_selecionado, usar_llm)
+    analises = st.session_state.setdefault("analises", {})
+
+    transacao_base = visiveis[visiveis["id_transacao"] == id_selecionado].iloc[0].to_dict()
+
+    if chave not in analises:
+        msg = textos.GERANDO_EXPLICACAO if usar_llm else textos.MONTANDO_EXPLICACAO
+        with st.spinner(msg):
+            analises[chave] = agente.analisar(transacao_base, usar_llm=usar_llm)
+
+    analise = analises[chave]
+    _renderizar_cabecalho_painel(transacao_base, analise)
+    _renderizar_sinais(analise["sinais"])
+
+    fonte = analise["fonte_explicacao"]
     st.markdown(f"**{textos.TITULO_EXPLICACAO}**")
-    st.markdown(escapar_markdown(explicacao))
+    st.markdown(escapar_markdown(analise["explicacao"]))
     if fonte == "granite":
-        legenda_fonte = textos.FONTE_GRANITE
+        st.caption(textos.FONTE_GRANITE)
     elif usar_llm:
-        legenda_fonte = textos.FONTE_REGRAS_INDISPONIVEL
+        st.caption(textos.FONTE_REGRAS_INDISPONIVEL)
     else:
-        legenda_fonte = textos.FONTE_REGRAS
-    st.caption(legenda_fonte)
+        st.caption(textos.FONTE_REGRAS)
 
-    # Resposta do analista
-    _renderizar_resposta(transacao, id_selecionado)
-
-    # Histórico do cartão
+    _renderizar_resposta({**transacao_base, **analise}, id_selecionado)
     _renderizar_historico(agente, transacao_base)
 
 

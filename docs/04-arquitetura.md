@@ -113,3 +113,20 @@ Módulos esqueleto criados na Issue #19; cada Issue subsequente implementa o seu
 | `src/interface/painel_mensagem.py` · `renderizar(transacao, analise)` | Fila — painel | #23 |
 | `src/interface/pagina_simulador.py` · `renderizar()` | Página Simulador | #22 |
 | `src/interface/pagina_respostas.py` · `renderizar()` | Página Respostas do analista | #25 |
+
+
+## Arquitetura web (ADR-011 e ADR-012, Issue #37)
+
+A partir da Issue #37, o Streamlit fica como reserva e a aplicação passa a ter três contêineres
+além do núcleo. A Issue #38 detalha os diagramas.
+
+| Contêiner | Tecnologia | Responsabilidade |
+| --- | --- | --- |
+| Site | Next.js, TypeScript, Carbon (`web/`) | Telas do analista; fala só com a API |
+| API | FastAPI (`src/api/`) | Contrato da ESPECIFICACAO, seção 12; decisão imediata; dispara a auditoria |
+| Núcleo | Python (`src/agente.py`, `src/explicabilidade.py`) | Sinais, nota, decisão, contribuições |
+| Auditoria | `src/auditoria/` + IBM watsonx.ai (Granite com ferramentas) | Segunda opinião em paralelo; nunca muda a decisão |
+
+Caminho de uma compra: autorizador ou site → `POST /api/analisar` → núcleo decide (milissegundos)
+→ resposta imediata; em paralelo, a auditoria chama o watsonx.ai, que pede ferramentas do
+Sentinela, e o relatório fica disponível em `GET /api/auditorias/{id}` (segundos).

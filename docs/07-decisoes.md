@@ -33,7 +33,7 @@ ao lado de nomes em português, o que é aceitável. Nenhum nome híbrido é per
 
 # ADR-002 — Streamlit e Python, rodando localmente, fora da stack padrão da IDE
 
-**Status:** Aceito · **Data:** 2026-11-12
+**Status:** Substituído em parte pelo ADR-011 (a interface) · **Data:** 2026-11-12
 
 ## Contexto
 A stack padrão da IDE é Next.js, Django e PostgreSQL. Este projeto não é de cliente da IDE: é um
@@ -235,3 +235,89 @@ recria a base do zero, sem reaproveitar trechos.
 
 ## Consequências
 Quem testou a interface antiga apaga o próprio `data/feedback.csv`, cujo formato pode ser outro.
+
+---
+
+# ADR-011 — Aplicação web: site em Next.js e API em FastAPI
+
+**Status:** Aceito · **Data:** 2026-11-12 · **Substitui em parte:** ADR-002 (a interface)
+
+## Contexto
+O protótipo em Streamlit (ADR-002) cumpriu a versão 1.0, mas não parece um produto: não tem API
+para um autorizador de cartões chamar, limita o design e não separa interface de regra de negócio.
+O time quer uma aplicação web completa, com a stack padrão da IDE (Next.js e TypeScript), e um
+backend que o autorizador e o site usem do mesmo jeito. Faltam 2 dias para a entrega.
+
+## Decisão
+Site em Next.js (App Router) com TypeScript estrito e o Carbon Design System da IBM, em `web/`.
+Backend em FastAPI (Python), em `src/api/`, reaproveitando sem mudança o núcleo de `src/`
+(modelo, sinais, decisão e dados). O contrato entre os dois é a ESPECIFICACAO, seção 12, coberto
+por testes de conformidade. O Streamlit fica congelado como reserva até o site estar completo.
+
+## Alternativas rejeitadas
+- **Backend em TypeScript (NestJS ou rotas do Next.js):** obrigaria a portar modelo, sinais e
+  leitura do parquet, e a refazer os testes que garantem os números, a 2 dias do prazo.
+- **Continuar só com o Streamlit:** sem API, sem caminho para tempo real e com design limitado.
+- **Django:** mais pesado que o necessário para uma API sem banco.
+
+## Consequências
+Dois processos para rodar (API e site) e dois portões de qualidade (Python e site). Ganhamos uma
+API que o autorizador poderia chamar, o design do Carbon e trabalho paralelo entre backend e
+site. O Streamlit sai na Issue #32 se o site cobrir tudo o que ele mostra.
+
+---
+
+# ADR-012 — O modelo decide na hora; a IA audita em paralelo
+
+**Status:** Aceito · **Data:** 2026-11-12 · **Complementa:** ADR-005
+
+## Contexto
+Uma autorização de cartão precisa de resposta em milissegundos. Um modelo grande de linguagem leva
+segundos por chamada, não é reproduzível e, sozinho, erra mais numa base com 0,1% de fraudes. O
+gerente da Sicredi que conversou com o time confirmou que, pela criticidade do tempo, ainda não é
+possível colocar modelos grandes de IA na decisão. Mas o analista ganha com uma segunda opinião
+que investigue o caso e aponte o que não bate.
+
+## Decisão
+O modelo de machine learning (regras + regressão logística, ADR-003) é o mecanismo principal:
+decide e responde na hora. Em paralelo, um agente de IA no watsonx.ai investiga a mesma transação
+com ferramentas e entrega um relatório com parecer CONFIRMA, DIVERGE ou INCONCLUSIVO. O parecer é
+calculado em Python comparando o risco apontado pela IA com a decisão do modelo; a IA nunca muda a
+decisão. A latência dos dois caminhos e a concordância entre eles são medidas (Issue #46).
+
+## Alternativas rejeitadas
+- **A IA decide (agente que investiga e classifica):** lento demais para autorizar, não
+  reproduzível e mais fraco numa base tão desbalanceada.
+- **Só o modelo, sem IA:** o analista investiga do zero e não há segunda opinião.
+- **A IA só redige a explicação (ADR-005):** mantido como texto de reserva, mas não audita nada.
+
+## Consequências
+A decisão continua auditável e com os mesmos números da 1.0. A IA vira apoio à auditoria, com
+custo e tempo próprios, fora do caminho crítico. Divergências entre modelo e IA viram o sinal de
+"olhe com atenção" para o analista.
+
+---
+
+# ADR-013 — watsonx.ai na nuvem, com credenciais fora do repositório e modo local
+
+**Status:** Aceito · **Data:** 2026-11-12
+
+## Contexto
+A auditoria precisa de um modelo com chamada de ferramentas. O Ollama local (ADR-005) não está
+instalado em todas as máquinas e o laptop de um integrante não tem disco para ele. O desafio é da
+IBM, e o watsonx.ai está disponível pela conta do Lab.
+
+## Decisão
+A auditoria usa o watsonx.ai (modelo Granite com ferramentas) por chamadas `requests`, com
+credenciais só em variáveis de ambiente lidas de um `.env` ignorado pelo Git. Sem credenciais, sem
+resposta ou com resposta inválida, a auditoria roda em modo local, com as mesmas ferramentas e uma
+regra simples, e o relatório diz `fonte: "local"`.
+
+## Alternativas rejeitadas
+- **Ollama local:** depende de 2 a 3 GB por máquina e não dá chamada de ferramentas confiável no
+  modelo `micro`.
+- **SDK oficial do watsonx.ai:** acrescentaria uma dependência pesada; a API REST basta.
+
+## Consequências
+Só quem tem as credenciais vê o parecer da IA real; o resto do time desenvolve e testa no modo
+local. Nenhuma chave entra no Git; `.env.example` documenta os nomes.

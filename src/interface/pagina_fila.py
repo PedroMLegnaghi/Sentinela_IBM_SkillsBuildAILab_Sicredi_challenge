@@ -10,7 +10,7 @@ import pandas as pd
 import streamlit as st
 
 from src.config import CAMINHO_FEEDBACK, ROTULOS_DECISAO
-from src.interface import dados, feedback, textos
+from src.interface import dados, feedback, painel_contribuicoes, painel_mensagem, textos
 from src.interface.formatacao import (
     escapar_markdown,
     formatar_data_hora,
@@ -369,6 +369,7 @@ def _renderizar_painel(visiveis: pd.DataFrame, id_selecionado: int) -> None:
     analise = analises[chave]
     _renderizar_cabecalho_painel(transacao_base, analise)
     _renderizar_sinais(analise["sinais"])
+    painel_contribuicoes.renderizar(transacao_base)
 
     fonte = analise["fonte_explicacao"]
     st.markdown(f"**{textos.TITULO_EXPLICACAO}**")
@@ -379,6 +380,7 @@ def _renderizar_painel(visiveis: pd.DataFrame, id_selecionado: int) -> None:
         st.caption(textos.FONTE_REGRAS_INDISPONIVEL)
     else:
         st.caption(textos.FONTE_REGRAS)
+    painel_mensagem.renderizar(transacao_base, analise)
 
     _renderizar_resposta({**transacao_base, **analise}, id_selecionado)
     _renderizar_historico(agente, transacao_base)

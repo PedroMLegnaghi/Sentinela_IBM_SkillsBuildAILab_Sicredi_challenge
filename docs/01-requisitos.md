@@ -20,9 +20,21 @@ interface em que o analista revisa e responde. Prioridades no método MoSCoW.
 | RF011 | Interface | Ajustar os limiares de decisão pela tela | Won't | Fora do escopo | — |
 | RF012 | Modelo | Retreinar o modelo automaticamente com as respostas do analista | Won't | Fora do escopo | — |
 | RF013 | Integração | Receber transações em tempo real do autorizador de cartões da Sicredi | Won't | Fora do escopo | — |
-| RF014 | Integração | Enviar a confirmação ao cliente por notificação no app ou SMS | Won't | Fora do escopo | — |
+| RF014 | Integração | Enviar a confirmação ao cliente por notificação no app ou SMS | Could (simulado na #23) | Incremento #23 | — |
 | RF015 | Acesso | Login e perfis de analista | Won't | Fora do escopo | — |
 | RF016 | Implantação | Publicar o sistema num servidor | Won't | Fora do escopo | — |
+| RF017 | Interface | Calcular o custo da fraude e o prejuízo evitado pelo Sentinela | Could | Incremento #20 | — |
+| RF018 | Interface | Mostrar o que pesou na nota de risco de uma transação | Could | Incremento #21 | — |
+| RF019 | Interface | Simular a decisão do agente alterando campos da transação | Could | Incremento #22 | — |
+| RF020 | Integração | Redigir a mensagem de confirmação ao cliente com IBM Granite | Could | Incremento #23 | — |
+| RF021 | Interface | Corrigir os problemas de acessibilidade identificados no Lighthouse | Could | Incremento #24 | — |
+| RF022 | Interface | Exibir resumo das respostas do analista com taxa de concordância | Could | Incremento #25 | — |
+| RF023 | Integração | Expor o agente numa API REST para consulta pelo autorizador | Could | Incremento #26 | — |
+| RF024 | Desempenho | Medir a latência de decisão do agente em tempo real | Could | Incremento #27 | — |
+| RF025 | Modelo | Avaliar o modelo com bootstrap, janelas temporais e ablação | Could | Incremento #28 | — |
+| RF026 | Modelo | Avaliar o desempenho do agente sem as colunas de velocidade | Could | Incremento #29 | — |
+| RF027 | Documentação | Registrar o fluxo de trabalho com o IBM Bob | Could | Incremento #30 | — |
+| RF028 | Documentação | Documentar a análise exploratória e a qualidade dos dados | Could | Incremento #31 | — |
 
 **Por que os Won't ficaram de fora:** RF011 permitiria mudar decisões sem governança e sem
 registro; RF012 exige validar o feedback antes de treinar; RF013 a RF016 dependem de sistemas

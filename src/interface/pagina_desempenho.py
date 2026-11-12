@@ -1,7 +1,8 @@
 """Página Desempenho do Sentinela.
 
 Exibe os indicadores comparando o Sentinela com o sistema atual,
-gráfico de barras, tabela de comparação e detalhes do modelo.
+gráfico de barras, tabela de comparação, detalhes do modelo e seções
+dos incrementos (confiabilidade, custos, cenário difícil e latência).
 """
 
 from __future__ import annotations
@@ -10,7 +11,13 @@ import pandas as pd
 import streamlit as st
 
 from src.config import CAMINHO_AVALIACAO, CAMINHO_METRICAS
-from src.interface import textos
+from src.interface import (
+    secao_cenario_dificil,
+    secao_confiabilidade,
+    secao_custos,
+    secao_latencia,
+    textos,
+)
 from src.interface.dados import carregar_json
 from src.interface.formatacao import formatar_decimal, formatar_inteiro, formatar_percentual
 from src.interface.tema import ICONE_ERRO
@@ -170,3 +177,7 @@ def renderizar() -> None:
     _renderizar_tabela_comparacao(avaliacao)
     _renderizar_detalhes_modelo(metricas)
     st.info(textos.AVISO_SINTETICO)
+    secao_confiabilidade.renderizar()
+    secao_custos.renderizar()
+    secao_cenario_dificil.renderizar()
+    secao_latencia.renderizar()

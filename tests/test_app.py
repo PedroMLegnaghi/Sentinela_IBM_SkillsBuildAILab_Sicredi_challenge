@@ -74,3 +74,33 @@ def test_pagina_como_funciona_abre_sem_excecao():
     app.run()
 
     assert not app.exception, app.exception
+
+
+@_pular_sem_dados_e_modelo
+def test_pagina_simulador_abre_sem_excecao():
+    """pagina_simulador.renderizar() carrega sem exceção."""
+
+    def executar() -> None:
+        from src.interface import pagina_simulador  # noqa: PLC0415
+
+        pagina_simulador.renderizar()
+
+    app = AppTest.from_function(executar, default_timeout=120)
+    app.run()
+
+    assert not app.exception, app.exception
+
+
+@_pular_sem_dados_e_modelo
+def test_pagina_respostas_abre_sem_excecao():
+    """pagina_respostas.renderizar() carrega sem exceção."""
+
+    def executar() -> None:
+        from src.interface import pagina_respostas  # noqa: PLC0415
+
+        pagina_respostas.renderizar()
+
+    app = AppTest.from_function(executar, default_timeout=120)
+    app.run()
+
+    assert not app.exception, app.exception

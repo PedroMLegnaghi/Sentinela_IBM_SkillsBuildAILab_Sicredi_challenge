@@ -25,6 +25,7 @@ TODO (pendente — fazer manualmente):
 """
 
 import math
+
 import pytest
 
 from src.agente import calcular_sinais, decidir
@@ -70,6 +71,7 @@ LEGITIMA = {
 # Teste 1: calcular_sinais(FRAUDE) devolve 8 sinais (todos menos ip_desconhecido)
 # ---------------------------------------------------------------------------
 
+
 def test_sinais_fraude():
     sinais = calcular_sinais(FRAUDE)
     ids = [s["id"] for s in sinais]
@@ -89,6 +91,7 @@ def test_sinais_fraude():
 # Teste 2: calcular_sinais(LEGITIMA) devolve lista vazia
 # ---------------------------------------------------------------------------
 
+
 def test_sinais_legitima():
     sinais = calcular_sinais(LEGITIMA)
     assert sinais == [], f"Esperado [], obtido: {sinais}"
@@ -98,10 +101,12 @@ def test_sinais_legitima():
 # Teste 3: calcular_sinais com todos os campos None/NaN devolve [] sem erro
 # ---------------------------------------------------------------------------
 
+
 def test_sinais_todos_none():
     transacao_nula = {col: None for col in FRAUDE}
     sinais = calcular_sinais(transacao_nula)
     assert sinais == []
+
 
 def test_sinais_todos_nan():
     transacao_nan = {col: math.nan for col in FRAUDE}
@@ -113,11 +118,14 @@ def test_sinais_todos_nan():
 # Teste 4: decidir
 # ---------------------------------------------------------------------------
 
+
 def test_decidir_aprovar():
     assert decidir(10, []) == "APROVAR"
 
+
 def test_decidir_pedir_confirmacao_nota():
     assert decidir(50, []) == "PEDIR_CONFIRMACAO"
+
 
 def test_decidir_pedir_confirmacao_sinais():
     tres_sinais = [
@@ -127,8 +135,10 @@ def test_decidir_pedir_confirmacao_sinais():
     ]
     assert decidir(10, tres_sinais) == "PEDIR_CONFIRMACAO"
 
+
 def test_decidir_bloquear_nota():
     assert decidir(90, []) == "BLOQUEAR"
+
 
 def test_decidir_bloquear_ip_desconhecido():
     sinal_ip = [{"id": "ip_desconhecido", "descricao": "Endereço IP de país desconhecido."}]
@@ -141,33 +151,48 @@ def test_decidir_bloquear_ip_desconhecido():
 
 modelo_ausente = not CAMINHO_MODELO.exists()
 
+
 @pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
 def test_analisar_fraude():
     from src.agente import AgenteSentinela
+
     agente = AgenteSentinela()
     resultado = agente.analisar(FRAUDE, usar_llm=False)
     assert resultado["decisao"] == "BLOQUEAR", f"Esperado BLOQUEAR, obtido {resultado['decisao']}"
     assert resultado["nota"] >= 70, f"Esperado nota >= 70, obtido {resultado['nota']}"
 
+
 @pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
 def test_analisar_legitima():
     from src.agente import AgenteSentinela
+
     agente = AgenteSentinela()
     resultado = agente.analisar(LEGITIMA, usar_llm=False)
     assert resultado["decisao"] == "APROVAR", f"Esperado APROVAR, obtido {resultado['decisao']}"
     assert resultado["nota"] < 30, f"Esperado nota < 30, obtido {resultado['nota']}"
 
+
 @pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
 def test_analisar_chaves_exatas():
     from src.agente import AgenteSentinela
+
     agente = AgenteSentinela()
     resultado = agente.analisar(FRAUDE, usar_llm=False)
-    chaves_esperadas = {"nota", "sinais", "decisao", "decisao_legivel", "explicacao", "fonte_explicacao"}
+    chaves_esperadas = {
+        "nota",
+        "sinais",
+        "decisao",
+        "decisao_legivel",
+        "explicacao",
+        "fonte_explicacao",
+    }
     assert set(resultado.keys()) == chaves_esperadas, f"Chaves obtidas: {set(resultado.keys())}"
+
 
 @pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
 def test_analisar_fonte_regras_sem_llm():
     from src.agente import AgenteSentinela
+
     agente = AgenteSentinela()
     resultado = agente.analisar(FRAUDE, usar_llm=False)
     assert resultado["fonte_explicacao"] == "regras"
@@ -177,10 +202,13 @@ def test_analisar_fonte_regras_sem_llm():
 # Teste 6: analisar_lote dá as mesmas decisões que analisar
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.skipif(modelo_ausente, reason="modelos/sentinela.joblib não encontrado")
 def test_analisar_lote_consistente():
     import pandas as pd
+
     from src.agente import AgenteSentinela
+
     agente = AgenteSentinela()
 
     df = pd.DataFrame([FRAUDE, LEGITIMA])
@@ -192,9 +220,9 @@ def test_analisar_lote_consistente():
     decisao_fraude_individual = agente.analisar(FRAUDE, usar_llm=False)["decisao"]
     decisao_legitima_individual = agente.analisar(LEGITIMA, usar_llm=False)["decisao"]
 
-    assert decisao_fraude_lote == decisao_fraude_individual, (
-        f"Lote: {decisao_fraude_lote} | Individual: {decisao_fraude_individual}"
-    )
-    assert decisao_legitima_lote == decisao_legitima_individual, (
-        f"Lote: {decisao_legitima_lote} | Individual: {decisao_legitima_individual}"
-    )
+    assert (
+        decisao_fraude_lote == decisao_fraude_individual
+    ), f"Lote: {decisao_fraude_lote} | Individual: {decisao_fraude_individual}"
+    assert (
+        decisao_legitima_lote == decisao_legitima_individual
+    ), f"Lote: {decisao_legitima_lote} | Individual: {decisao_legitima_individual}"

@@ -3,8 +3,6 @@
 Uso: python -m src.preparar_dados
 """
 
-import math
-
 import pandas as pd
 
 from src.config import CAMINHO_CSV, CAMINHO_PREPARADO
@@ -32,7 +30,6 @@ COLUNAS_ORIGINAIS = [
 
 def preparar() -> pd.DataFrame:
     """Lê o CSV com usecols, gera as 21 colunas e salva o parquet."""
-
     print("Lendo CSV (apenas 16 colunas)...")
     df_raw = pd.read_csv(
         CAMINHO_CSV,
@@ -53,8 +50,12 @@ def preparar() -> pd.DataFrame:
 
     # identificadores (texto)
     df["id_cartao"] = df_raw["card_id"].astype(str).where(df_raw["card_id"].notna(), other=None)
-    df["id_cliente"] = df_raw["customer_id"].astype(str).where(df_raw["customer_id"].notna(), other=None)
-    df["id_estabelecimento"] = df_raw["acceptor_id"].astype(str).where(df_raw["acceptor_id"].notna(), other=None)
+    df["id_cliente"] = (
+        df_raw["customer_id"].astype(str).where(df_raw["customer_id"].notna(), other=None)
+    )
+    df["id_estabelecimento"] = (
+        df_raw["acceptor_id"].astype(str).where(df_raw["acceptor_id"].notna(), other=None)
+    )
 
     # valor: float64
     df["valor"] = df_raw["amount"].astype("float64")
@@ -103,7 +104,6 @@ def preparar() -> pd.DataFrame:
 
 def imprimir_resumo(df: pd.DataFrame) -> None:
     """Imprime o resumo pedido na seção 6."""
-
     print("\n" + "=" * 60)
     print("RESUMO DOS DADOS PREPARADOS")
     print("=" * 60)
@@ -111,7 +111,9 @@ def imprimir_resumo(df: pd.DataFrame) -> None:
     total_linhas = len(df)
     total_fraudes = int(df["fraude"].sum())
     print(f"Total de linhas        : {total_linhas:,}")
-    print(f"Total de fraudes       : {total_fraudes:,}  ({total_fraudes / total_linhas * 100:.2f}%)")
+    print(
+        f"Total de fraudes       : {total_fraudes:,}  ({total_fraudes / total_linhas * 100:.2f}%)"
+    )
 
     print("\nFraudes por mês:")
     fraudes = df[df["fraude"] == 1].copy()

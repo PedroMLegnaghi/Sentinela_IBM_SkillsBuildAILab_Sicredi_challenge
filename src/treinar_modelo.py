@@ -30,12 +30,8 @@ def carregar_divisao():
     # Apenas linhas com data_hora válida
     df = df[df["data_hora"].notna()].copy()
 
-    treino = df[
-        (df["data_hora"] >= "2025-01-01") & (df["data_hora"] < "2025-03-01")
-    ].copy()
-    teste = df[
-        (df["data_hora"] >= "2025-03-01") & (df["data_hora"] < "2025-04-01")
-    ].copy()
+    treino = df[(df["data_hora"] >= "2025-01-01") & (df["data_hora"] < "2025-03-01")].copy()
+    teste = df[(df["data_hora"] >= "2025-03-01") & (df["data_hora"] < "2025-04-01")].copy()
 
     print(f"  Treino : {len(treino):,} linhas, {int(treino['fraude'].sum()):,} fraudes")
     print(f"  Teste  : {len(teste):,} linhas, {int(teste['fraude'].sum()):,} fraudes")
@@ -54,15 +50,20 @@ def treinar_avaliar():
 
     # --- Modelo final: Regressão Logística (pipeline completo) ---
     print("\nTreinando Regressão Logística...")
-    pipeline_rl = Pipeline([
-        ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
-        ("scaler", StandardScaler()),
-        ("modelo", LogisticRegression(
-            class_weight="balanced",
-            max_iter=2000,
-            random_state=42,
-        )),
-    ])
+    pipeline_rl = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+            ("scaler", StandardScaler()),
+            (
+                "modelo",
+                LogisticRegression(
+                    class_weight="balanced",
+                    max_iter=2000,
+                    random_state=42,
+                ),
+            ),
+        ]
+    )
     pipeline_rl.fit(X_treino, y_treino)
 
     proba_rl = pipeline_rl.predict_proba(X_teste)[:, 1]
@@ -91,13 +92,15 @@ def treinar_avaliar():
         fraudes_detectadas = int(y_teste[alertas_mask].sum())
         precisao = fraudes_detectadas / alertas if alertas > 0 else 0.0
         recall = fraudes_detectadas / int(y_teste.sum()) if int(y_teste.sum()) > 0 else 0.0
-        limiares.append({
-            "limiar": corte,
-            "alertas": alertas,
-            "fraudes_detectadas": fraudes_detectadas,
-            "precisao": round(precisao, 4),
-            "recall": round(recall, 4),
-        })
+        limiares.append(
+            {
+                "limiar": corte,
+                "alertas": alertas,
+                "fraudes_detectadas": fraudes_detectadas,
+                "precisao": round(precisao, 4),
+                "recall": round(recall, 4),
+            }
+        )
 
     # --- Sistema atual ---
     bloqueadas_atual = int((teste["decisao_sistema_atual"] == "deny").sum())
@@ -145,8 +148,12 @@ def _imprimir_metricas(metricas: dict, pipeline_rl: Pipeline) -> None:
     print("\n" + "=" * 60)
     print("MÉTRICAS — REGRESSÃO LOGÍSTICA")
     print("=" * 60)
-    print(f"Treino : {metricas['treino']['linhas']:,} linhas, {metricas['treino']['fraudes']:,} fraudes")
-    print(f"Teste  : {metricas['teste']['linhas']:,} linhas, {metricas['teste']['fraudes']:,} fraudes")
+    print(
+        f"Treino : {metricas['treino']['linhas']:,} linhas, {metricas['treino']['fraudes']:,} fraudes"
+    )
+    print(
+        f"Teste  : {metricas['teste']['linhas']:,} linhas, {metricas['teste']['fraudes']:,} fraudes"
+    )
     print(f"PR-AUC : {metricas['pr_auc']:.4f}")
     print(f"ROC-AUC: {metricas['roc_auc']:.4f}")
 
@@ -163,17 +170,23 @@ def _imprimir_metricas(metricas: dict, pipeline_rl: Pipeline) -> None:
     print(f"  ROC-AUC HGB: {metricas['comparacao_hgb']['roc_auc']:.4f}")
 
     sa = metricas["sistema_atual"]
-    pct_atual = sa["fraudes_bloqueadas"] / sa["fraudes_total"] * 100 if sa["fraudes_total"] > 0 else 0
-    print(f"\nSistema atual (março):")
+    pct_atual = (
+        sa["fraudes_bloqueadas"] / sa["fraudes_total"] * 100 if sa["fraudes_total"] > 0 else 0
+    )
+    print("\nSistema atual (março):")
     print(f"  Bloqueadas       : {sa['bloqueadas']:,}")
-    print(f"  Fraudes bloqueadas: {sa['fraudes_bloqueadas']:,} / {sa['fraudes_total']:,} ({pct_atual:.1f}%)")
+    print(
+        f"  Fraudes bloqueadas: {sa['fraudes_bloqueadas']:,} / {sa['fraudes_total']:,} ({pct_atual:.1f}%)"
+    )
 
     # Coeficientes da regressão logística
     modelo_lr = pipeline_rl.named_steps["modelo"]
     imputer = pipeline_rl.named_steps["imputer"]
     n_originais = len(VARIAVEIS_MODELO)
     n_indicadores = imputer.indicator_.features_.shape[0] if hasattr(imputer, "indicator_") else 0
-    nomes = list(VARIAVEIS_MODELO) + [f"faltante_{VARIAVEIS_MODELO[i]}" for i in imputer.indicator_.features_]
+    nomes = list(VARIAVEIS_MODELO) + [
+        f"faltante_{VARIAVEIS_MODELO[i]}" for i in imputer.indicator_.features_
+    ]
     coefs = modelo_lr.coef_[0]
 
     pares = sorted(zip(nomes, coefs), key=lambda x: abs(x[1]), reverse=True)

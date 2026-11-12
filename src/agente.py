@@ -26,7 +26,6 @@ from src.config import (
 logger = logging.getLogger(__name__)
 
 
-
 def granite_disponivel(timeout_s: float = OLLAMA_TIMEOUT_DISPONIBILIDADE_S) -> bool:
     """Verifica se o IBM Granite (Ollama) está disponível.
 
@@ -65,77 +64,95 @@ def calcular_sinais(transacao: dict) -> list[dict]:
     # velocidade_terminal
     v = transacao.get("vel_cartao_terminal_1h")
     if _valor_valido(v) and float(v) >= 10:
-        sinais.append({
-            "id": "velocidade_terminal",
-            "descricao": f"Cartão usado {float(v):.0f} vezes em terminais na última hora (normal: até 5).",
-        })
+        sinais.append(
+            {
+                "id": "velocidade_terminal",
+                "descricao": f"Cartão usado {float(v):.0f} vezes em terminais na última hora (normal: até 5).",
+            }
+        )
 
     # rajada_1min
     v = transacao.get("qtd_transacoes_cartao_1min")
     if _valor_valido(v) and float(v) >= 5:
-        sinais.append({
-            "id": "rajada_1min",
-            "descricao": f"{float(v):.0f} transações do cartão no último minuto (normal: 1 ou 2).",
-        })
+        sinais.append(
+            {
+                "id": "rajada_1min",
+                "descricao": f"{float(v):.0f} transações do cartão no último minuto (normal: 1 ou 2).",
+            }
+        )
 
     # token_carteira
     v = transacao.get("qtd_token_carteira_3m")
     if _valor_valido(v) and float(v) >= 30:
-        sinais.append({
-            "id": "token_carteira",
-            "descricao": f"Token de carteira digital usado {float(v):.0f} vezes em 3 meses (normal: até 14).",
-        })
+        sinais.append(
+            {
+                "id": "token_carteira",
+                "descricao": f"Token de carteira digital usado {float(v):.0f} vezes em 3 meses (normal: até 14).",
+            }
+        )
 
     # salto_geografico
     v = transacao.get("dist_terminal_anterior_km")
     if _valor_valido(v) and float(v) > 100:
-        sinais.append({
-            "id": "salto_geografico",
-            "descricao": f"Terminal a {float(v):.0f} km do anterior em menos de uma hora.",
-        })
+        sinais.append(
+            {
+                "id": "salto_geografico",
+                "descricao": f"Terminal a {float(v):.0f} km do anterior em menos de uma hora.",
+            }
+        )
 
     # madrugada
     mad = transacao.get("madrugada")
     hora = transacao.get("hora")
     if _valor_valido(mad) and int(mad) == 1:
         hora_val = float(hora) if _valor_valido(hora) else 0
-        sinais.append({
-            "id": "madrugada",
-            "descricao": f"Compra feita de madrugada, às {hora_val:.0f}h.",
-        })
+        sinais.append(
+            {
+                "id": "madrugada",
+                "descricao": f"Compra feita de madrugada, às {hora_val:.0f}h.",
+            }
+        )
 
     # valor_alto
     v = transacao.get("valor")
     if _valor_valido(v) and float(v) > 150:
-        sinais.append({
-            "id": "valor_alto",
-            "descricao": f"Valor de R$ {float(v):.2f}, acima do padrão (mediana das compras: R$ 35).",
-        })
+        sinais.append(
+            {
+                "id": "valor_alto",
+                "descricao": f"Valor de R$ {float(v):.2f}, acima do padrão (mediana das compras: R$ 35).",
+            }
+        )
 
     # credito_nao_presente
     cred = transacao.get("credito")
     nao_pres = transacao.get("nao_presente")
     if _valor_valido(cred) and _valor_valido(nao_pres) and int(cred) == 1 and int(nao_pres) == 1:
-        sinais.append({
-            "id": "credito_nao_presente",
-            "descricao": "Compra no crédito sem cartão presente (online).",
-        })
+        sinais.append(
+            {
+                "id": "credito_nao_presente",
+                "descricao": "Compra no crédito sem cartão presente (online).",
+            }
+        )
 
     # ip_desconhecido
     v = transacao.get("ip_pais_desconhecido")
     if _valor_valido(v) and int(v) == 1:
-        sinais.append({
-            "id": "ip_desconhecido",
-            "descricao": "Endereço IP de país desconhecido.",
-        })
+        sinais.append(
+            {
+                "id": "ip_desconhecido",
+                "descricao": "Endereço IP de país desconhecido.",
+            }
+        )
 
     # estabelecimento_risco
     v = transacao.get("risco_estabelecimento")
     if _valor_valido(v) and float(v) >= 40:
-        sinais.append({
-            "id": "estabelecimento_risco",
-            "descricao": f"Estabelecimento com risco {float(v):.0f} (normal: abaixo de 37).",
-        })
+        sinais.append(
+            {
+                "id": "estabelecimento_risco",
+                "descricao": f"Estabelecimento com risco {float(v):.0f} (normal: abaixo de 37).",
+            }
+        )
 
     return sinais
 
@@ -169,9 +186,7 @@ class AgenteSentinela:
         base: DataFrame preparado, usado apenas por historico_cartao.
         """
         if not caminho_modelo.exists():
-            raise FileNotFoundError(
-                "Modelo não encontrado. Rode: python -m src.treinar_modelo"
-            )
+            raise FileNotFoundError("Modelo não encontrado. Rode: python -m src.treinar_modelo")
         self._pipeline = joblib.load(caminho_modelo)
         self._base = base
 
@@ -180,7 +195,7 @@ class AgenteSentinela:
 
         Chaves ausentes ou None viram NaN no DataFrame de entrada.
         """
-        dados = {col: transacao.get(col, None) for col in VARIAVEIS_MODELO}
+        dados = {col: transacao.get(col) for col in VARIAVEIS_MODELO}
         df = pd.DataFrame([dados], columns=VARIAVEIS_MODELO)
         prob = self._pipeline.predict_proba(df)[0, 1]
         return round(float(prob) * 100, 1)
@@ -209,8 +224,9 @@ class AgenteSentinela:
         sub = sub.sort_values("data_hora", ascending=False).head(n)
         return sub.reset_index(drop=True)
 
-    def explicar(self, transacao: dict, nota: float, sinais: list[dict],
-                 decisao: str, usar_llm: bool = True) -> tuple[str, str]:
+    def explicar(
+        self, transacao: dict, nota: float, sinais: list[dict], decisao: str, usar_llm: bool = True
+    ) -> tuple[str, str]:
         """Gera explicação textual da decisão.
 
         Retorna (texto, fonte) onde fonte é "granite" ou "regras".
@@ -227,8 +243,9 @@ class AgenteSentinela:
         texto = _texto_reserva(decisao_legivel, nota, sinais)
         return texto, "regras"
 
-    def _chamar_ollama(self, transacao: dict, nota: float, sinais: list[dict],
-                       decisao_legivel: str) -> str:
+    def _chamar_ollama(
+        self, transacao: dict, nota: float, sinais: list[dict], decisao_legivel: str
+    ) -> str:
         """Tenta chamar o Ollama. Retorna string vazia em caso de qualquer falha."""
         if not granite_disponivel():
             return ""

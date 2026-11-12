@@ -17,9 +17,7 @@ def avaliar():
     df = pd.read_parquet(CAMINHO_PREPARADO)
 
     # Filtro de teste: março de 2025 (igual à seção 7)
-    teste = df[
-        (df["data_hora"] >= "2025-03-01") & (df["data_hora"] < "2025-04-01")
-    ].copy()
+    teste = df[(df["data_hora"] >= "2025-03-01") & (df["data_hora"] < "2025-04-01")].copy()
     print(f"  Transações em março: {len(teste):,}")
 
     print("Carregando agente...")
@@ -32,7 +30,9 @@ def avaliar():
     bloqueadas = int((resultado["decisao"] == "BLOQUEAR").sum())
     fraudes_bloqueadas = int(resultado.loc[resultado["decisao"] == "BLOQUEAR", "fraude"].sum())
     confirmacoes = int((resultado["decisao"] == "PEDIR_CONFIRMACAO").sum())
-    fraudes_em_confirmacao = int(resultado.loc[resultado["decisao"] == "PEDIR_CONFIRMACAO", "fraude"].sum())
+    fraudes_em_confirmacao = int(
+        resultado.loc[resultado["decisao"] == "PEDIR_CONFIRMACAO", "fraude"].sum()
+    )
     aprovadas = int((resultado["decisao"] == "APROVAR").sum())
     fraudes_aprovadas = int(resultado.loc[resultado["decisao"] == "APROVAR", "fraude"].sum())
 
@@ -88,7 +88,7 @@ def _imprimir_avaliacao(av: dict) -> None:
     pct_aprov = s["fraudes_aprovadas"] / ft * 100 if ft > 0 else 0
     pct_conf_tx = s["confirmacoes"] / av["transacoes"] * 100 if av["transacoes"] > 0 else 0
 
-    print(f"\nSentinela:")
+    print("\nSentinela:")
     print(f"  Bloqueadas           : {s['bloqueadas']:,}")
     print(f"  Fraudes bloqueadas   : {s['fraudes_bloqueadas']:,} ({pct_bloq:.1f}% das fraudes)")
     print(f"  Confirmações         : {s['confirmacoes']:,} ({pct_conf_tx:.2f}% das transações)")
@@ -98,9 +98,11 @@ def _imprimir_avaliacao(av: dict) -> None:
 
     sa = av["sistema_atual"]
     pct_bloq_atual = sa["fraudes_bloqueadas"] / ft * 100 if ft > 0 else 0
-    print(f"\nSistema atual:")
+    print("\nSistema atual:")
     print(f"  Bloqueadas           : {sa['bloqueadas']:,}")
-    print(f"  Fraudes bloqueadas   : {sa['fraudes_bloqueadas']:,} ({pct_bloq_atual:.1f}% das fraudes)")
+    print(
+        f"  Fraudes bloqueadas   : {sa['fraudes_bloqueadas']:,} ({pct_bloq_atual:.1f}% das fraudes)"
+    )
     print(f"  Fraudes não bloqueadas: {sa['fraudes_nao_bloqueadas']:,}")
     print("=" * 60)
 

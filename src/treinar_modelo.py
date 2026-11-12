@@ -18,24 +18,31 @@ from src.config import (
     CAMINHO_METRICAS,
     CAMINHO_MODELO,
     CAMINHO_PREPARADO,
+    FIM_TESTE,
+    INICIO_TESTE,
+    INICIO_TREINO,
+    SEMENTE,
     VARIAVEIS_MODELO,
 )
 
 
 def carregar_divisao():
-    """Carrega o parquet e faz a divisão temporal treino/teste."""
+    """Carrega o parquet e faz a divisão temporal treino/teste.
+
+    Returns:
+        Tupla ``(treino, teste)`` com os DataFrames filtrados por data,
+        excluindo linhas sem ``data_hora``.
+
+    Raises:
+        FileNotFoundError: Se ``CAMINHO_PREPARADO`` não existir.
+    """
     print("Carregando dados preparados...")
     df = pd.read_parquet(CAMINHO_PREPARADO)
 
-    # Apenas linhas com data_hora válida
     df = df[df["data_hora"].notna()].copy()
 
-    treino = df[
-        (df["data_hora"] >= "2025-01-01") & (df["data_hora"] < "2025-03-01")
-    ].copy()
-    teste = df[
-        (df["data_hora"] >= "2025-03-01") & (df["data_hora"] < "2025-04-01")
-    ].copy()
+    treino = df[(df["data_hora"] >= INICIO_TREINO) & (df["data_hora"] < INICIO_TESTE)].copy()
+    teste = df[(df["data_hora"] >= INICIO_TESTE) & (df["data_hora"] < FIM_TESTE)].copy()
 
     print(f"  Treino : {len(treino):,} linhas, {int(treino['fraude'].sum()):,} fraudes")
     print(f"  Teste  : {len(teste):,} linhas, {int(teste['fraude'].sum()):,} fraudes")
@@ -44,46 +51,56 @@ def carregar_divisao():
 
 
 def treinar_avaliar():
-    """Treina os modelos, salva o pipeline e as métricas."""
+    """Treina os modelos, salva o pipeline e as métricas.
+
+    Treina a Regressão Logística (modelo final) e o HistGradientBoosting
+    (comparação), avalia no conjunto de teste, salva ``sentinela.joblib``
+    e ``metricas.json``.
+
+    Returns:
+        Dicionário com as métricas no formato da seção 7 da especificação.
+    """
     treino, teste = carregar_divisao()
 
-    X_treino = treino[VARIAVEIS_MODELO]
+    entradas_treino = treino[VARIAVEIS_MODELO]
     y_treino = treino["fraude"]
-    X_teste = teste[VARIAVEIS_MODELO]
+    entradas_teste = teste[VARIAVEIS_MODELO]
     y_teste = teste["fraude"]
 
-    # --- Modelo final: Regressão Logística (pipeline completo) ---
     print("\nTreinando Regressão Logística...")
-    pipeline_rl = Pipeline([
-        ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
-        ("scaler", StandardScaler()),
-        ("modelo", LogisticRegression(
-            class_weight="balanced",
-            max_iter=2000,
-            random_state=42,
-        )),
-    ])
-    pipeline_rl.fit(X_treino, y_treino)
+    pipeline_rl = Pipeline(
+        [
+            ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+            ("scaler", StandardScaler()),
+            (
+                "modelo",
+                LogisticRegression(
+                    class_weight="balanced",
+                    max_iter=2000,
+                    random_state=SEMENTE,
+                ),
+            ),
+        ]
+    )
+    pipeline_rl.fit(entradas_treino, y_treino)
 
-    proba_rl = pipeline_rl.predict_proba(X_teste)[:, 1]
+    proba_rl = pipeline_rl.predict_proba(entradas_teste)[:, 1]
     pr_auc_rl = float(average_precision_score(y_teste, proba_rl))
     roc_auc_rl = float(roc_auc_score(y_teste, proba_rl))
     nota_rl = proba_rl * 100
 
-    # --- Modelo de comparação: HistGradientBoosting (não é salvo) ---
     print("Treinando HistGradientBoostingClassifier (comparação)...")
     hgb = HistGradientBoostingClassifier(
         class_weight="balanced",
         max_iter=200,
         learning_rate=0.05,
-        random_state=42,
+        random_state=SEMENTE,
     )
-    hgb.fit(X_treino, y_treino)
-    proba_hgb = hgb.predict_proba(X_teste)[:, 1]
+    hgb.fit(entradas_treino, y_treino)
+    proba_hgb = hgb.predict_proba(entradas_teste)[:, 1]
     pr_auc_hgb = float(average_precision_score(y_teste, proba_hgb))
     roc_auc_hgb = float(roc_auc_score(y_teste, proba_hgb))
 
-    # --- Limiares ---
     limiares = []
     for corte in [30, 50, 70, 90]:
         alertas_mask = nota_rl >= corte
@@ -91,27 +108,26 @@ def treinar_avaliar():
         fraudes_detectadas = int(y_teste[alertas_mask].sum())
         precisao = fraudes_detectadas / alertas if alertas > 0 else 0.0
         recall = fraudes_detectadas / int(y_teste.sum()) if int(y_teste.sum()) > 0 else 0.0
-        limiares.append({
-            "limiar": corte,
-            "alertas": alertas,
-            "fraudes_detectadas": fraudes_detectadas,
-            "precisao": round(precisao, 4),
-            "recall": round(recall, 4),
-        })
+        limiares.append(
+            {
+                "limiar": corte,
+                "alertas": alertas,
+                "fraudes_detectadas": fraudes_detectadas,
+                "precisao": round(precisao, 4),
+                "recall": round(recall, 4),
+            }
+        )
 
-    # --- Sistema atual ---
     bloqueadas_atual = int((teste["decisao_sistema_atual"] == "deny").sum())
     fraudes_bloqueadas_atual = int(
         teste.loc[teste["decisao_sistema_atual"] == "deny", "fraude"].sum()
     )
     fraudes_total = int(y_teste.sum())
 
-    # --- Salvar modelo ---
     CAMINHO_MODELO.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(pipeline_rl, CAMINHO_MODELO)
     print(f"\nModelo salvo em {CAMINHO_MODELO}")
 
-    # --- Montar e salvar métricas ---
     metricas = {
         "modelo": "regressao_logistica",
         "treino": {"linhas": len(treino), "fraudes": int(y_treino.sum())},
@@ -130,11 +146,10 @@ def treinar_avaliar():
         },
     }
 
-    with open(CAMINHO_METRICAS, "w", encoding="utf-8") as f:
+    with CAMINHO_METRICAS.open("w", encoding="utf-8") as f:
         json.dump(metricas, f, indent=2, ensure_ascii=False)
     print(f"Métricas salvas em {CAMINHO_METRICAS}")
 
-    # --- Imprimir resumo ---
     _imprimir_metricas(metricas, pipeline_rl)
 
     return metricas
@@ -145,8 +160,10 @@ def _imprimir_metricas(metricas: dict, pipeline_rl: Pipeline) -> None:
     print("\n" + "=" * 60)
     print("MÉTRICAS — REGRESSÃO LOGÍSTICA")
     print("=" * 60)
-    print(f"Treino : {metricas['treino']['linhas']:,} linhas, {metricas['treino']['fraudes']:,} fraudes")
-    print(f"Teste  : {metricas['teste']['linhas']:,} linhas, {metricas['teste']['fraudes']:,} fraudes")
+    treino = metricas["treino"]
+    teste = metricas["teste"]
+    print(f"Treino : {treino['linhas']:,} linhas, {treino['fraudes']:,} fraudes")
+    print(f"Teste  : {teste['linhas']:,} linhas, {teste['fraudes']:,} fraudes")
     print(f"PR-AUC : {metricas['pr_auc']:.4f}")
     print(f"ROC-AUC: {metricas['roc_auc']:.4f}")
 
@@ -163,20 +180,24 @@ def _imprimir_metricas(metricas: dict, pipeline_rl: Pipeline) -> None:
     print(f"  ROC-AUC HGB: {metricas['comparacao_hgb']['roc_auc']:.4f}")
 
     sa = metricas["sistema_atual"]
-    pct_atual = sa["fraudes_bloqueadas"] / sa["fraudes_total"] * 100 if sa["fraudes_total"] > 0 else 0
-    print(f"\nSistema atual (março):")
+    pct_atual = (
+        sa["fraudes_bloqueadas"] / sa["fraudes_total"] * 100 if sa["fraudes_total"] > 0 else 0
+    )
+    print("\nSistema atual (março):")
     print(f"  Bloqueadas       : {sa['bloqueadas']:,}")
-    print(f"  Fraudes bloqueadas: {sa['fraudes_bloqueadas']:,} / {sa['fraudes_total']:,} ({pct_atual:.1f}%)")
+    print(
+        f"  Fraudes bloqueadas: {sa['fraudes_bloqueadas']:,} /"
+        f" {sa['fraudes_total']:,} ({pct_atual:.1f}%)"
+    )
 
-    # Coeficientes da regressão logística
     modelo_lr = pipeline_rl.named_steps["modelo"]
     imputer = pipeline_rl.named_steps["imputer"]
-    n_originais = len(VARIAVEIS_MODELO)
-    n_indicadores = imputer.indicator_.features_.shape[0] if hasattr(imputer, "indicator_") else 0
-    nomes = list(VARIAVEIS_MODELO) + [f"faltante_{VARIAVEIS_MODELO[i]}" for i in imputer.indicator_.features_]
+    nomes = list(VARIAVEIS_MODELO) + [
+        f"faltante_{VARIAVEIS_MODELO[i]}" for i in imputer.indicator_.features_
+    ]
     coefs = modelo_lr.coef_[0]
 
-    pares = sorted(zip(nomes, coefs), key=lambda x: abs(x[1]), reverse=True)
+    pares = sorted(zip(nomes, coefs, strict=False), key=lambda x: abs(x[1]), reverse=True)
     print("\nCoeficientes da regressão logística (por |coef|):")
     for nome, coef in pares:
         print(f"  {nome:<35} {coef:+.4f}")

@@ -1,9 +1,10 @@
 # ESPECIFICACAO.md — Projeto Sentinela (Desafio Sicredi, IBM SkillsBuild AI Lab)
 
-Este arquivo é a fonte da verdade do projeto. Quem escreve o código é o IBM Bob.
-Bob: leia este arquivo inteiro antes de qualquer tarefa e siga-o à risca. Se um pedido
-do usuário conflitar com este arquivo, avise e siga este arquivo. Não invente colunas,
-arquivos, bibliotecas ou números que não estejam aqui.
+Versão 4 (12/11/2026; testes de conformidade). Este arquivo define O QUE o sistema faz: dados, modelo, agente e
+números esperados. COMO trabalhar (Git, convenções, testes, revisão) está no `AGENTS.md`.
+A interface está em `docs/08-design-da-interface.md` e as tarefas em `docs/backlog.md`.
+Quem escreve o código é o IBM Bob. Não invente colunas, arquivos, bibliotecas ou números que
+não estejam aqui. Se um pedido conflitar com este arquivo, pare e pergunte.
 
 ## 1. Objetivo
 
@@ -16,48 +17,70 @@ analista para retreino futuro.
 
 ## 2. Regras gerais
 
-- Python 3.11 ou mais novo. Bibliotecas permitidas (requirements.txt, sem fixar versão):
-  pandas, pyarrow, scikit-learn, joblib, streamlit, requests, pytest. Nenhuma outra.
-- Todo texto visível ao usuário, comentários e docstrings em português do Brasil.
-  Nomes de arquivos, funções e colunas sem acento.
+- Python 3.11 ou mais novo. Bibliotecas de execução em `requirements.txt`, com versão fixada
+  (`pacote==versão`): pandas, pyarrow, scikit-learn, joblib, streamlit, requests, pytest.
+  Ferramentas de desenvolvimento em `requirements-dev.txt`: black, ruff. Nenhuma outra.
+  Adicionar biblioteca exige ADR em `docs/07-decisoes.md` e aprovação do líder.
+- Convenções de código, idioma, testes, erros, Git e revisão: ver `AGENTS.md`.
 - Caminhos sempre com pathlib, relativos à raiz do repositório (RAIZ = pasta que contém
   este arquivo). O código deve funcionar em Windows, macOS e Linux.
 - Arquivos de texto sempre com encoding="utf-8".
-- Toda aleatoriedade usa a semente 42.
+- Toda aleatoriedade usa a semente 42 (constante SEMENTE).
 - `src/` é um pacote (tem `__init__.py`). Scripts são executados da raiz com
   `python -m src.nome_do_modulo`. Existe um `conftest.py` vazio na raiz para o pytest.
-- A pasta `data/` nunca vai para o Git (está no .gitignore). A pasta `modelos/` vai.
-- Não altere arquivos de etapas anteriores sem necessidade. Se precisar, explique o
-  motivo antes.
-- Ao terminar cada etapa: rode os comandos de verificação da etapa, mostre a saída,
-  compare com os critérios de aceite da seção 11 e só então faça commit e push.
+- A pasta `data/` nunca vai para o Git. A pasta `modelos/` vai.
 
 ## 3. Estrutura de pastas (exata)
 
-    ESPECIFICACAO.md
+    AGENTS.md                         regras de trabalho do Bob
+    ESPECIFICACAO.md                  este arquivo
     README.md
-    requirements.txt
+    requirements.txt                  dependências de execução, versões fixadas
+    requirements-dev.txt              black e ruff
+    pyproject.toml                    configuração de Black, Ruff e pytest
     .gitignore
+    .bobignore                        impede o Bob de ler data/ e binários
     conftest.py
-    app.py
+    app.py                            ponto de entrada da interface (navegação)
+    .streamlit/config.toml            tema da interface (tokens de cor e fonte)
+    .github/pull_request_template.md
+    .github/workflows/qualidade.yml   Black, Ruff e pytest a cada Pull Request
     src/__init__.py
     src/config.py
     src/preparar_dados.py
     src/treinar_modelo.py
     src/agente.py
     src/avaliar_agente.py
+    src/interface/__init__.py
+    src/interface/tema.py             rótulos, ícones e cores de cada decisão
+    src/interface/textos.py           todos os textos da tela
+    src/interface/formatacao.py       formatação pt-BR (moeda, data, nota, percentual)
+    src/interface/dados.py            carga em cache, fila e verificação do Granite
+    src/interface/feedback.py         gravação e leitura das respostas do analista
+    src/interface/pagina_fila.py
+    src/interface/pagina_desempenho.py
+    src/interface/pagina_como_funciona.py
     tests/test_agente.py
+    tests/test_formatacao.py
+    tests/test_feedback.py
+    tests/test_fila.py
+    tests/test_app.py                 teste de fumaça da interface (pula sem dados)
+    tests/test_conformidade_nucleo.py     do líder: confere as seções 2 a 11 (não editar)
+    tests/test_conformidade_interface.py  do líder: confere o design da interface (não editar)
+    docs/                             requisitos, histórias, fluxos, arquitetura, ADRs, design, backlog
     modelos/sentinela.joblib
     modelos/metricas.json
     modelos/avaliacao_agente.json
-    data/case_transacoes_cartoes_sintetico_900k.csv.gz    (não versionado)
-    data/transacoes_preparadas.parquet                     (não versionado)
-    data/feedback.csv                                      (não versionado)
+    data/case_transacoes_cartoes_sintetico_900k.csv   (não versionado)
+    data/transacoes_preparadas.parquet                 (não versionado)
+    data/feedback.csv                                  (não versionado)
 
 ## 4. Dados de entrada
 
-Arquivo: `data/case_transacoes_cartoes_sintetico_900k.csv.gz` (CSV com vírgula, cabeçalho,
-compactado em gzip; 900.000 linhas; 297 colunas; dados 100% sintéticos da Sicredi).
+Arquivo: `data/case_transacoes_cartoes_sintetico_900k.csv` (CSV com vírgula e cabeçalho,
+NÃO compactado, cerca de 294 MB; 160.000 linhas de dados; 297 colunas; dados 100%
+sintéticos da Sicredi). Atenção: apesar do "900k" no nome e do arquivo de orientações,
+o arquivo entregue pela Sicredi tem 160.000 linhas. Isso é esperado; não é erro.
 
 Carregar SOMENTE estas 16 colunas (parâmetro usecols), nunca o arquivo inteiro:
 
@@ -94,7 +117,7 @@ Sentinela com o sistema atual, nunca como entrada.
 
 ## 6. Dados preparados: `data/transacoes_preparadas.parquet`
 
-Gerado por `python -m src.preparar_dados`. Uma linha por transação, todas as 900.000
+Gerado por `python -m src.preparar_dados`. Uma linha por transação, todas as 160.000
 linhas (não descartar linhas). Colunas exatas, nesta ordem:
 
 | Coluna | Tipo | Como calcular |
@@ -173,7 +196,7 @@ Métricas no teste, salvas em `modelos/metricas.json` com exatamente estas chave
 ### 8.1 `src/config.py` (constantes)
 
     RAIZ = pasta raiz do repositório (pathlib)
-    CAMINHO_CSV = RAIZ / "data" / "case_transacoes_cartoes_sintetico_900k.csv.gz"
+    CAMINHO_CSV = RAIZ / "data" / "case_transacoes_cartoes_sintetico_900k.csv"
     CAMINHO_PREPARADO = RAIZ / "data" / "transacoes_preparadas.parquet"
     CAMINHO_FEEDBACK = RAIZ / "data" / "feedback.csv"
     CAMINHO_MODELO = RAIZ / "modelos" / "sentinela.joblib"
@@ -186,6 +209,23 @@ Métricas no teste, salvas em `modelos/metricas.json` com exatamente estas chave
     OLLAMA_URL = "http://localhost:11434"
     OLLAMA_MODELO = "granite4:micro"
     OLLAMA_TIMEOUT_S = 60
+    OLLAMA_TIMEOUT_DISPONIBILIDADE_S = 2
+    SEMENTE = 42
+    INICIO_TREINO = "2025-01-01"; INICIO_TESTE = "2025-03-01"; FIM_TESTE = "2025-04-01"
+    HORA_FIM_MADRUGADA = 5
+    LIMIAR_VELOCIDADE_TERMINAL = 10
+    LIMIAR_RAJADA_1MIN = 5
+    LIMIAR_TOKEN_CARTEIRA = 30
+    LIMIAR_DISTANCIA_KM = 100
+    LIMIAR_VALOR_ALTO = 150
+    LIMIAR_RISCO_ESTABELECIMENTO = 40
+    TAMANHO_AMOSTRA_LEGITIMAS = 2000
+    ROTULOS_DECISAO = {"BLOQUEAR": "Bloquear e enviar ao analista",
+                       "PEDIR_CONFIRMACAO": "Pedir confirmação ao cliente",
+                       "APROVAR": "Aprovar"}
+
+As constantes a partir de OLLAMA_TIMEOUT_DISPONIBILIDADE_S foram acrescentadas na Issue #2
+para tirar valores soltos do código. Os valores são os mesmos que já estavam no código.
 
 ### 8.2 Sinais de alerta (regras)
 
@@ -195,15 +235,15 @@ None ou NaN nunca dispara e nunca gera erro). Ordem fixa:
 
 | id | Condição | descricao (preencher os valores) |
 | --- | --- | --- |
-| velocidade_terminal | vel_cartao_terminal_1h >= 10 | "Cartão usado {v:.0f} vezes em terminais na última hora (normal: até 5)." |
-| rajada_1min | qtd_transacoes_cartao_1min >= 5 | "{v:.0f} transações do cartão no último minuto (normal: 1 ou 2)." |
-| token_carteira | qtd_token_carteira_3m >= 30 | "Token de carteira digital usado {v:.0f} vezes em 3 meses (normal: até 14)." |
-| salto_geografico | dist_terminal_anterior_km > 100 | "Terminal a {v:.0f} km do anterior em menos de uma hora." |
+| velocidade_terminal | vel_cartao_terminal_1h >= LIMIAR_VELOCIDADE_TERMINAL | "Cartão usado {v:.0f} vezes em terminais na última hora (normal: até 5)." |
+| rajada_1min | qtd_transacoes_cartao_1min >= LIMIAR_RAJADA_1MIN | "{v:.0f} transações do cartão no último minuto (normal: 1 ou 2)." |
+| token_carteira | qtd_token_carteira_3m >= LIMIAR_TOKEN_CARTEIRA | "Token de carteira digital usado {v:.0f} vezes em 3 meses (normal: até 14)." |
+| salto_geografico | dist_terminal_anterior_km > LIMIAR_DISTANCIA_KM | "Terminal a {v:.0f} km do anterior em menos de uma hora." |
 | madrugada | madrugada == 1 | "Compra feita de madrugada, às {hora:.0f}h." |
-| valor_alto | valor > 150 | "Valor de R$ {v:.2f}, acima do padrão (mediana das compras: R$ 35)." |
+| valor_alto | valor > LIMIAR_VALOR_ALTO | "Valor de R$ {v:.2f}, acima do padrão (mediana das compras: R$ 35)." |
 | credito_nao_presente | credito == 1 e nao_presente == 1 | "Compra no crédito sem cartão presente (online)." |
 | ip_desconhecido | ip_pais_desconhecido == 1 | "Endereço IP de país desconhecido." |
-| estabelecimento_risco | risco_estabelecimento >= 40 | "Estabelecimento com risco {v:.0f} (normal: abaixo de 37)." |
+| estabelecimento_risco | risco_estabelecimento >= LIMIAR_RISCO_ESTABELECIMENTO | "Estabelecimento com risco {v:.0f} (normal: abaixo de 37)." |
 
 ### 8.3 Decisão
 
@@ -213,7 +253,8 @@ Função `decidir(nota: float, sinais: list[dict]) -> str`, nesta ordem:
    >= MIN_SINAIS_CONFIRMAR.
 3. `"APROVAR"` nos demais casos.
 
-Textos legíveis: BLOQUEAR = "Bloquear e enviar ao analista"; PEDIR_CONFIRMACAO =
+Textos legíveis: constante `ROTULOS_DECISAO` de `src/config.py` (seção 8.1), usada pelo
+agente e pela interface. BLOQUEAR = "Bloquear e enviar ao analista"; PEDIR_CONFIRMACAO =
 "Pedir confirmação ao cliente"; APROVAR = "Aprovar".
 
 ### 8.4 Classe `AgenteSentinela`
@@ -245,12 +286,18 @@ arquivo do modelo.
 
 ### 8.5 Explicação
 
-Se `usar_llm` for True: primeiro um GET em `{OLLAMA_URL}/api/tags` com timeout de 2
-segundos. Se falhar, usar o texto de reserva. Se responder, fazer POST em
+Função de módulo `granite_disponivel(timeout_s: float = OLLAMA_TIMEOUT_DISPONIBILIDADE_S) -> bool`:
+faz GET em `{OLLAMA_URL}/api/tags` e devolve True só se a resposta tiver status 200; qualquer
+`requests.RequestException` devolve False (registrado em log). A interface usa esta mesma
+função para mostrar o estado do IBM Granite. Acrescentada na Issue #2.
+
+Se `usar_llm` for True: primeiro chama `granite_disponivel()`. Se devolver False, usar o
+texto de reserva. Se responder, fazer POST em
 `{OLLAMA_URL}/api/generate` com timeout OLLAMA_TIMEOUT_S e o JSON:
 `{"model": OLLAMA_MODELO, "prompt": PROMPT, "stream": false, "options": {"temperature": 0.2, "num_predict": 200}}`.
-O texto vem no campo `"response"` do JSON de resposta. Qualquer exceção, status
-diferente de 200 ou resposta vazia leva ao texto de reserva. Nunca deixar o erro subir.
+O texto vem no campo `"response"` do JSON de resposta. `requests.RequestException`, JSON
+inválido (`ValueError`), campo ausente (`KeyError`), status diferente de 200 ou resposta vazia
+levam ao texto de reserva, com registro em log. Nunca deixar o erro subir.
 
 PROMPT (exato; preencher as chaves):
 
@@ -320,79 +367,54 @@ Testes obrigatórios:
 
 Os testes não dependem da pasta data/ nem do Ollama.
 
-## 10. Interface: `app.py` (Streamlit)
+## 10. Interface
 
-Executar com `streamlit run app.py`. `st.set_page_config(page_title="Sentinela",
-layout="wide")`. Importa `AgenteSentinela` de `src.agente` e constantes de `src.config`.
-Se o modelo ou os dados preparados não existirem, mostrar `st.error` com o comando que
-falta rodar e `st.stop()`.
+Toda a interface está especificada em `docs/08-design-da-interface.md`: páginas, layout,
+componentes, textos, estados, tokens de tema e acessibilidade. Os módulos estão na seção 3.
+Resumo das regras que dependem desta especificação:
+- A fila de demonstração tem todas as fraudes de março de 2025 mais TAMANHO_AMOSTRA_LEGITIMAS
+  transações legítimas de março sorteadas com `random_state=SEMENTE`, pontuadas com
+  `analisar_lote` e ordenadas pela nota, da maior para a menor (ADR-007).
+- A resposta do analista é gravada em CAMINHO_FEEDBACK com as colunas
+  `registrado_em, id_transacao, nota, decisao, resposta_analista`; `resposta_analista` só
+  aceita "fraude" ou "legitima". Vale a última resposta de cada transação.
+- As colunas `fraude` e `decisao_sistema_atual` nunca aparecem na fila nem no painel.
 
-Carga (com `st.cache_data` / `st.cache_resource`): ler o parquet preparado; a "fila" é:
-todas as fraudes de março de 2025 mais 2.000 transações legítimas de março sorteadas com
-`random_state=42`; rodar `analisar_lote`; ordenar por nota decrescente.
+## 11. Critérios de aceite e invariantes (valores exatos, base de 160.000 linhas)
 
-Barra lateral: título "Sentinela"; `st.radio` de navegação com "Fila de alertas" e
-"Desempenho"; caixa "Explicar com IBM Granite (Ollama)" (marcada por padrão); texto curto
-"Dados 100% sintéticos (Sicredi)".
-
-Página "Fila de alertas":
-- 4 métricas no topo (`st.metric`): transações na fila; bloqueadas; pedir confirmação;
-  aprovadas.
-- Filtro `st.multiselect` por decisão (padrão: BLOQUEAR e PEDIR_CONFIRMACAO).
-- Tabela (`st.dataframe`) com colunas: id_transacao, data_hora, valor, tipo_transacao,
-  modalidade_transacao, nota, n_sinais, decisao. Linhas coloridas por decisão com
-  `df.style`: BLOQUEAR vermelho claro, PEDIR_CONFIRMACAO amarelo claro, APROVAR verde claro.
-- `st.selectbox` "Escolha uma transação para analisar", com rótulo
-  "{id_transacao} | nota {nota} | {decisao_legivel} | R$ {valor}".
-- Detalhe da transação escolhida: decisão em destaque (`st.error` para BLOQUEAR,
-  `st.warning` para PEDIR_CONFIRMACAO, `st.success` para APROVAR); nota com
-  `st.progress`; lista dos sinais; explicação do agente gerada na hora com
-  `agente.analisar(transacao, usar_llm=caixa)` dentro de `st.spinner`, mostrando embaixo
-  "Explicação gerada por: IBM Granite 4" ou "Explicação gerada por: regras";
-  histórico do cartão (`historico_cartao(id_cartao, antes_de=data_hora)`) em tabela.
-- Dois botões: "Confirmar fraude" e "Marcar como legítima". Cada clique acrescenta uma
-  linha em `data/feedback.csv` (criar com cabeçalho se não existir) com as colunas
-  `registrado_em, id_transacao, nota, decisao, resposta_analista` (resposta_analista =
-  "fraude" ou "legitima") e mostra `st.toast("Resposta registrada")`.
-- A coluna `fraude` (rótulo real) nunca aparece na fila nem no detalhe.
-
-Página "Desempenho":
-- Lê `modelos/metricas.json` e `modelos/avaliacao_agente.json`.
-- Métricas: PR-AUC, ROC-AUC, fraudes no teste.
-- Tabela comparando "Sistema atual" e "Sentinela" em março: fraudes bloqueadas, fraudes
-  não bloqueadas, percentual de fraudes bloqueadas.
-- Gráfico de barras (`st.bar_chart`) com fraudes bloqueadas: sistema atual x Sentinela.
-- Tabela dos limiares (alertas, precisão, recall).
-- Aviso `st.info`: "Dados sintéticos: o resultado é otimista. Em produção o modelo
-  precisa de monitoramento e retreino."
-
-## 11. Critérios de aceite (valores esperados com a base completa de 900 mil linhas)
-
-Se um número sair muito diferente, há erro: pare e investigue antes de continuar.
+Se um número sair diferente, há erro: pare e investigue antes de continuar.
+Os testes `tests/test_conformidade_nucleo.py` conferem todos os números abaixo automaticamente,
+inclusive que os arquivos de `modelos/` saem do código atual (não foram editados à mão).
 
 Etapa 1 (dados preparados):
-- 900.000 linhas e 21 colunas no parquet; exatamente 900 fraudes (0,10%).
-- 540.000 débito e 360.000 crédito.
-- Todas as fraudes entre janeiro e março de 2025; zero fraudes de abril a dezembro.
-- Toda linha com ip_pais_desconhecido == 1 é fraude (algumas centenas de linhas).
-- Cerca de 8% de vazios nas colunas de velocidade, distância e risco.
+- 160.000 linhas e 21 colunas no parquet.
+- 146 fraudes (0,09%): 52 em janeiro, 40 em fevereiro, 54 em março de 2025 e zero de
+  abril a dezembro.
+- 96.287 débito e 63.713 crédito.
+- 311 linhas com data_hora vazia (nenhuma delas é fraude).
+- 38 linhas com ip_pais_desconhecido == 1, e as 38 são fraude.
+- Cerca de 8% de vazios em vel_cartao_terminal_1h, qtd_transacoes_cartao_1min,
+  qtd_token_carteira_3m, dist_terminal_anterior_km e risco_estabelecimento.
 
 Etapa 2 (modelo):
-- Teste (março) com cerca de 75 mil linhas e algumas centenas de fraudes.
-- PR-AUC e ROC-AUC acima de 0,95 (os dados são sintéticos e fáceis de separar).
-- No corte 70: recall acima de 0,90 e precisão acima de 0,90.
-- Sistema atual: bloqueia só cerca de metade das fraudes de março.
-- Coeficientes mais fortes: velocidade, rajada em 1 minuto e distância.
+- Treino: 25.923 linhas e 92 fraudes. Teste: 13.608 linhas e 54 fraudes.
+- PR-AUC e ROC-AUC iguais ou acima de 0,99 (os dados são sintéticos e fáceis de separar;
+  valores perto de 1,0 são esperados).
+- Nos cortes 30, 50 e 70: 54 alertas e 54 fraudes detectadas (precisão 1,0 e recall 1,0).
+- Sistema atual no teste: 26 bloqueadas, as 26 são fraude (28 fraudes não bloqueadas).
+- Os três coeficientes mais fortes são de dist_terminal_anterior_km,
+  qtd_transacoes_cartao_1min e vel_cartao_terminal_1h (em qualquer ordem).
 
 Etapa 3 (agente):
-- `pytest` passa todos os testes.
-- avaliar_agente: Sentinela bloqueia mais de 90% das fraudes de março; zero ou quase
-  zero fraudes aprovadas; pedidos de confirmação em cerca de 1% das transações.
+- `pytest` passa todos os testes. Nota da transação FRAUDE de exemplo perto de 100; da
+  LEGITIMA, perto de 0.
+- avaliar_agente (março de 2025): 13.608 transações e 54 fraudes; Sentinela com 54
+  bloqueadas (54 fraudes), 159 pedidos de confirmação (0 fraudes) e 13.395 aprovadas
+  (0 fraudes). Sistema atual: 26 fraudes bloqueadas e 28 não bloqueadas.
+  Uma diferença pequena (poucas unidades) em confirmações é aceitável; em fraudes, não.
 
-Etapa 4 (interface):
-- `streamlit run app.py` abre sem erro; as duas páginas funcionam; a explicação aparece
-  com o Ollama ligado ("IBM Granite 4") e desligado ("regras"); os botões gravam em
-  data/feedback.csv.
+Interface e entrega: critérios de cada Issue em `docs/backlog.md`. A fila tem 2.054
+transações (54 fraudes de março + 2.000 legítimas).
 
-Etapa 5 (entrega):
-- README completo; `pytest` passa; repositório sem a pasta data/.
+Invariantes: depois de QUALQUER Issue, os números das Etapas 1, 2 e 3 acima continuam
+iguais. Mudou um deles, alguma coisa quebrou.

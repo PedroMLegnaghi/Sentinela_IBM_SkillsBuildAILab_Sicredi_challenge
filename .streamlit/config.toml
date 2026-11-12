@@ -1,0 +1,18 @@
+# Tokens visuais do Sentinela (docs/08-design-da-interface.md, seção 5.1).
+# Contrastes medidos: texto 18,1:1; texto na barra lateral 16,4:1; cor primária 5,0:1.
+
+[theme]
+base = "light"
+primaryColor = "#0F62FE"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F2F4F8"
+textColor = "#161616"
+font = "sans-serif"
+
+[client]
+# Nunca mostrar stack trace ao usuário (Manual 2.5.6).
+showErrorDetails = "none"
+toolbarMode = "viewer"
+
+[browser]
+gatherUsageStats = false

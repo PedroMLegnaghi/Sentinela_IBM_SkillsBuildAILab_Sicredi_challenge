@@ -1,0 +1,52 @@
+{
+  "modelo": "regressao_logistica",
+  "treino": {
+    "linhas": 25923,
+    "fraudes": 92
+  },
+  "teste": {
+    "linhas": 13608,
+    "fraudes": 54
+  },
+  "pr_auc": 1.0,
+  "roc_auc": 1.0,
+  "limiares": [
+    {
+      "limiar": 30,
+      "alertas": 54,
+      "fraudes_detectadas": 54,
+      "precisao": 1.0,
+      "recall": 1.0
+    },
+    {
+      "limiar": 50,
+      "alertas": 54,
+      "fraudes_detectadas": 54,
+      "precisao": 1.0,
+      "recall": 1.0
+    },
+    {
+      "limiar": 70,
+      "alertas": 54,
+      "fraudes_detectadas": 54,
+      "precisao": 1.0,
+      "recall": 1.0
+    },
+    {
+      "limiar": 90,
+      "alertas": 52,
+      "fraudes_detectadas": 52,
+      "precisao": 1.0,
+      "recall": 0.963
+    }
+  ],
+  "comparacao_hgb": {
+    "pr_auc": 1.0,
+    "roc_auc": 1.0
+  },
+  "sistema_atual": {
+    "bloqueadas": 26,
+    "fraudes_bloqueadas": 26,
+    "fraudes_total": 54
+  }
+}

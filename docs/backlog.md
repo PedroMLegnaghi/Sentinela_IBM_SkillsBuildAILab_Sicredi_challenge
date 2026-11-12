@@ -373,6 +373,10 @@ avisos de Black e Ruff; o portão completo precisa passar no último commit.
 
 # Incrementos da reta final (Issues #19 a #32)
 
+> **Substituída em 12/11 à noite pela parte "Aplicação web", no fim deste arquivo (ADR-011 e
+> ADR-012).** Valem daqui só a #19 (integrada) e as regras comuns abaixo; #20 a #29, #31 e #33 a
+> #35 foram fechadas; #30 e #32 seguem, com a descrição atualizada na parte nova.
+
 Depois da versão 1.0 (Issues #1 a #8 e #13), o time faz incrementos em três frentes: rigor e
 interpretabilidade dos dados e do modelo, comportamento de agente e uso visível do IBM Bob.
 Regras que valem para TODAS as Issues desta parte, além do `AGENTS.md`:
@@ -926,3 +930,364 @@ Orchestrate devolve a mesma decisão da API para a mesma transação inventada; 
 5. Testes com dados inventados: poucas respostas não treinam; resposta do analista troca o rótulo.
 
 **Critérios de aceite:** portão completo; o campeão em `modelos/` não muda.
+
+---
+
+# Aplicação web (Issues #37 a #48, #30 e #32)
+
+O Sentinela vira uma aplicação web: API em FastAPI (`src/api/`), auditoria por IA no watsonx.ai
+(`src/auditoria/`) e site em Next.js com Carbon (`web/`). Fontes: ESPECIFICACAO, seções 12 a 14;
+ADR-011 a ADR-013. As regras comuns da parte "Incrementos" continuam valendo (campeão intocável,
+invariantes, portão com `data/`, um arquivo um dono, scripts novos, privacidade), e mais estas:
+
+- **O contrato manda.** Campos, rotas e códigos de resposta são os da ESPECIFICACAO, seção 12. O
+  site usa só os tipos de `web/lib/tipos.ts`. Faltou algo? Pare e pergunte (AGENTS.md, seção 14).
+- **Conformidade da API.** `tests/test_conformidade_api.py` é do líder e intocável; cada Issue de
+  API termina com ele sem falhas (com `data/` presente).
+- **Site com mocks.** Até a API estar em `develop`, o site roda com `NEXT_PUBLIC_USAR_MOCK=1`.
+  Depois, a verificação manual é feita com a API real.
+- **Streamlit congelado.** `app.py` e `src/interface/` só recebem correção de defeito.
+- **Sem Docker e sem Playwright** (disco). Testes do site com Vitest e Testing Library.
+
+| # | Título | Dono | Revisor | Branch | Depende de |
+| --- | --- | --- | --- | --- | --- |
+| 37 | docs: redefine a arquitetura para web com auditoria por IA | Pedro Muller | Pedro Machado | `feature/37-arquitetura-web` | — |
+| 38 | feat: cria a API do Sentinela | Pedro Machado | Lucas | `feature/38-api` | #37 |
+| 39 | feat: audita as decisões com IA no watsonx.ai | Pedro Muller | Bruno | `feature/39-auditoria-ia` | #37 (liga na API depois da #38) |
+| 40 | feat: cria a base do site | Mariana | Bruno | `feature/40-base-do-site` | #37 |
+| 41 | feat: explica o que pesou na nota | Bruno | Mariana | `feature/41-explicabilidade` | #37 (liga na API depois da #38) |
+| 42 | feat: avalia o modelo com rigor e calcula o custo da fraude | Lucas | Pedro Machado | `feature/42-avaliacao-e-custo` | #37 |
+| 43 | feat: cria a fila de alertas e o painel da transação no site | Bruno | Mariana | `feature/43-fila-e-painel` | #40 |
+| 44 | feat: cria as páginas Desempenho e Como funciona no site | Lucas | Pedro Machado | `feature/44-desempenho-e-como-funciona` | #40 |
+| 45 | feat: cria o simulador e a página de respostas no site | Mariana | Bruno | `feature/45-simulador-e-respostas` | #40 |
+| 46 | feat: compara a auditoria por IA com o modelo | Pedro Muller | Lucas | `feature/46-ia-contra-modelo` | #38, #39 |
+| 47 | feat: documenta a análise exploratória dos dados | Pedro Machado | Lucas | `feature/47-analise-exploratoria` | #37 |
+| 48 | fix: corrige a acessibilidade e a responsividade do site | Mariana | Bruno | `feature/48-acessibilidade` | #43, #44, #45 |
+| 30 | docs: registra o uso do IBM Bob | Pedro Muller | Mariana | `feature/30-uso-do-bob` | todas |
+| 32 | docs: atualiza o README e os textos e aposenta o Streamlit | Pedro Muller | Lucas | `feature/32-readme-e-textos` | todas |
+
+---
+
+## #37 — docs: redefine a arquitetura para web com auditoria por IA
+
+- **Branch:** `feature/37-arquitetura-web`. Feita pelo líder (documentação e testes do líder).
+- **Entrega:** ESPECIFICACAO, seções 10 (nota) e 12 a 14; ADR-011 a ADR-013 em
+  `docs/07-decisoes.md`; AGENTS.md (seções 2, 9, 11 e 12); `tests/test_conformidade_api.py`;
+  `.env.example`; `.gitignore`; esta parte do backlog; `docs/01-requisitos.md`;
+  `docs/04-arquitetura.md`.
+- **Critérios de aceite:** portão completo; `tests/test_conformidade_api.py` todo pulado com o
+  motivo "Issue #38 ainda não implementada"; revisão do Bob (seção 16) sem pendência.
+
+---
+
+## #38 — feat: cria a API do Sentinela
+
+- **Branch:** `feature/38-api`.
+- **Ler:** AGENTS.md; ESPECIFICACAO, seções 8, 10, 12 e 13 (só a interface `auditar` e o objeto
+  Auditoria); `src/agente.py`; `src/interface/dados.py` (`montar_fila`) e
+  `src/interface/feedback.py`; `tests/test_conformidade_api.py`.
+- **Arquivos permitidos:** `src/api/__init__.py`, `src/api/app.py`, `src/api/esquemas.py`
+  (modelos Pydantic), `src/api/servicos.py` (carga de dados, fila, análise, respostas e métricas),
+  `src/api/auditorias.py` (execução em segundo plano e dicionário em memória),
+  `src/explicabilidade.py` (só o esqueleto: `contribuicoes(pipeline, transacao) -> list[dict]`
+  devolvendo `[]`, com TODO para a #41), `src/config.py` (só `API_ORIGENS_PERMITIDAS`),
+  `requirements-api.txt`, `.github/workflows/qualidade.yml` (instalar `requirements-api.txt`),
+  `tests/test_api.py`, `docs/04-arquitetura.md`, `docs/06-sequencias.md`.
+
+**Passos**
+
+1. `requirements-api.txt` com `fastapi`, `uvicorn` e `httpx`, versões fixadas com `==` (as que o
+   `pip` instalar hoje). Instale no `.venv`.
+2. Implemente cada rota da seção 12.2 com modelos Pydantic de entrada e saída. Reaproveite o
+   núcleo: `calcular_sinais`, `pontuar`, `decidir` e o texto de reserva de `explicar(...,
+   usar_llm=False)`; `montar_fila(base, agente.analisar_lote)`; `RespostaAnalista` e
+   `registrar_resposta`/`ler_ultima_resposta` de `feedback.py`. Não reescreva regra de negócio.
+   Atenção a três diferenças do contrato: (a) a Analise da API não é o dicionário de
+   `analisar()`: não expõe `fonte_explicacao` e acrescenta `contribuicoes` (lista vazia até a
+   #41) e `latencia_ms`; (b) a coluna `resposta_analista` do CSV vira o campo `resposta` no JSON;
+   (c) `POST /api/respostas` confere se `id_transacao` está na fila antes de gravar, senão 404.
+3. Carga única na subida (`lifespan`): parquet, agente com `base` e fila. Falta de arquivo não
+   derruba a API: `/api/saude` informa e as rotas de dados respondem 503 com o comando a rodar.
+4. Auditoria: `POST /api/analisar` com `auditar` e `POST /api/transacoes/{id}/auditoria` criam um
+   id (`uuid4().hex`), guardam `status="pendente"` e disparam em segundo plano
+   `src.auditoria.auditar(transacao, analise)`. Se `src.auditoria` ainda não existir (antes da
+   #39), a auditoria termina com `status="erro"` e `mensagem` "Auditoria por IA ainda não
+   instalada.". `/api/saude` devolve `"auditoria": "watsonx"` só se as duas variáveis
+   `WATSONX_APIKEY` e `WATSONX_PROJECT_ID` estiverem definidas; senão `"local"`.
+5. `latencia_ms` com `time.perf_counter()` em volta de sinais + nota + decisão.
+6. Converta `NaN` em `null` e datas em ISO 8601 antes de responder.
+7. `tests/test_api.py`: casos que a conformidade não cobre (por exemplo, 503 sem dados com
+   `monkeypatch`, conversão de NaN, concordância de `/api/respostas` com dados inventados).
+8. Atualize o C4 (contêineres API e site) e acrescente a sequência "decisão imediata e auditoria
+   em paralelo".
+
+**Conflito previsto:** a #40 acrescenta um job "Site" ao mesmo `.github/workflows/qualidade.yml`.
+A #38 só acrescenta a instalação de `requirements-api.txt` no job existente; quem integrar depois
+roda `git merge develop` e preserva os dois.
+
+**Critérios de aceite:** portão completo; `tests/test_conformidade_api.py` sem falhas, com os
+testes da auditoria concluída pulados ("Issue #39 ainda não implementada"); `uvicorn
+src.api.app:app --port 8000` sobe e `http://localhost:8000/docs` lista as rotas; invariantes iguais.
+
+---
+
+## #39 — feat: audita as decisões com IA no watsonx.ai
+
+- **Branch:** `feature/39-auditoria-ia`. **Antes do Bob (responsável):** criar no IBM Cloud o
+  projeto do watsonx.ai e a API key, preencher o `.env` local e conferir no Prompt Lab qual Granite
+  com chamada de ferramentas está disponível (vai em `WATSONX_MODELO`).
+- **Ler:** AGENTS.md; ESPECIFICACAO, seções 5, 8, 12 e 13; ADR-012 e ADR-013; `src/agente.py`;
+  `src/api/` (depois da #38).
+- **Arquivos permitidos:** `src/auditoria/__init__.py`, `src/auditoria/ferramentas.py`,
+  `src/auditoria/watsonx.py`, `src/auditoria/local.py`, `src/auditoria/relatorio.py`
+  (validação e parecer), `src/config.py` (só `AUDITORIA_MAX_ITERACOES`, `AUDITORIA_TIMEOUT_S`,
+  `WATSONX_URL_PADRAO` e `AUDITORIA_MODELO_PADRAO`), `src/api/servicos.py` e
+  `src/api/auditorias.py` (só para passar a base às ferramentas), `tests/test_auditoria.py`,
+  `docs/06-sequencias.md`.
+
+**Passos**
+
+1. `ferramentas.py`: as 5 ferramentas da seção 13, cada uma uma função pura sobre o parquet
+   carregado, com o envelope `{"status", "dados", "campos_ausentes"}` e a definição de ferramenta
+   (nome, descrição em português, esquema JSON dos parâmetros) para o chat do watsonx.ai.
+2. `relatorio.py`: validação do Relatorio (campos, valores permitidos, 600 caracteres) e a
+   função do parecer da seção 13.
+3. `local.py`: o modo local da seção 13.
+4. `watsonx.py`: token IAM com cache até expirar; laço do chat com ferramentas (o modelo pede uma
+   ferramenta, o código executa e devolve o resultado) até a resposta final, com
+   `AUDITORIA_MAX_ITERACOES` e `AUDITORIA_TIMEOUT_S`; instruções da seção 13; resposta final em
+   JSON validada, uma nova tentativa se inválida. Toda falha (`requests.RequestException`,
+   `ValueError`, `KeyError`, tempo esgotado) cai no modo local, com log sem a chave.
+5. `__init__.py`: `auditar(transacao, analise)` escolhe watsonx (com credenciais) ou local e
+   devolve o Relatorio com `ferramentas_usadas` preenchido.
+6. `tests/test_auditoria.py` com `monkeypatch` em `requests` (sem rede): laço com uma chamada de
+   ferramenta e resposta final; JSON inválido duas vezes cai no modo local; tempo esgotado cai no
+   modo local; parecer CONFIRMA, DIVERGE e INCONCLUSIVO; nenhuma ferramenta devolve chave proibida.
+7. Verificação manual com credenciais: 3 transações da fila (uma de cada decisão) auditadas pelo
+   watsonx.ai, com o relatório colado no PR (sem identificadores).
+
+**Critérios de aceite:** portão completo; conformidade da API sem falhas e sem pulos da #39;
+relatórios reais do watsonx.ai no PR; sem credenciais, tudo funciona em modo local.
+
+---
+
+## #40 — feat: cria a base do site
+
+- **Branch:** `feature/40-base-do-site`.
+- **Ler:** AGENTS.md (seções 6 e 11); ESPECIFICACAO, seções 12 e 14;
+  `docs/08-design-da-interface.md`, seções 1 a 6 e 11 (tom, cores e textos, para reaproveitar).
+- **Arquivos permitidos:** tudo dentro de `web/` e `.github/workflows/qualidade.yml` (job novo
+  do site).
+
+**Passos**
+
+1. Projeto Next.js (App Router) com TypeScript estrito em `web/`, com `@carbon/react` e `sass`;
+   scripts `dev`, `build`, `lint` (ESLint), `typecheck` (`tsc --noEmit`), `test` (Vitest) e
+   `format` (Prettier). Versões fixadas no `package.json` e `package-lock.json` versionado.
+2. Tema Carbon claro (`g10`), cabeçalho "Sentinela" e menu lateral com as 5 rotas da seção 14, e
+   uma página por rota com título e "Em preparação na Issue #N.", assim: `/` → #43,
+   `/desempenho` → #44, `/como-funciona` → #44, `/simulador` → #45, `/respostas` → #45.
+3. `web/lib/tipos.ts` (espelho da seção 12), `web/lib/api.ts` (uma função por rota, com erro em
+   português quando a API não responde), `web/lib/mocks/` (dados inventados para cada rota,
+   incluindo uma auditoria que passa de "pendente" a "concluida"), `web/lib/textos.ts` e
+   `web/lib/formatacao.ts` com testes de todos os formatos da seção 14. Em `web/lib/textos.ts`,
+   crie um bloco comentado vazio por Issue (`// --- Issue #43 ---`, #44, #45, #48): cada Issue
+   seguinte só acrescenta textos dentro do próprio bloco, para os merges não conflitarem.
+   O job "Site" no CI é novo; não altere o job Python existente (a #38 mexe nele).
+4. Componentes comuns: `FaixaDecisao` (Aprovar, Pedir confirmação, Bloquear, com ícone e texto,
+   nunca só cor), `BarraNota`, `EstadoCarregando`, `EstadoVazio`, `EstadoErro`.
+5. Job "Site" no CI: `npm ci`, lint, typecheck, test e build dentro de `web/`.
+
+**Critérios de aceite:** portão do site e do Python; `NEXT_PUBLIC_USAR_MOCK=1 npm run dev` abre
+as 5 páginas; os componentes comuns têm teste; CI verde.
+
+---
+
+## #41 — feat: explica o que pesou na nota
+
+- **Branch:** `feature/41-explicabilidade`.
+- **Arquivos permitidos:** `src/explicabilidade.py`, `src/api/servicos.py` (só para preencher
+  `contribuicoes`), `tests/test_explicabilidade.py`.
+
+**Passos**
+
+1. Com o pipeline salvo (`imputer` → `scaler` → `modelo`), sem treinar nada:
+   `contribuicoes(pipeline, transacao) -> list[dict]` aplica `imputer` e `scaler` e devolve
+   `{"variavel", "nome", "contribuicao"}` para cada coluna da regressão (as 11 variáveis e os
+   indicadores de vazio), com `contribuicao = coeficiente × valor padronizado`, ordenado por
+   valor absoluto; `importancia_global(pipeline) -> list[dict]`; `NOMES_LEGIVEIS` em português
+   (indicador de vazio vira "<nome> ausente").
+2. A API passa a preencher `contribuicoes` em toda Analise.
+3. Testes com um pipeline pequeno treinado no teste com dados inventados: a soma das
+   contribuições mais o intercepto é o log-odds; ordenação; nomes para todas as colunas.
+
+**Critérios de aceite:** portão completo; conformidade da API sem falhas; `/api/transacoes/{id}`
+traz contribuições coerentes (transação bloqueada com contribuições positivas grandes).
+
+---
+
+## #42 — feat: avalia o modelo com rigor e calcula o custo da fraude
+
+- **Branch:** `feature/42-avaliacao-e-custo`.
+- **Arquivos permitidos:** `src/avaliar_rigor.py`, `src/analisar_custos.py`,
+  `modelos/avaliacao_rigorosa.json`, `modelos/custos.json` (gerados), `docs/11-avaliacao.md`,
+  `tests/test_avaliar_rigor.py`, `tests/test_analisar_custos.py`.
+
+**Passos:** os passos 1 e 2 da #28 (avaliação rigorosa) e os passos 1 e 2 da #20 (custo), na parte
+"Incrementos" acima, sem as seções do Streamlit. `docs/11-avaliacao.md` traz as duas análises,
+com uma leitura em português de cada tabela.
+
+**Critérios de aceite:** portão completo; os dois JSON gerados pelos scripts e expostos em
+`/api/metricas` (`extras`); números do documento iguais aos dos JSON.
+
+---
+
+## #43 — feat: cria a fila de alertas e o painel da transação no site
+
+- **Branch:** `feature/43-fila-e-painel`.
+- **Ler:** ESPECIFICACAO, seções 12 a 14; `docs/08-design-da-interface.md`, seção 7 (a fila e o
+  painel do Streamlit, como referência de conteúdo e textos); `web/`.
+- **Arquivos permitidos:** `web/app/page.tsx`, `web/components/fila/**`,
+  `web/components/painel/**`, `web/lib/textos.ts` (só acrescentar), testes desses componentes.
+
+**Passos**
+
+1. Fila: quatro indicadores (na fila, bloquear, pedir confirmação, aprovar) de `contagens`; filtro
+   de decisões (padrão: Bloquear e Pedir confirmação); tabela do Carbon com ID, nota (barra),
+   decisão, valor, data e hora, tipo, modalidade e sinais, ordenável, com seleção de linha.
+2. Painel da transação selecionada (`/api/transacoes/{id}`): cabeçalho com data, tipo,
+   modalidade e valor; `FaixaDecisao`; `BarraNota` com "Nota de risco: N de 100"; sinais; gráfico
+   de barras horizontais "O que pesou na nota" (6 maiores contribuições; vazio enquanto a #41 não
+   entrar); explicação do modelo.
+3. Cartão "Auditoria da IA": ao abrir a transação, `POST /api/transacoes/{id}/auditoria` e
+   consulta a cada 2 s (seção 14). Pendente: carregando com "A IA está auditando esta decisão…".
+   Concluída: parecer em destaque (Confirma, Diverge, Inconclusivo; Diverge com aviso de
+   atenção), risco e confiança, explicação, evidências a favor e contra, dados ausentes, fonte
+   (watsonx.ai ou modo local) e a lista "Ferramentas usadas" na ordem. Erro: mensagem e "Tentar de
+   novo".
+4. Resposta do analista: botões "Confirmar fraude" e "Marcar como legítima" de mesmo peso,
+   `POST /api/respostas`, aviso de sucesso e "Sua resposta: …".
+5. Testes com os mocks: filtro, seleção, os três estados da auditoria e a gravação da resposta.
+
+**Critérios de aceite:** portão do site; com a API real, a fila mostra 2.054 / 54 / 25 / 1.975 e a
+auditoria aparece depois da decisão; verificação manual no PR.
+
+---
+
+## #44 — feat: cria as páginas Desempenho e Como funciona no site
+
+- **Branch:** `feature/44-desempenho-e-como-funciona`.
+- **Arquivos permitidos:** `web/app/desempenho/**`, `web/app/como-funciona/**`,
+  `web/components/desempenho/**`, `web/components/como-funciona/**`, `web/lib/textos.ts` (só
+  acrescentar), testes desses componentes.
+
+**Passos**
+
+1. Desempenho (`/api/metricas`): os cinco indicadores e a comparação com o sistema atual (os da
+   seção 8 do design); detalhes do modelo; e, quando presentes nos `extras`: "Quão confiável é o
+   resultado" (avaliação rigorosa), "Custo da fraude" (custos), "Modelo e IA lado a lado"
+   (`ia_contra_modelo`: latência e concordância). Extra ausente: a seção não aparece.
+2. Como funciona: o caminho de uma compra (decisão imediata e auditoria em paralelo), os 9 sinais
+   com os limiares, as regras de decisão, "O que os dados mostram" (`eda`, quando presente) e as
+   limitações.
+3. Gráficos com componentes do Carbon Charts (`@carbon/charts-react`) ou SVG simples; legenda e
+   texto alternativo em todos.
+4. Testes com os mocks, incluindo extras ausentes.
+
+**Critérios de aceite:** portão do site; números iguais aos dos JSON; verificação manual no PR.
+
+---
+
+## #45 — feat: cria o simulador e a página de respostas no site
+
+- **Branch:** `feature/45-simulador-e-respostas`.
+- **Arquivos permitidos:** `web/app/simulador/**`, `web/app/respostas/**`,
+  `web/components/simulador/**`, `web/components/respostas/**`, `web/lib/textos.ts` (só
+  acrescentar), testes desses componentes.
+
+**Passos**
+
+1. Simulador: escolher uma transação da fila; controles para valor, hora, crédito, cartão não
+   presente, IP desconhecido, rajada no minuto, uso em terminais na hora, token em 3 meses,
+   distância e risco do estabelecimento (madrugada calculada pela hora, nunca editada). Botão
+   "Analisar" → `POST /api/analisar` com `auditar: true`: mostra "Original" e "Simulada" lado a
+   lado (decisão, nota, sinais) na hora e, quando chegar, o parecer da IA para a simulada.
+   "Voltar aos valores originais".
+2. Respostas: `GET /api/respostas` com total, fraudes, legítimas e concordância; tabela; botão
+   "Exportar CSV" gerado no navegador; estado vazio explicando como responder na Fila.
+3. Testes com os mocks.
+
+**Critérios de aceite:** portão do site; mudar a hora para 3 acende "madrugada"; zerar as rajadas
+de uma fraude baixa a nota; verificação manual no PR.
+
+---
+
+## #46 — feat: compara a auditoria por IA com o modelo
+
+- **Branch:** `feature/46-ia-contra-modelo`. **Precisa:** credenciais do watsonx.ai.
+- **Arquivos permitidos:** `src/avaliar_ia.py`, `modelos/ia_contra_modelo.json` (gerado),
+  `docs/11-avaliacao.md` (só acrescentar uma seção), `tests/test_avaliar_ia.py`.
+
+**Passos**
+
+1. Amostra de março: todas as 54 fraudes e 200 legítimas sorteadas com `SEMENTE`.
+2. Para cada transação: decisão do modelo (com tempo) e auditoria (com tempo), em sequência, com
+   pausa se o watsonx.ai limitar a taxa.
+3. Grave só agregados: latência p50 e p95 do modelo e da IA (ms); distribuição dos pareceres;
+   concordância por decisão; recall e precisão da IA sozinha (risco ALTO ou SUSPEITO conta como
+   alerta) comparados aos do modelo na mesma amostra; quantas auditorias caíram no modo local.
+4. Seção "Modelo e IA lado a lado" em `docs/11-avaliacao.md`, com a leitura: por que o modelo
+   decide e a IA audita.
+5. Testes com uma auditoria falsa (monkeypatch) e 5 transações inventadas.
+
+**Critérios de aceite:** portão completo; JSON gerado com o watsonx.ai real (registrar no PR
+quantas foram para o modo local); exposto em `/api/metricas`.
+
+---
+
+## #47 — feat: documenta a análise exploratória dos dados
+
+- **Branch:** `feature/47-analise-exploratoria`.
+- **Arquivos permitidos:** `src/analisar_dados.py`, `modelos/eda.json` (gerado),
+  `docs/10-analise-exploratoria.md`, `tests/test_analisar_dados.py`.
+
+**Passos:** os passos 1 a 3 e 5 da #31, na parte "Incrementos" acima (sem a seção do Streamlit).
+O JSON fica exposto em `/api/metricas` (`extras.eda`).
+
+**Critérios de aceite:** portão completo; 160.000 linhas e 146 fraudes no JSON; documento coerente
+com o JSON.
+
+---
+
+## #48 — fix: corrige a acessibilidade e a responsividade do site
+
+- **Branch:** `feature/48-acessibilidade`.
+- **Antes do Bob (responsável):** Lighthouse (Accessibility) no Chrome nas 5 páginas, zoom de
+  200% e janela de 768 px; registre as notas e os problemas num comentário da Issue.
+- **Arquivos permitidos:** `web/**` (exceto `web/lib/tipos.ts` e `web/lib/api.ts`).
+
+**Passos:** corrigir cada problema registrado, um commit por problema; refazer o Lighthouse e
+registrar as notas finais no PR.
+
+**Critérios de aceite:** Lighthouse Accessibility ≥ 90 nas 5 páginas (ou os itens restantes como
+Issue nova); zoom de 200% e 768 px sem conteúdo cortado; portão do site.
+
+---
+
+## #30 (atualizada) — docs: registra o uso do IBM Bob
+
+Como na parte "Incrementos", passos 1 a 3, acrescentando ao documento a mudança de arquitetura de
+12/11 (Streamlit → web com auditoria por IA) e como o contrato da API e os testes de conformidade
+deixaram backend e site serem feitos em paralelo pelo Bob.
+
+---
+
+## #32 (atualizada) — docs: atualiza o README e os textos e aposenta o Streamlit
+
+- **Arquivos permitidos:** `README.md`, `docs/README.md` e, se o site cobrir tudo o que o
+  Streamlit mostra, a remoção de `app.py`, `src/interface/pagina_*.py`, `src/interface/secao_*.py`,
+  `src/interface/painel_*.py` e dos testes deles, com um ADR novo (o líder decide e escreve o ADR).
+  `src/interface/dados.py` e `feedback.py` ficam (a API usa).
+- **Passos:** README com a arquitetura nova, como rodar a API e o site, os achados de
+  `docs/10` e `docs/11` com números dos JSON e o link para `docs/09-uso-do-bob.md`; proposta dos
+  Textos 1 e 2 no relatório.

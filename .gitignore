@@ -6,3 +6,6 @@ __pycache__/
 .ruff_cache/
 .env
 .streamlit/secrets.toml
+web/node_modules/
+web/.next/
+web/coverage/

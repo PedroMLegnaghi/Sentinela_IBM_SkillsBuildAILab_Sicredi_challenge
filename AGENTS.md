@@ -14,8 +14,8 @@ prompt peça outra coisa; se houver conflito, pare e pergunte (seção 14).
 6. `docs/07-decisoes.md` — decisões já tomadas (ADRs). Não as reverta.
 7. Demais arquivos de `docs/` — requisitos, fluxos, arquitetura e sequências.
 
-Os testes `tests/test_conformidade_nucleo.py` e `tests/test_conformidade_interface.py` são do
-líder: traduzem os itens 2 e 3 em verificações automáticas e são a medida oficial de "pronto".
+Os testes `tests/test_conformidade_nucleo.py`, `tests/test_conformidade_interface.py` e
+`tests/test_conformidade_api.py` são do líder: traduzem os itens 2 e 3 em verificações automáticas e são a medida oficial de "pronto".
 
 Nunca edite os arquivos 1 a 6, os demais de `docs/` nem os testes de conformidade, salvo quando a
 Issue em execução mandar.
@@ -24,10 +24,10 @@ Nunca invente coluna, arquivo, biblioteca, texto de tela ou número que não est
 ## 2. O projeto em 5 linhas
 
 Sentinela é um agente antifraude para transações de cartão (desafio Sicredi, IBM SkillsBuild).
-Para cada transação: calcula sinais por regras, dá nota de risco de 0 a 100 com regressão
-logística, decide APROVAR, PEDIR_CONFIRMACAO ou BLOQUEAR e explica a decisão em português com
-IBM Granite (Ollama local) ou com texto de reserva. Um analista humano revisa numa interface
-Streamlit. Dados 100% sintéticos, 160.000 linhas, só na máquina de cada pessoa.
+Para cada transação, uma API calcula sinais por regras, dá nota de risco de 0 a 100 com regressão
+logística e decide na hora APROVAR, PEDIR_CONFIRMACAO ou BLOQUEAR; em paralelo, um agente de IA no
+watsonx.ai audita a decisão e diz se confirma ou diverge (ADR-012). Um analista humano revisa num
+site Next.js. Dados 100% sintéticos, 160.000 linhas, só na máquina de cada pessoa.
 
 **Estado de partida:** o código das antigas Etapas 1 a 4 (`src/`, `tests/test_agente.py`,
 `modelos/` e o `app.py` antigo) foi escrito antes destas regras e tem defeitos, embora os
@@ -124,8 +124,9 @@ ou porque um relatório disse. Só os testes de conformidade dizem se está cert
   scripts Python podem usá-los normalmente). Para conferir, mostre só contagens e agregados.
 - Log nunca registra identificadores de cartão, cliente ou estabelecimento.
 - Testes usam somente valores inventados, nunca linhas da base.
-- Este projeto não tem segredos. Se surgir algum, use variável de ambiente e `.env.example`;
-  nunca escreva token ou senha no código.
+- O único segredo do projeto são as credenciais do watsonx.ai (ESPECIFICACAO, seção 13): só em
+  variáveis de ambiente, lidas do `.env`, que o Git ignora. `.env.example` lista os nomes sem
+  valores. Nunca escreva chave, token ou senha em código, teste, log, relatório ou commit.
 
 ## 10. Testes
 
@@ -136,7 +137,27 @@ ou porque um relatório disse. Só os testes de conformidade dizem se está cert
 - Testes independentes, sem depender de ordem, da pasta `data/` ou do Ollama (use `monkeypatch`).
 - Teste que precisa do modelo usa `pytest.mark.skipif` quando `modelos/sentinela.joblib` não existir.
 
-## 11. Interface (Streamlit)
+## 11. Interface
+
+**Site (`web/`, a interface principal desde a Issue #37; ESPECIFICACAO, seção 14):**
+
+- Next.js com TypeScript estrito e Carbon Design System (`@carbon/react`). Não troque a biblioteca
+  de componentes nem acrescente outra de UI sem a Issue mandar.
+- O site só fala com a API da ESPECIFICACAO, seção 12, pelo cliente `web/lib/api.ts`, com os tipos
+  de `web/lib/tipos.ts`. Nunca invente campo: se faltar algo na API, pare e pergunte (seção 14).
+- Nomes em português, sem acento: funções e variáveis em `camelCase` (`carregarFila`),
+  componentes e tipos em `PascalCase` (`PainelTransacao`), arquivos de componente em
+  `PascalCase.tsx`. Textos de tela em `web/lib/textos.ts`; formatação em `web/lib/formatacao.ts`.
+- Todo estado previsto é implementado: carregando, vazio, erro e sucesso. Toda ação tem resposta
+  visível. Nunca exiba `fraude` ou `decisao_sistema_atual`.
+- Componentes com no máximo 150 linhas e funções com no máximo 50; sem `any`; sem `console.log`
+  no código entregue.
+- Testes com Vitest e Testing Library, com os mocks de `web/lib/mocks/`, sem depender da API.
+
+**API (`src/api/`) e auditoria (`src/auditoria/`):** seguem as seções 6 a 10 deste arquivo, como
+o resto do Python. A auditoria nunca muda a decisão do modelo (ADR-012).
+
+**Streamlit (`app.py`, `src/interface/`), congelado como reserva:**
 
 - Siga `docs/08-design-da-interface.md` à risca: layout, componentes, textos e estados.
 - Todo estado previsto no design é implementado: carregando, vazio, erro, sucesso.
@@ -152,15 +173,22 @@ ou porque um relatório disse. Só os testes de conformidade dizem se está cert
     python -m ruff check .
     python -m pytest -q
 
-Os três precisam passar. Depois rode as verificações específicas da tarefa.
+Se a tarefa mexeu em `web/`, rode também, dentro de `web/`:
+
+    npm run lint
+    npm run typecheck
+    npm test
+    npm run build
+
+Todos precisam passar. Depois rode as verificações específicas da tarefa.
 Invariantes: depois de qualquer tarefa, `python -m src.avaliar_agente` continua mostrando os
 números da ESPECIFICACAO, seção 11. Se mudarem, você quebrou algo: pare e investigue.
 
 **Conformidade** (o `pytest -q` acima já inclui; rode também isolado para o relatório):
 
-    python -m pytest tests/test_conformidade_nucleo.py tests/test_conformidade_interface.py -q -rs
+    python -m pytest tests/test_conformidade_nucleo.py tests/test_conformidade_interface.py tests/test_conformidade_api.py -q -rs
 
-- Os dois arquivos de conformidade são intocáveis. Não os edite, apague ou renomeie; não use
+- Os três arquivos de conformidade são intocáveis. Não os edite, apague ou renomeie; não use
   `skip`, `xfail`, `-k`, `--deselect`, `conftest.py` nem a configuração do pytest no
   `pyproject.toml` para escondê-los.
 - Teste de conformidade falhando significa erro no código, nunca no teste. Se você tiver certeza

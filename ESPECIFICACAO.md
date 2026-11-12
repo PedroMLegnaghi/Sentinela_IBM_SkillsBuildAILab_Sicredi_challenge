@@ -369,7 +369,11 @@ Os testes não dependem da pasta data/ nem do Ollama.
 
 ## 10. Interface
 
-Toda a interface está especificada em `docs/08-design-da-interface.md`: páginas, layout,
+A partir da Issue #37, a interface principal é o site da seção 14, que fala com a API da seção 12;
+o Streamlit descrito abaixo fica como reserva. As regras de fila e de resposta do analista desta
+seção valem para os dois.
+
+Toda a interface Streamlit está especificada em `docs/08-design-da-interface.md`: páginas, layout,
 componentes, textos, estados, tokens de tema e acessibilidade. Os módulos estão na seção 3.
 Resumo das regras que dependem desta especificação:
 - A fila de demonstração tem todas as fraudes de março de 2025 mais TAMANHO_AMOSTRA_LEGITIMAS
@@ -418,3 +422,122 @@ transações (54 fraudes de março + 2.000 legítimas).
 
 Invariantes: depois de QUALQUER Issue, os números das Etapas 1, 2 e 3 acima continuam
 iguais. Mudou um deles, alguma coisa quebrou.
+
+## 12. API: `src/api/` (Issue #38; ADR-011)
+
+O site e qualquer sistema externo (por exemplo, o autorizador de cartões) falam com o Sentinela
+só por esta API. Ela é o contrato entre backend e site: nenhum campo muda sem uma Issue que mude
+esta seção. Os testes `tests/test_conformidade_api.py` traduzem esta seção.
+
+- Executar: `uvicorn src.api.app:app --port 8000`. O objeto FastAPI se chama `app` e fica em
+  `src/api/app.py`. Dependências em `requirements-api.txt` (`fastapi`, `uvicorn`, `httpx`, com
+  `==`); `requirements.txt` não muda (a conformidade do núcleo só aceita as 8 bibliotecas dele).
+- Na subida, a API carrega uma única vez o parquet, o agente (`AgenteSentinela` com `base`) e a
+  fila de demonstração (`montar_fila(base, agente.analisar_lote)`, ADR-007). Sem parquet ou sem
+  modelo, a API sobe mesmo assim: `/api/saude` informa o que falta e os demais endpoints de dados
+  respondem 503 com a mensagem do que rodar.
+- CORS liberado só para as origens de `API_ORIGENS_PERMITIDAS` em `src/config.py`
+  (`["http://localhost:3000"]`).
+- Campos em `snake_case`, em português, como no resto do projeto. Datas em texto ISO 8601 sem fuso
+  (`"2025-03-03T00:17:00"`) ou `null`. Números vazios viram `null`, nunca `NaN`.
+- Nenhuma resposta contém `fraude`, `decisao_sistema_atual`, colunas proibidas (seção 5) nem
+  `id_cartao`, `id_cliente` ou `id_estabelecimento`.
+- Erros: `{"detail": "<mensagem em português dizendo o que aconteceu e o que fazer>"}`; nunca stack
+  trace. Validação inválida: 422.
+
+### 12.1 Objetos
+
+- **Analise:** `{"nota": float, "decisao": "APROVAR"|"PEDIR_CONFIRMACAO"|"BLOQUEAR",
+  "decisao_legivel": str, "sinais": [{"id": str, "descricao": str}], "explicacao": str,
+  "contribuicoes": [{"variavel": str, "nome": str, "contribuicao": float}], "latencia_ms": float}`.
+  `nota`, `decisao`, `decisao_legivel` e `sinais` vêm de `calcular_sinais`, `pontuar` e `decidir`
+  (iguais a `analisar`); `explicacao` é o texto de reserva da seção 8.5 (a API nunca chama o
+  Ollama); `contribuicoes` vem de `src/explicabilidade.py` (Issue #41; lista vazia até lá);
+  `latencia_ms` mede sinais + nota + decisão, sem a explicação.
+- **ItemFila:** `{"id_transacao": int, "nota": float, "decisao": str, "valor": float|null,
+  "data_hora": str|null, "tipo_transacao": str, "modalidade_transacao": str, "n_sinais": int}`.
+- **Transacao:** `id_transacao`, `data_hora`, `valor`, `tipo_transacao`, `modalidade_transacao`
+  e as 11 variáveis de `VARIAVEIS_MODELO`.
+- **ItemHistorico:** `{"data_hora", "valor", "tipo_transacao", "modalidade_transacao",
+  "dist_terminal_anterior_km"}`.
+- **Resposta:** `{"id_transacao": int, "resposta": "fraude"|"legitima", "registrado_em": str}`.
+- **Relatorio** e **Auditoria:** seção 13.
+
+### 12.2 Endpoints
+
+| Método e caminho | Entrada | Saída (200, salvo indicação) |
+| --- | --- | --- |
+| `GET /api/saude` | — | `{"status": "ok", "modelo_carregado": bool, "dados_carregados": bool, "auditoria": "watsonx"\|"local"}` |
+| `GET /api/fila` | `decisoes` (opcional, separadas por vírgula; padrão `BLOQUEAR,PEDIR_CONFIRMACAO`; valor inválido → 422) | `{"total_fila": int, "contagens": {"BLOQUEAR": int, "PEDIR_CONFIRMACAO": int, "APROVAR": int}, "itens": [ItemFila]}`, itens por nota decrescente; `contagens` e `total_fila` sempre da fila inteira |
+| `GET /api/transacoes/{id_transacao}` | — | `{"transacao": Transacao, "analise": Analise, "historico": [ItemHistorico] (até 10, antes desta, mais recente primeiro), "resposta_analista": Resposta\|null}`; fora da fila → 404 |
+| `POST /api/analisar` | corpo com as 11 variáveis de `VARIAVEIS_MODELO` (todas opcionais, numéricas), `data_hora`, `valor`, `tipo_transacao`, `modalidade_transacao` opcionais e `auditar: bool = true` | `{"analise": Analise, "id_auditoria": str\|null}`; responde sem esperar a auditoria |
+| `POST /api/transacoes/{id_transacao}/auditoria` | — | 202 `{"id_auditoria": str, "status": str}`; se já existe auditoria dessa transação, devolve a mesma; fora da fila → 404 |
+| `GET /api/auditorias/{id_auditoria}` | — | Auditoria; desconhecida → 404 |
+| `POST /api/respostas` | `{"id_transacao": int, "resposta": "fraude"\|"legitima"}` | 201 Resposta; grava com `src/interface/feedback.py` em `CAMINHO_FEEDBACK` (seção 10); fora da fila → 404 |
+| `GET /api/respostas` | — | `{"total": int, "fraudes": int, "legitimas": int, "concordancia": float\|null, "itens": [{"id_transacao", "resposta", "registrado_em", "decisao", "nota"}]}`; vale a última resposta de cada transação; concordância = fração de respostas em que "fraude" veio com BLOQUEAR, ou "legitima" com APROVAR ou PEDIR_CONFIRMACAO (1 casa, em %; `null` sem respostas) |
+| `GET /api/metricas` | — | `{"metricas": obj, "avaliacao": obj, "extras": {"avaliacao_rigorosa": obj\|null, "custos": obj\|null, "eda": obj\|null, "ia_contra_modelo": obj\|null}}`, lidos de `modelos/`; sem `metricas.json` ou `avaliacao_agente.json` → 503 |
+
+A auditoria roda em segundo plano (thread ou tarefa assíncrona), guardada em memória num
+dicionário `id_auditoria → Auditoria`; reiniciar a API apaga as auditorias, e isso é aceitável no
+protótipo.
+
+## 13. Auditoria por IA: `src/auditoria/` (Issue #39; ADR-012 e ADR-013)
+
+O modelo decide; a IA audita. A IA nunca muda a decisão, a nota nem os sinais: ela produz um
+relatório para o analista, ao lado da decisão.
+
+- Função pública `auditar(transacao: dict, analise: dict) -> dict` em `src/auditoria/__init__.py`.
+  Nunca levanta exceção: qualquer falha do watsonx.ai cai no modo local, com registro em log.
+- **Auditoria:** `{"id_auditoria": str, "status": "pendente"|"concluida"|"erro",
+  "relatorio": Relatorio|null, "latencia_ms": float|null, "mensagem": str|null}`.
+- **Relatorio:** `{"parecer": "CONFIRMA"|"DIVERGE"|"INCONCLUSIVO",
+  "risco_ia": "BAIXO"|"SUSPEITO"|"ALTO"|null, "confianca": "BAIXA"|"MEDIA"|"ALTA",
+  "explicacao": str, "evidencias_a_favor": [str], "evidencias_contra": [str],
+  "dados_ausentes": [str], "ferramentas_usadas": [{"nome": str, "resumo": str}],
+  "fonte": "watsonx"|"local", "modelo": str}`. `explicacao` em português, até 600 caracteres.
+- **Parecer** (calculado em Python, nunca pelo LLM): `ALTO ↔ BLOQUEAR`,
+  `SUSPEITO ↔ PEDIR_CONFIRMACAO`, `BAIXO ↔ APROVAR`. `risco_ia` nulo ou `confianca` BAIXA →
+  INCONCLUSIVO; risco correspondente à decisão do modelo → CONFIRMA; senão → DIVERGE.
+- **Ferramentas** (funções Python sobre o parquet carregado; só dados anteriores à transação):
+  `sinais_da_transacao`, `contribuicoes_da_nota`, `historico_do_cartao` (agregados das últimas
+  10), `perfil_do_cliente` (quantidade, mediana de valor, % de madrugada, % de crédito sem cartão
+  presente) e `perfil_do_estabelecimento` (quantidade, mediana de valor, risco). Cada uma devolve
+  `{"status": "ok"|"sem_dados", "dados": obj, "campos_ausentes": [str]}`. Nenhuma devolve rótulo,
+  `decisao_sistema_atual`, coluna proibida ou identificador.
+- **watsonx.ai:** credenciais só por variáveis de ambiente (`WATSONX_APIKEY`,
+  `WATSONX_PROJECT_ID`, `WATSONX_URL`, `WATSONX_MODELO`), lidas de um `.env` fora do Git;
+  `.env.example` lista os nomes sem valores. Chamadas com `requests` (sem biblioteca nova): token
+  IAM em `https://iam.cloud.ibm.com/identity/token`, guardado até expirar, e o endpoint de chat
+  com ferramentas do watsonx.ai. Limites em `src/config.py`: `AUDITORIA_MAX_ITERACOES = 6` e
+  `AUDITORIA_TIMEOUT_S = 30`. A resposta final do modelo é um JSON validado contra o Relatorio;
+  inválido → uma nova tentativa pedindo o JSON; inválido de novo → modo local.
+- **Instruções ao modelo (resumo obrigatório):** é auditor de prevenção a fraudes de uma
+  cooperativa; escreve em português; usa as ferramentas antes de concluir; só afirma o que as
+  ferramentas mostraram; lista o que faltou; responde INCONCLUSIVO (`risco_ia` nulo ou confiança
+  BAIXA) quando a evidência é insuficiente ou contraditória; nunca recomenda bloquear ou liberar
+  por conta própria.
+- **Modo local** (sem credenciais, sem resposta ou JSON inválido): roda as mesmas ferramentas e
+  decide `risco_ia` por regra independente da nota: IP de país desconhecido ou 3 sinais ou mais →
+  ALTO; 1 ou 2 sinais → SUSPEITO; nenhum → BAIXO; `confianca` MEDIA; `fonte` "local".
+- **Privacidade:** ao watsonx.ai só vão as variáveis da transação e os agregados das ferramentas,
+  nunca identificadores. O log nunca registra a chave nem o conteúdo das respostas do modelo.
+
+## 14. Site: `web/` (Issues #40, #43, #44, #45 e #48; ADR-011)
+
+- Next.js (App Router) com TypeScript estrito e o Carbon Design System da IBM (`@carbon/react`),
+  em `web/`. Rotas: `/` (Fila de alertas), `/desempenho`, `/como-funciona`, `/simulador`,
+  `/respostas`.
+- Textos de tela em `web/lib/textos.ts`; formatação pt-BR em `web/lib/formatacao.ts` (moeda
+  "R$ 1.234,50", nota "97,3", percentual "48,1%", data "03/03/2025 00:17", vazio → "—"); tipos
+  em `web/lib/tipos.ts`, espelho exato da seção 12; cliente em `web/lib/api.ts`, com a URL de
+  `NEXT_PUBLIC_API_URL` (padrão `http://localhost:8000`). Com `NEXT_PUBLIC_USAR_MOCK=1`, o cliente
+  usa dados inventados de `web/lib/mocks/`, no mesmo formato, para o site funcionar sem a API.
+- A auditoria é consultada a cada 2 s, por até 60 s; depois disso o painel diz que a auditoria
+  demorou e oferece tentar de novo. A decisão do modelo aparece antes, sem esperar a IA.
+- Portão do site, dentro de `web/`: `npm run lint`, `npm run typecheck`, `npm test` (Vitest) e
+  `npm run build`, todos sem erro; o CI roda os quatro.
+- Acessibilidade WCAG 2.2 AA (os componentes do Carbon já ajudam): contraste, foco visível, rótulos
+  em todos os controles, nada que dependa só de cor. Nunca exibir `fraude` nem
+  `decisao_sistema_atual`.
+- O Streamlit (`app.py` e `src/interface/`) fica congelado como reserva: só correção de defeito,
+  até a Issue #32 decidir se sai.

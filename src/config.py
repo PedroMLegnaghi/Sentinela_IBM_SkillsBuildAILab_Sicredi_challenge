@@ -90,3 +90,8 @@ COLUNAS_VELOCIDADE = [
     "qtd_transacoes_cartao_1min",
     "qtd_token_carteira_3m",
 ]
+
+# --- API web (Issue #38) ---
+
+# Origens permitidas no CORS (só o site local em desenvolvimento)
+API_ORIGENS_PERMITIDAS = ["http://localhost:3000"]

@@ -1,0 +1,57 @@
+# Configuração das ferramentas de qualidade (Manual da IDE, capítulo 2.5).
+# Estilo não se discute em revisão: o Black e o Ruff decidem.
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["data", "modelos", ".venv"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes: nomes não usados, erros
+    "I",        # ordem de imports
+    "N",        # nomes no padrão PEP 8
+    "B",        # bugs comuns
+    "UP",       # sintaxe moderna de Python
+    "SIM",      # simplificações
+    "C90",      # complexidade (máximo 10)
+    "PL",       # pylint: argumentos, comandos, números mágicos
+    "D",        # docstrings no estilo Google
+    "S",        # segurança: timeouts, segredos, asserts
+    "T20",      # print fora dos scripts
+    "BLE",      # except genérico
+    "PTH",      # pathlib em vez de os.path
+    "ERA",      # código comentado
+    "RET",      # retornos
+]
+ignore = [
+    "D401",  # verbo no imperativo em inglês; as docstrings são em português (ADR-001)
+    "D107",  # os argumentos de __init__ ficam na docstring da classe (estilo Google)
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+# Algumas assinaturas fixadas na ESPECIFICACAO (por exemplo, explicar) têm até 6 argumentos.
+max-args = 6
+max-statements = 50
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D", "S101", "PLR2004"]
+"conftest.py" = ["D"]
+"src/preparar_dados.py" = ["T201"]
+"src/treinar_modelo.py" = ["T201"]
+"src/avaliar_agente.py" = ["T201"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-rs"

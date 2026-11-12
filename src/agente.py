@@ -52,11 +52,9 @@ def _valor_valido(v) -> bool:
     if v is None:
         return False
     try:
-        if math.isnan(float(v)):
-            return False
+        return not math.isnan(float(v))
     except (TypeError, ValueError):
-        pass
-    return True
+        return True
 
 
 def calcular_sinais(transacao: dict) -> list[dict]:

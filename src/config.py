@@ -67,3 +67,26 @@ ROTULOS_DECISAO = {
     "PEDIR_CONFIRMACAO": "Pedir confirmação ao cliente",
     "APROVAR": "Aprovar",
 }
+
+# --- Incrementos ---
+
+# Caminhos dos JSONs gerados pelos scripts dos incrementos
+CAMINHO_CUSTOS = RAIZ / "modelos" / "custos.json"
+CAMINHO_AVALIACAO_RIGOROSA = RAIZ / "modelos" / "avaliacao_rigorosa.json"
+CAMINHO_CENARIO_DIFICIL = RAIZ / "modelos" / "cenario_dificil.json"
+CAMINHO_LATENCIA = RAIZ / "modelos" / "latencia.json"
+CAMINHO_EDA = RAIZ / "modelos" / "eda.json"
+CAMINHO_NOTIFICACOES = RAIZ / "data" / "notificacoes.csv"
+
+# Custo por pedido de confirmação em reais (premissa do time; não é cobrado pelo Sicredi)
+CUSTO_PEDIDO_CONFIRMACAO = 1.0
+
+# Repetições do bootstrap para intervalos de confiança (Issue #28)
+REPETICOES_BOOTSTRAP = 1000
+
+# Colunas de velocidade usadas na ablação (Issue #28 e #29)
+COLUNAS_VELOCIDADE = [
+    "vel_cartao_terminal_1h",
+    "qtd_transacoes_cartao_1min",
+    "qtd_token_carteira_3m",
+]

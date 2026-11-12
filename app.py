@@ -6,12 +6,22 @@ Nenhuma regra de negócio nem texto literal neste módulo.
 
 import streamlit as st
 
-from src.interface import dados, pagina_como_funciona, pagina_desempenho, pagina_fila, textos
+from src.interface import (
+    dados,
+    pagina_como_funciona,
+    pagina_desempenho,
+    pagina_fila,
+    pagina_respostas,
+    pagina_simulador,
+    textos,
+)
 from src.interface.tema import (
     ICONE_COMO_FUNCIONA,
     ICONE_DESEMPENHO,
     ICONE_ERRO,
     ICONE_FILA,
+    ICONE_RESPOSTAS,
+    ICONE_SIMULADOR,
 )
 
 st.set_page_config(
@@ -46,6 +56,18 @@ pagina = st.navigation(
             title="Como funciona",
             icon=ICONE_COMO_FUNCIONA,
             url_path="como-funciona",
+        ),
+        st.Page(
+            pagina_simulador.renderizar,
+            title=textos.TITULO_SIMULADOR,
+            icon=ICONE_SIMULADOR,
+            url_path="simulador",
+        ),
+        st.Page(
+            pagina_respostas.renderizar,
+            title=textos.TITULO_RESPOSTAS,
+            icon=ICONE_RESPOSTAS,
+            url_path="respostas",
         ),
     ]
 )

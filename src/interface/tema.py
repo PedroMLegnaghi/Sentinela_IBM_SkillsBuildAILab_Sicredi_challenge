@@ -38,6 +38,8 @@ ORDEM_DECISOES: list[str] = ["BLOQUEAR", "PEDIR_CONFIRMACAO", "APROVAR"]
 ICONE_FILA = ":material/list_alt:"
 ICONE_DESEMPENHO = ":material/monitoring:"
 ICONE_COMO_FUNCIONA = ":material/help:"
+ICONE_SIMULADOR = ":material/tune:"
+ICONE_RESPOSTAS = ":material/rate_review:"
 
 # Ícones do painel e da barra lateral
 ICONE_FRAUDE = ":material/gpp_bad:"

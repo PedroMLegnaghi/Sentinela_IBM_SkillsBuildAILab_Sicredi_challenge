@@ -183,3 +183,31 @@ LIMITACOES = [
     "Pedir confirmação ao cliente é só indicado na tela; nenhuma notificação é enviada.",
     "As respostas do analista ficam salvas, mas ainda não retreinam o modelo automaticamente.",
 ]
+
+# --- Issue #20: custo da fraude ---
+
+# --- Issue #21: o que pesou na nota ---
+
+# --- Issue #22: simulador "e se" ---
+TITULO_SIMULADOR = "Simulador"
+LEGENDA_SIMULADOR_PROVISORIA = "Em preparação na Issue #22."
+
+# --- Issue #23: mensagem ao cliente ---
+
+# --- Issue #24: acessibilidade ---
+
+# --- Issue #25: respostas do analista ---
+TITULO_RESPOSTAS = "Respostas do analista"
+LEGENDA_RESPOSTAS_PROVISORIA = "Em preparação na Issue #25."
+
+# --- Issue #26: API do agente ---
+
+# --- Issue #27: latência em tempo real ---
+
+# --- Issue #28: avaliação rigorosa ---
+
+# --- Issue #29: cenário difícil ---
+
+# --- Issue #30: uso do IBM Bob ---
+
+# --- Issue #31: análise exploratória ---

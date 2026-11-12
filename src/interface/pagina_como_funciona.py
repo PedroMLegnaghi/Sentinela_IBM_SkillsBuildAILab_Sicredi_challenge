@@ -1,7 +1,8 @@
 """Página Como funciona do Sentinela.
 
 Explica os passos do agente, os sinais de alerta, as regras de decisão,
-os dados da base e as limitações do sistema.
+os dados da base, as limitações do sistema e seções dos incrementos
+(importância das variáveis e análise exploratória).
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ from src.config import (
     NOTA_CONFIRMAR,
     TAMANHO_AMOSTRA_LEGITIMAS,
 )
-from src.interface import textos
+from src.interface import secao_dados, secao_importancia, textos
 from src.interface.dados import carregar_base
 from src.interface.formatacao import formatar_inteiro, formatar_percentual
 
@@ -96,6 +97,8 @@ def renderizar() -> None:
 
     _renderizar_passos()
     _renderizar_sinais()
+    secao_importancia.renderizar()
     _renderizar_decisao()
     _renderizar_dados()
+    secao_dados.renderizar()
     _renderizar_limitacoes()

@@ -96,3 +96,20 @@ graph TB
 
 Regra de manutenção: um Pull Request que muda assinatura pública do agente, cria módulo ou
 adiciona dependência externa atualiza este arquivo no mesmo Pull Request.
+
+## Módulos de incremento (Issues #19–#31)
+
+Módulos esqueleto criados na Issue #19; cada Issue subsequente implementa o seu.
+
+| Módulo | Página / painel | Issue |
+| --- | --- | --- |
+| `src/interface/secao_confiabilidade.py` · `renderizar()` | Desempenho | #28 |
+| `src/interface/secao_custos.py` · `renderizar()` | Desempenho | #20 |
+| `src/interface/secao_cenario_dificil.py` · `renderizar()` | Desempenho | #29 |
+| `src/interface/secao_latencia.py` · `renderizar()` | Desempenho | #27 |
+| `src/interface/secao_importancia.py` · `renderizar()` | Como funciona | #21 |
+| `src/interface/secao_dados.py` · `renderizar()` | Como funciona | #31 |
+| `src/interface/painel_contribuicoes.py` · `renderizar(transacao)` | Fila — painel | #21 |
+| `src/interface/painel_mensagem.py` · `renderizar(transacao, analise)` | Fila — painel | #23 |
+| `src/interface/pagina_simulador.py` · `renderizar()` | Página Simulador | #22 |
+| `src/interface/pagina_respostas.py` · `renderizar()` | Página Respostas do analista | #25 |

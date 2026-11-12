@@ -27,7 +27,15 @@ from src.config import (
 
 
 def carregar_divisao():
-    """Carrega o parquet e faz a divisão temporal treino/teste."""
+    """Carrega o parquet e faz a divisão temporal treino/teste.
+
+    Returns:
+        Tupla ``(treino, teste)`` com os DataFrames filtrados por data,
+        excluindo linhas sem ``data_hora``.
+
+    Raises:
+        FileNotFoundError: Se ``CAMINHO_PREPARADO`` não existir.
+    """
     print("Carregando dados preparados...")
     df = pd.read_parquet(CAMINHO_PREPARADO)
 
@@ -43,7 +51,15 @@ def carregar_divisao():
 
 
 def treinar_avaliar():
-    """Treina os modelos, salva o pipeline e as métricas."""
+    """Treina os modelos, salva o pipeline e as métricas.
+
+    Treina a Regressão Logística (modelo final) e o HistGradientBoosting
+    (comparação), avalia no conjunto de teste, salva ``sentinela.joblib``
+    e ``metricas.json``.
+
+    Returns:
+        Dicionário com as métricas no formato da seção 7 da especificação.
+    """
     treino, teste = carregar_divisao()
 
     entradas_treino = treino[VARIAVEIS_MODELO]

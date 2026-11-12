@@ -12,7 +12,18 @@ from src.config import CAMINHO_AVALIACAO, CAMINHO_PREPARADO, FIM_TESTE, INICIO_T
 
 
 def avaliar():
-    """Roda analisar_lote no teste de março e salva avaliacao_agente.json."""
+    """Roda analisar_lote no teste de março e salva avaliacao_agente.json.
+
+    Filtra o período de teste (``INICIO_TESTE`` a ``FIM_TESTE``), executa
+    ``analisar_lote`` e persiste ``avaliacao_agente.json``.
+
+    Returns:
+        Dicionário com as métricas no formato da seção 8.6 da especificação.
+
+    Raises:
+        FileNotFoundError: Se ``CAMINHO_PREPARADO`` ou ``CAMINHO_MODELO``
+            não existirem.
+    """
     print("Carregando dados preparados...")
     df = pd.read_parquet(CAMINHO_PREPARADO)
 

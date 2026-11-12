@@ -38,6 +38,12 @@ def granite_disponivel(timeout_s: float = OLLAMA_TIMEOUT_DISPONIBILIDADE_S) -> b
 
     Faz GET em {OLLAMA_URL}/api/tags e devolve True só se o status for 200.
     Qualquer requests.RequestException devolve False (registrado em log).
+
+    Args:
+        timeout_s: Tempo máximo de espera pela resposta, em segundos.
+
+    Returns:
+        True se o Ollama respondeu com HTTP 200; False caso contrário.
     """
     try:
         resp = requests.get(f"{OLLAMA_URL}/api/tags", timeout=timeout_s)
@@ -60,9 +66,15 @@ def _valor_valido(v) -> bool:
 def calcular_sinais(transacao: dict) -> list[dict]:
     """Calcula os sinais de alerta de uma transação.
 
-    Retorna lista de dicts {"id": ..., "descricao": ...}.
     Campos vazios, None ou NaN nunca disparam sinal e nunca geram erro.
     Ordem fixa conforme seção 8.2.
+
+    Args:
+        transacao: Dicionário com os campos da transação preparada.
+
+    Returns:
+        Lista de dicts ``{"id": str, "descricao": str}`` para cada sinal
+        disparado, na ordem definida pela especificação.
     """
     sinais = []
 
@@ -166,7 +178,14 @@ def calcular_sinais(transacao: dict) -> list[dict]:
 def decidir(nota: float, sinais: list[dict]) -> str:
     """Decide a ação para a transação.
 
-    Ordem: BLOQUEAR > PEDIR_CONFIRMACAO > APROVAR.
+    Aplica as regras em ordem de precedência: BLOQUEAR > PEDIR_CONFIRMACAO > APROVAR.
+
+    Args:
+        nota: Nota de risco de 0 a 100 calculada pelo modelo.
+        sinais: Lista de sinais de alerta retornada por ``calcular_sinais``.
+
+    Returns:
+        Uma das strings ``"BLOQUEAR"``, ``"PEDIR_CONFIRMACAO"`` ou ``"APROVAR"``.
     """
     ids_sinais = {s["id"] for s in sinais}
 
@@ -180,13 +199,22 @@ def decidir(nota: float, sinais: list[dict]) -> str:
 
 
 class AgenteSentinela:
-    """Agente principal de detecção de fraudes."""
+    """Agente principal de detecção de fraudes.
+
+    Encapsula o pipeline de ML e coordena sinais, pontuação, decisão
+    e explicação para cada transação.
+    """
 
     def __init__(self, caminho_modelo=CAMINHO_MODELO, base: pd.DataFrame | None = None):
         """Carrega o pipeline salvo em caminho_modelo.
 
-        Levanta FileNotFoundError se o arquivo não existir.
-        base: DataFrame preparado, usado apenas por historico_cartao.
+        Args:
+            caminho_modelo: Caminho para o arquivo ``sentinela.joblib``.
+            base: DataFrame preparado completo, usado por ``historico_cartao``;
+                pode ser None se o histórico não for necessário.
+
+        Raises:
+            FileNotFoundError: Se ``caminho_modelo`` não existir.
         """
         if not caminho_modelo.exists():
             raise FileNotFoundError("Modelo não encontrado. Rode: python -m src.treinar_modelo")
@@ -196,7 +224,13 @@ class AgenteSentinela:
     def pontuar(self, transacao: dict) -> float:
         """Pontua a transação de 0 a 100 (1 casa decimal).
 
-        Chaves ausentes ou None viram NaN no DataFrame de entrada.
+        Chaves ausentes ou None viram NaN antes de entrar no pipeline.
+
+        Args:
+            transacao: Dicionário com os campos da transação preparada.
+
+        Returns:
+            Nota de risco entre 0.0 e 100.0, arredondada com 1 casa decimal.
         """
         dados = {col: transacao.get(col) for col in VARIAVEIS_MODELO}
         df = pd.DataFrame([dados], columns=VARIAVEIS_MODELO)
@@ -206,9 +240,17 @@ class AgenteSentinela:
     def historico_cartao(self, id_cartao, antes_de=None, n: int = 10) -> pd.DataFrame:
         """Retorna as últimas n transações do cartão em self._base.
 
-        Ordena da mais recente para a mais antiga.
-        Se antes_de (datetime) for fornecido, filtra transações anteriores a ele.
-        Retorna DataFrame vazio se base for None, id_cartao for vazio ou não houver registros.
+        Ordena da mais recente para a mais antiga. Retorna DataFrame vazio se
+        ``base`` for None, ``id_cartao`` for vazio ou não houver registros.
+
+        Args:
+            id_cartao: Identificador do cartão a consultar.
+            antes_de: Datetime opcional; filtra apenas transações anteriores
+                a esse instante.
+            n: Número máximo de transações a retornar.
+
+        Returns:
+            DataFrame com as últimas ``n`` transações do cartão, ou vazio.
         """
         if self._base is None:
             return pd.DataFrame()
@@ -232,8 +274,19 @@ class AgenteSentinela:
     ) -> tuple[str, str]:
         """Gera explicação textual da decisão.
 
-        Retorna (texto, fonte) onde fonte é "granite" ou "regras".
-        Nunca levanta exceção de rede.
+        Tenta o IBM Granite via Ollama quando ``usar_llm=True`` e o serviço
+        está disponível; cai no texto de reserva em qualquer falha.
+
+        Args:
+            transacao: Dicionário com os campos da transação.
+            nota: Nota de risco calculada pelo modelo.
+            sinais: Lista de sinais de alerta da transação.
+            decisao: Código da decisão (``"BLOQUEAR"``, ``"PEDIR_CONFIRMACAO"``
+                ou ``"APROVAR"``).
+            usar_llm: Se False, pula a chamada ao Granite e usa o texto de reserva.
+
+        Returns:
+            Tupla ``(texto, fonte)`` onde ``fonte`` é ``"granite"`` ou ``"regras"``.
         """
         decisao_legivel = ROTULOS_DECISAO.get(decisao, decisao)
 
@@ -294,8 +347,16 @@ class AgenteSentinela:
     def analisar(self, transacao: dict, usar_llm: bool = True) -> dict:
         """Analisa uma transação e devolve o dicionário completo de resultado.
 
-        Chaves devolvidas: nota, sinais, decisao, decisao_legivel,
-        explicacao, fonte_explicacao.
+        Executa em sequência: ``calcular_sinais``, ``pontuar``, ``decidir``
+        e ``explicar``.
+
+        Args:
+            transacao: Dicionário com os campos da transação preparada.
+            usar_llm: Repassado a ``explicar``; False desativa o Granite.
+
+        Returns:
+            Dicionário com as chaves ``nota``, ``sinais``, ``decisao``,
+            ``decisao_legivel``, ``explicacao`` e ``fonte_explicacao``.
         """
         sinais = calcular_sinais(transacao)
         nota = self.pontuar(transacao)
@@ -316,8 +377,17 @@ class AgenteSentinela:
     def analisar_lote(self, df: pd.DataFrame) -> pd.DataFrame:
         """Versão rápida para múltiplas linhas, sem LLM.
 
-        Devolve cópia de df com colunas novas: nota (float, 1 casa),
-        n_sinais (int) e decisao (str).
+        Pontua todas as linhas em lote via ``predict_proba`` e calcula
+        sinais e decisão linha a linha. Deve dar o mesmo resultado que
+        ``analisar`` com ``usar_llm=False`` para cada linha.
+
+        Args:
+            df: DataFrame com as colunas de ``VARIAVEIS_MODELO`` e demais
+                campos necessários para ``calcular_sinais``.
+
+        Returns:
+            Cópia de ``df`` com três colunas adicionadas: ``nota`` (float,
+            1 casa decimal), ``n_sinais`` (int) e ``decisao`` (str).
         """
         resultado = df.copy()
 

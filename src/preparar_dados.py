@@ -28,7 +28,14 @@ COLUNAS_ORIGINAIS = [
 
 
 def preparar() -> pd.DataFrame:
-    """Lê o CSV com usecols, gera as 21 colunas e salva o parquet."""
+    """Lê o CSV com usecols, gera as 21 colunas e salva o parquet.
+
+    Returns:
+        DataFrame com as 21 colunas na ordem da seção 6, todas as 160.000 linhas.
+
+    Raises:
+        FileNotFoundError: Se ``CAMINHO_CSV`` não existir.
+    """
     print("Lendo CSV (apenas 16 colunas)...")
     df_raw = pd.read_csv(
         CAMINHO_CSV,
@@ -74,7 +81,11 @@ def preparar() -> pd.DataFrame:
 
 
 def imprimir_resumo(df: pd.DataFrame) -> None:
-    """Imprime o resumo pedido na seção 6."""
+    """Imprime o resumo pedido na seção 6.
+
+    Args:
+        df: DataFrame retornado por ``preparar``.
+    """
     print("\n" + "=" * 60)
     print("RESUMO DOS DADOS PREPARADOS")
     print("=" * 60)

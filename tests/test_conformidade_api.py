@@ -403,17 +403,18 @@ def test_auditoria_de_transacao_da_fila_e_idempotente(cliente):
 
 @pytest.fixture
 def feedback_protegido():
+    """Começa sem respostas gravadas e devolve o arquivo real do analista no fim."""
     from src.config import CAMINHO_FEEDBACK  # noqa: PLC0415
 
     copia = CAMINHO_FEEDBACK.with_suffix(".csv.conformidade")
     existia = CAMINHO_FEEDBACK.exists()
     if existia:
-        shutil.copy2(CAMINHO_FEEDBACK, copia)
+        shutil.move(CAMINHO_FEEDBACK, copia)
     yield
+    if CAMINHO_FEEDBACK.exists():
+        CAMINHO_FEEDBACK.unlink()
     if existia:
         shutil.move(copia, CAMINHO_FEEDBACK)
-    elif CAMINHO_FEEDBACK.exists():
-        CAMINHO_FEEDBACK.unlink()
 
 
 @precisa_dados
@@ -428,7 +429,41 @@ def test_resposta_do_analista_e_gravada_e_listada(cliente, feedback_protegido):
     assert gravada.status_code == 201
     assert set(gravada.json()) == {"id_transacao", "resposta", "registrado_em"}
     assert set(lista) == {"total", "fraudes", "legitimas", "concordancia", "itens"}
-    assert any(r["id_transacao"] == item["id_transacao"] for r in lista["itens"])
+    assert (lista["total"], lista["fraudes"], lista["legitimas"]) == (1, 1, 0)
+    assert set(lista["itens"][0]) == {
+        "id_transacao",
+        "resposta",
+        "registrado_em",
+        "decisao",
+        "nota",
+    }
+    assert lista["itens"][0]["id_transacao"] == item["id_transacao"]
+
+
+@precisa_dados
+def test_concordancia_segue_a_regra_da_especificacao(cliente, feedback_protegido):
+    itens = cliente.get("/api/fila", params={"decisoes": "BLOQUEAR,APROVAR"}).json()["itens"]
+    bloqueada = next(i for i in itens if i["decisao"] == "BLOQUEAR")
+    aprovada = next(i for i in itens if i["decisao"] == "APROVAR")
+
+    vazia = cliente.get("/api/respostas").json()
+    cliente.post(
+        "/api/respostas", json={"id_transacao": bloqueada["id_transacao"], "resposta": "fraude"}
+    )
+    cliente.post(
+        "/api/respostas", json={"id_transacao": aprovada["id_transacao"], "resposta": "fraude"}
+    )
+    lista = cliente.get("/api/respostas").json()
+
+    assert vazia["concordancia"] is None
+    assert lista["concordancia"] == 50.0
+
+
+@precisa_dados
+def test_resposta_para_transacao_fora_da_fila_devolve_404(cliente, feedback_protegido):
+    resposta = cliente.post("/api/respostas", json={"id_transacao": -1, "resposta": "fraude"})
+
+    assert resposta.status_code == 404
 
 
 @precisa_dados

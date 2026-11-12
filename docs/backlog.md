@@ -1002,6 +1002,10 @@ invariantes, portão com `data/`, um arquivo um dono, scripts novos, privacidade
    núcleo: `calcular_sinais`, `pontuar`, `decidir` e o texto de reserva de `explicar(...,
    usar_llm=False)`; `montar_fila(base, agente.analisar_lote)`; `RespostaAnalista` e
    `registrar_resposta`/`ler_ultima_resposta` de `feedback.py`. Não reescreva regra de negócio.
+   Atenção a três diferenças do contrato: (a) a Analise da API não é o dicionário de
+   `analisar()`: não expõe `fonte_explicacao` e acrescenta `contribuicoes` (lista vazia até a
+   #41) e `latencia_ms`; (b) a coluna `resposta_analista` do CSV vira o campo `resposta` no JSON;
+   (c) `POST /api/respostas` confere se `id_transacao` está na fila antes de gravar, senão 404.
 3. Carga única na subida (`lifespan`): parquet, agente com `base` e fila. Falta de arquivo não
    derruba a API: `/api/saude` informa e as rotas de dados respondem 503 com o comando a rodar.
 4. Auditoria: `POST /api/analisar` com `auditar` e `POST /api/transacoes/{id}/auditoria` criam um
@@ -1017,9 +1021,13 @@ invariantes, portão com `data/`, um arquivo um dono, scripts novos, privacidade
 8. Atualize o C4 (contêineres API e site) e acrescente a sequência "decisão imediata e auditoria
    em paralelo".
 
+**Conflito previsto:** a #40 acrescenta um job "Site" ao mesmo `.github/workflows/qualidade.yml`.
+A #38 só acrescenta a instalação de `requirements-api.txt` no job existente; quem integrar depois
+roda `git merge develop` e preserva os dois.
+
 **Critérios de aceite:** portão completo; `tests/test_conformidade_api.py` sem falhas, com os
 testes da auditoria concluída pulados ("Issue #39 ainda não implementada"); `uvicorn
-src.api.app:app` sobe e `http://localhost:8000/docs` lista as rotas; invariantes iguais.
+src.api.app:app --port 8000` sobe e `http://localhost:8000/docs` lista as rotas; invariantes iguais.
 
 ---
 
@@ -1077,11 +1085,15 @@ relatórios reais do watsonx.ai no PR; sem credenciais, tudo funciona em modo lo
    scripts `dev`, `build`, `lint` (ESLint), `typecheck` (`tsc --noEmit`), `test` (Vitest) e
    `format` (Prettier). Versões fixadas no `package.json` e `package-lock.json` versionado.
 2. Tema Carbon claro (`g10`), cabeçalho "Sentinela" e menu lateral com as 5 rotas da seção 14, e
-   uma página por rota com título e "Em preparação na Issue #N." (#43, #44, #44, #45, #45).
+   uma página por rota com título e "Em preparação na Issue #N.", assim: `/` → #43,
+   `/desempenho` → #44, `/como-funciona` → #44, `/simulador` → #45, `/respostas` → #45.
 3. `web/lib/tipos.ts` (espelho da seção 12), `web/lib/api.ts` (uma função por rota, com erro em
    português quando a API não responde), `web/lib/mocks/` (dados inventados para cada rota,
    incluindo uma auditoria que passa de "pendente" a "concluida"), `web/lib/textos.ts` e
-   `web/lib/formatacao.ts` com testes de todos os formatos da seção 14.
+   `web/lib/formatacao.ts` com testes de todos os formatos da seção 14. Em `web/lib/textos.ts`,
+   crie um bloco comentado vazio por Issue (`// --- Issue #43 ---`, #44, #45, #48): cada Issue
+   seguinte só acrescenta textos dentro do próprio bloco, para os merges não conflitarem.
+   O job "Site" no CI é novo; não altere o job Python existente (a #38 mexe nele).
 4. Componentes comuns: `FaixaDecisao` (Aprovar, Pedir confirmação, Bloquear, com ícone e texto,
    nunca só cor), `BarraNota`, `EstadoCarregando`, `EstadoVazio`, `EstadoErro`.
 5. Job "Site" no CI: `npm ci`, lint, typecheck, test e build dentro de `web/`.

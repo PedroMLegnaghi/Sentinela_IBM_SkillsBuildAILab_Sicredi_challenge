@@ -110,11 +110,11 @@ def test_resposta_invalida_retorna_422(cliente):
 
 def test_listar_respostas_sem_arquivo_retorna_zeros(monkeypatch, tmp_path, cliente):
     """Sem feedback.csv, deve retornar total=0 e concordancia=None."""
-    import src.api.servicos as sv  # noqa: PLC0415
+    import src.api.respostas as rv  # noqa: PLC0415
 
-    # Aponta o caminho do feedback para um arquivo inexistente
+    # Aponta o caminho do feedback para um arquivo inexistente no módulo de respostas
     caminho_vazio = tmp_path / "feedback_inexistente.csv"
-    monkeypatch.setattr(sv, "CAMINHO_FEEDBACK", caminho_vazio)
+    monkeypatch.setattr(rv, "CAMINHO_FEEDBACK", caminho_vazio)
 
     resposta = cliente.get("/api/respostas")
 

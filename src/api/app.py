@@ -14,6 +14,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import auditorias as auditoria_mem
+from src.api import respostas as resp_mod
 from src.api import servicos
 from src.api.esquemas import (
     EntradaAnalise,
@@ -259,13 +260,15 @@ def gravar_resposta(entrada: EntradaResposta) -> dict[str, Any]:
     """
     if not servicos.dados_carregados():
         raise HTTPException(status_code=503, detail=MENSAGEM_503)
-    try:
-        return servicos.gravar_resposta(entrada.id_transacao, entrada.resposta)
-    except KeyError as erro:
+    dados_fila = servicos.dados_fila_para_resposta(entrada.id_transacao)
+    if dados_fila is None:
         raise HTTPException(
             status_code=404,
             detail=f"Transação {entrada.id_transacao} não está na fila.",
-        ) from erro
+        )
+    nota, decisao = dados_fila
+    try:
+        return resp_mod.gravar_resposta(entrada.id_transacao, entrada.resposta, nota, decisao)
     except (ValueError, OSError) as erro:
         raise HTTPException(status_code=422, detail=str(erro)) from erro
 
@@ -280,7 +283,7 @@ def listar_respostas() -> dict[str, Any]:
     Returns:
         total, fraudes, legitimas, concordancia e itens.
     """
-    return servicos.listar_respostas()
+    return resp_mod.listar_respostas()
 
 
 # --- GET /api/metricas ------------------------------------------------------------------------
@@ -294,6 +297,6 @@ def metricas() -> dict[str, Any]:
         metricas, avaliacao e extras (avaliacao_rigorosa, custos, eda, ia_contra_modelo).
     """
     try:
-        return servicos.obter_metricas()
+        return resp_mod.obter_metricas()
     except RuntimeError as erro:
         raise HTTPException(status_code=503, detail=str(erro)) from erro

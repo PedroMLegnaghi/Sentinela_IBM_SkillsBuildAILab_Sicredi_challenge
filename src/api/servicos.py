@@ -1,37 +1,27 @@
-"""Carga de dados, fila, análise, respostas e métricas para a API do Sentinela.
+"""Carga de dados, fila e análise de transações para a API do Sentinela.
 
 Responsabilidades: carregar parquet e agente na subida; montar a fila;
-executar análise imediata; gravar e ler respostas do analista; servir métricas.
+executar análise imediata. Respostas e métricas ficam em ``src.api.respostas``.
 """
 
 from __future__ import annotations
 
-import csv
-import json
 import logging
 import math
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
 from src.agente import AgenteSentinela, calcular_sinais, decidir
 from src.config import (
-    CAMINHO_AVALIACAO,
-    CAMINHO_AVALIACAO_RIGOROSA,
-    CAMINHO_CUSTOS,
-    CAMINHO_FEEDBACK,
-    CAMINHO_METRICAS,
     CAMINHO_MODELO,
     CAMINHO_PREPARADO,
     ROTULOS_DECISAO,
 )
 from src.explicabilidade import contribuicoes
 from src.interface.dados import montar_fila
-from src.interface.feedback import RespostaAnalista, registrar_resposta
 
 logger = logging.getLogger(__name__)
 
@@ -193,9 +183,7 @@ def analisar_transacao(transacao_dict: dict[str, Any]) -> dict[str, Any]:
 
     decisao_legivel = ROTULOS_DECISAO.get(decisao, decisao)
     explicacao, _ = agente.explicar(transacao_dict, nota, sinais, decisao, usar_llm=False)
-
-    pipeline = agente._pipeline  # noqa: SLF001
-    contribs = contribuicoes(pipeline, transacao_dict)
+    contribs = contribuicoes(agente._pipeline, transacao_dict)  # noqa: SLF001
 
     return {
         "nota": nota,
@@ -205,6 +193,58 @@ def analisar_transacao(transacao_dict: dict[str, Any]) -> dict[str, Any]:
         "explicacao": explicacao,
         "contribuicoes": contribs,
         "latencia_ms": round(latencia_ms, 3),
+    }
+
+
+_COLUNAS_PROIBIDAS = frozenset(
+    {
+        "fraude",
+        "decisao_sistema_atual",
+        "id_cartao",
+        "id_cliente",
+        "id_estabelecimento",
+        "nota",
+        "n_sinais",
+        "decisao",
+    }
+)
+
+
+def _montar_historico(historico_df: pd.DataFrame) -> list[dict[str, Any]]:
+    """Converte o DataFrame do histórico em lista de ItemHistorico.
+
+    Args:
+        historico_df: DataFrame retornado por ``AgenteSentinela.historico_cartao``.
+
+    Returns:
+        Lista de dicts com data_hora, valor, tipo_transacao, modalidade_transacao
+        e dist_terminal_anterior_km.
+    """
+    return [
+        {
+            "data_hora": _data_hora_para_str(h.get("data_hora")),
+            "valor": _nan_para_none(h.get("valor")),
+            "tipo_transacao": str(h.get("tipo_transacao", "")),
+            "modalidade_transacao": str(h.get("modalidade_transacao", "")),
+            "dist_terminal_anterior_km": _nan_para_none(h.get("dist_terminal_anterior_km")),
+        }
+        for _, h in historico_df.iterrows()
+    ]
+
+
+def _montar_transacao_publica(transacao_dict: dict[str, Any]) -> dict[str, Any]:
+    """Filtra campos proibidos e normaliza NaN/datas para serialização JSON.
+
+    Args:
+        transacao_dict: Linha completa da base (inclui id_cartao, fraude etc.).
+
+    Returns:
+        Dicionário com apenas os campos públicos da Transacao.
+    """
+    return {
+        k: (_data_hora_para_str(v) if k == "data_hora" else _nan_para_none(v))
+        for k, v in transacao_dict.items()
+        if k not in _COLUNAS_PROIBIDAS
     }
 
 
@@ -224,206 +264,43 @@ def obter_transacao(id_transacao: int) -> dict[str, Any]:
     if _estado.fila is None or _estado.base is None or _estado.agente is None:
         raise RuntimeError("Dados não carregados.")
 
-    linha = _linha_da_fila(id_transacao)
-    if linha is None:
+    if _linha_da_fila(id_transacao) is None:
         raise KeyError(f"Transação {id_transacao} não encontrada na fila.")
 
-    # Busca a linha original da base para ter todos os campos incluindo id_cartao
     linha_base = _estado.base[_estado.base["id_transacao"] == id_transacao]
     if linha_base.empty:
         raise KeyError(f"Transação {id_transacao} não encontrada na base.")
-    row_base = linha_base.iloc[0]
 
+    row_base = linha_base.iloc[0]
     transacao_dict = row_base.to_dict()
     analise = analisar_transacao(transacao_dict)
 
-    id_cartao = row_base.get("id_cartao")
-    data_hora_atual = row_base.get("data_hora")
-    historico_df = _estado.agente.historico_cartao(id_cartao, antes_de=data_hora_atual, n=10)
+    historico_df = _estado.agente.historico_cartao(
+        row_base.get("id_cartao"), antes_de=row_base.get("data_hora"), n=10
+    )
 
-    historico = [
-        {
-            "data_hora": _data_hora_para_str(h.get("data_hora")),
-            "valor": _nan_para_none(h.get("valor")),
-            "tipo_transacao": str(h.get("tipo_transacao", "")),
-            "modalidade_transacao": str(h.get("modalidade_transacao", "")),
-            "dist_terminal_anterior_km": _nan_para_none(h.get("dist_terminal_anterior_km")),
-        }
-        for _, h in historico_df.iterrows()
-    ]
-
-    ultima_resp = _ler_resposta(id_transacao)
-
-    colunas_proibidas = {
-        "fraude",
-        "decisao_sistema_atual",
-        "id_cartao",
-        "id_cliente",
-        "id_estabelecimento",
-        "nota",
-        "n_sinais",
-        "decisao",
-    }
-    transacao_publica = {
-        k: (_data_hora_para_str(v) if k == "data_hora" else _nan_para_none(v))
-        for k, v in transacao_dict.items()
-        if k not in colunas_proibidas
-    }
+    from src.api.respostas import _ler_resposta  # noqa: PLC0415
 
     return {
-        "transacao": transacao_publica,
+        "transacao": _montar_transacao_publica(transacao_dict),
         "analise": analise,
-        "historico": historico,
-        "resposta_analista": ultima_resp,
+        "historico": _montar_historico(historico_df),
+        "resposta_analista": _ler_resposta(id_transacao),
     }
 
 
-def _ler_resposta(id_transacao: int) -> dict[str, Any] | None:
-    """Lê a última resposta do analista para a transação, ou None."""
-    from src.interface.feedback import ler_ultima_resposta  # noqa: PLC0415
+def dados_fila_para_resposta(id_transacao: int) -> tuple[float, str] | None:
+    """Retorna (nota, decisao) de uma transação da fila, ou None se ausente.
 
-    try:
-        resp = ler_ultima_resposta(CAMINHO_FEEDBACK, id_transacao)
-        if resp is None:
-            return None
-        return {
-            "id_transacao": resp.id_transacao,
-            "resposta": resp.resposta_analista,
-            "registrado_em": resp.registrado_em.strftime("%Y-%m-%dT%H:%M:%S"),
-        }
-    except (ValueError, OSError) as erro:
-        logger.warning("Falha ao ler resposta do analista para %d: %s", id_transacao, erro)
-        return None
-
-
-def gravar_resposta(id_transacao: int, resposta: str) -> dict[str, Any]:
-    """Grava a resposta do analista e retorna o objeto Resposta.
+    Usado por ``app.py`` ao gravar a resposta do analista.
 
     Args:
         id_transacao: Identificador da transação.
-        resposta: "fraude" ou "legitima".
 
     Returns:
-        Dicionário com ``id_transacao``, ``resposta`` e ``registrado_em``.
-
-    Raises:
-        KeyError: Se id_transacao não estiver na fila.
-        ValueError: Se resposta não for "fraude" ou "legitima".
-        OSError: Se falhar ao gravar o arquivo.
+        Tupla ``(nota, decisao)`` ou None.
     """
-    if not _id_esta_na_fila(id_transacao):
-        raise KeyError(f"Transação {id_transacao} não está na fila.")
-
     linha = _linha_da_fila(id_transacao)
-    nota = float(linha["nota"]) if linha is not None else 0.0
-    decisao = str(linha["decisao"]) if linha is not None else ""
-    agora = datetime.now()
-
-    obj = RespostaAnalista(
-        id_transacao=id_transacao,
-        nota=nota,
-        decisao=decisao,
-        resposta_analista=resposta,
-        registrado_em=agora,
-    )
-    registrar_resposta(CAMINHO_FEEDBACK, obj)
-
-    return {
-        "id_transacao": id_transacao,
-        "resposta": resposta,
-        "registrado_em": agora.strftime("%Y-%m-%dT%H:%M:%S"),
-    }
-
-
-def listar_respostas() -> dict[str, Any]:
-    """Lista todas as respostas do analista (última por transação).
-
-    Returns:
-        Dicionário com ``total``, ``fraudes``, ``legitimas``, ``concordancia`` e ``itens``.
-    """
-    if not CAMINHO_FEEDBACK.exists():
-        return {"total": 0, "fraudes": 0, "legitimas": 0, "concordancia": None, "itens": []}
-
-    try:
-        with CAMINHO_FEEDBACK.open(encoding="utf-8", newline="") as arq:
-            leitor = csv.DictReader(arq)
-            ultimas: dict[int, dict[str, str]] = {}
-            for linha in leitor:
-                tid = int(linha["id_transacao"])
-                ultimas[tid] = linha
-    except (OSError, ValueError) as erro:
-        logger.warning("Falha ao ler feedback: %s", erro)
-        return {"total": 0, "fraudes": 0, "legitimas": 0, "concordancia": None, "itens": []}
-
-    itens = []
-    concordantes = 0
-    for tid, linha in ultimas.items():
-        resp = linha["resposta_analista"]
-        decisao = linha["decisao"]
-        nota = float(linha["nota"])
-        eh_concordante = (resp == "fraude" and decisao == "BLOQUEAR") or (
-            resp == "legitima" and decisao in ("APROVAR", "PEDIR_CONFIRMACAO")
-        )
-        if eh_concordante:
-            concordantes += 1
-        itens.append(
-            {
-                "id_transacao": tid,
-                "resposta": resp,
-                "registrado_em": linha["registrado_em"],
-                "decisao": decisao,
-                "nota": nota,
-            }
-        )
-
-    total = len(itens)
-    fraudes = sum(1 for i in itens if i["resposta"] == "fraude")
-    legitimas = total - fraudes
-    concordancia = round(concordantes / total * 100, 1) if total > 0 else None
-
-    return {
-        "total": total,
-        "fraudes": fraudes,
-        "legitimas": legitimas,
-        "concordancia": concordancia,
-        "itens": itens,
-    }
-
-
-def _carregar_json_opcional(caminho: Path) -> dict[str, Any] | None:
-    """Carrega um JSON, retornando None se não existir."""
-    if not caminho.exists():
+    if linha is None:
         return None
-    try:
-        with caminho.open(encoding="utf-8") as arq:
-            return json.load(arq)
-    except (OSError, ValueError) as erro:
-        logger.warning("Falha ao carregar %s: %s", caminho, erro)
-        return None
-
-
-def obter_metricas() -> dict[str, Any]:
-    """Monta a resposta do GET /api/metricas.
-
-    Returns:
-        Dicionário com ``metricas``, ``avaliacao`` e ``extras``.
-
-    Raises:
-        RuntimeError: Se metricas.json ou avaliacao_agente.json não existirem.
-    """
-    metricas = _carregar_json_opcional(CAMINHO_METRICAS)
-    avaliacao = _carregar_json_opcional(CAMINHO_AVALIACAO)
-    if metricas is None or avaliacao is None:
-        raise RuntimeError(
-            "Arquivos de métricas não encontrados. "
-            "Rode: python -m src.treinar_modelo e python -m src.avaliar_agente"
-        )
-
-    extras = {
-        "avaliacao_rigorosa": _carregar_json_opcional(CAMINHO_AVALIACAO_RIGOROSA),
-        "custos": _carregar_json_opcional(CAMINHO_CUSTOS),
-        "eda": None,
-        "ia_contra_modelo": None,
-    }
-
-    return {"metricas": metricas, "avaliacao": avaliacao, "extras": extras}
+    return float(linha["nota"]), str(linha["decisao"])

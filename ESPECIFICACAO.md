@@ -1,8 +1,8 @@
 # ESPECIFICACAO.md — Projeto Sentinela (Desafio Sicredi, IBM SkillsBuild AI Lab)
 
-Versão 4 (12/11/2026; testes de conformidade). Este arquivo define O QUE o sistema faz: dados, modelo, agente e
-números esperados. COMO trabalhar (Git, convenções, testes, revisão) está no `AGENTS.md`.
-A interface está em `docs/08-design-da-interface.md` e as tarefas em `docs/backlog.md`.
+Versão 5 (13/11/2026). Este arquivo define O QUE o sistema faz: dados, modelo, agente, API,
+auditoria por IA, canal do associado, site e números esperados. COMO trabalhar está no
+`AGENTS.md`; as tarefas, em `docs/backlog.md`.
 Quem escreve o código é o IBM Bob. Não invente colunas, arquivos, bibliotecas ou números que
 não estejam aqui. Se um pedido conflitar com este arquivo, pare e pergunte.
 
@@ -11,16 +11,17 @@ não estejam aqui. Se um pedido conflitar com este arquivo, pare e pergunte.
 Sentinela é um agente de IA para prevenção a fraudes em transações de cartão. Para cada
 transação ele: (1) calcula sinais de alerta por regras; (2) dá uma nota de risco de 0 a
 100 com um modelo de machine learning; (3) decide entre APROVAR, PEDIR_CONFIRMACAO ou
-BLOQUEAR; (4) explica a decisão em português para um analista humano, usando o modelo
-IBM Granite local (Ollama), com texto automático de reserva; (5) registra a resposta do
-analista para retreino futuro.
+BLOQUEAR; (4) explica a decisão em português; (5) em paralelo, um agente de IA no IBM watsonx.ai audita a
+decisão (seção 13); (6) quando a decisão pede confirmação ou bloqueia, avisa o associado e recebe
+a resposta dele (seção 15); (7) registra a resposta do analista para retreino futuro.
 
 ## 2. Regras gerais
 
-- Python 3.11 ou mais novo. Bibliotecas de execução em `requirements.txt`, com versão fixada
-  (`pacote==versão`): pandas, pyarrow, scikit-learn, joblib, streamlit, requests, pytest.
-  Ferramentas de desenvolvimento em `requirements-dev.txt`: black, ruff. Nenhuma outra.
-  Adicionar biblioteca exige ADR em `docs/07-decisoes.md` e aprovação do líder.
+- Python 3.14. Bibliotecas de execução em `requirements.txt`, com versão fixada
+  (`pacote==versão`): pandas, numpy, pyarrow, scikit-learn, joblib, requests, pytest, fastapi,
+  uvicorn, httpx. Ferramentas de desenvolvimento em `requirements-dev.txt`: black, ruff. O site
+  (`web/`) tem as dependências fixadas em `web/package.json`. Biblioteca nova exige ADR em
+  `docs/decisoes.md` e aprovação do líder.
 - Convenções de código, idioma, testes, erros, Git e revisão: ver `AGENTS.md`.
 - Caminhos sempre com pathlib, relativos à raiz do repositório (RAIZ = pasta que contém
   este arquivo). O código deve funcionar em Windows, macOS e Linux.
@@ -30,50 +31,28 @@ analista para retreino futuro.
   `python -m src.nome_do_modulo`. Existe um `conftest.py` vazio na raiz para o pytest.
 - A pasta `data/` nunca vai para o Git. A pasta `modelos/` vai.
 
-## 3. Estrutura de pastas (exata)
+## 3. Estrutura de pastas
 
-    AGENTS.md                         regras de trabalho do Bob
-    ESPECIFICACAO.md                  este arquivo
-    README.md
-    requirements.txt                  dependências de execução, versões fixadas
-    requirements-dev.txt              black e ruff
-    pyproject.toml                    configuração de Black, Ruff e pytest
-    .gitignore
-    .bobignore                        impede o Bob de ler data/ e binários
-    conftest.py
-    app.py                            ponto de entrada da interface (navegação)
-    .streamlit/config.toml            tema da interface (tokens de cor e fonte)
-    .github/pull_request_template.md
-    .github/workflows/qualidade.yml   Black, Ruff e pytest a cada Pull Request
-    src/__init__.py
-    src/config.py
-    src/preparar_dados.py
-    src/treinar_modelo.py
-    src/agente.py
-    src/avaliar_agente.py
-    src/interface/__init__.py
-    src/interface/tema.py             rótulos, ícones e cores de cada decisão
-    src/interface/textos.py           todos os textos da tela
-    src/interface/formatacao.py       formatação pt-BR (moeda, data, nota, percentual)
-    src/interface/dados.py            carga em cache, fila e verificação do Granite
-    src/interface/feedback.py         gravação e leitura das respostas do analista
-    src/interface/pagina_fila.py
-    src/interface/pagina_desempenho.py
-    src/interface/pagina_como_funciona.py
-    tests/test_agente.py
-    tests/test_formatacao.py
-    tests/test_feedback.py
-    tests/test_fila.py
-    tests/test_app.py                 teste de fumaça da interface (pula sem dados)
-    tests/test_conformidade_nucleo.py     do líder: confere as seções 2 a 11 (não editar)
-    tests/test_conformidade_interface.py  do líder: confere o design da interface (não editar)
-    docs/                             requisitos, histórias, fluxos, arquitetura, ADRs, design, backlog
-    modelos/sentinela.joblib
-    modelos/metricas.json
-    modelos/avaliacao_agente.json
-    data/case_transacoes_cartoes_sintetico_900k.csv   (não versionado)
-    data/transacoes_preparadas.parquet                 (não versionado)
-    data/feedback.csv                                  (não versionado)
+    AGENTS.md  ESPECIFICACAO.md  README.md     regras, contrato e apresentação
+    requirements.txt  requirements-dev.txt     dependências Python, versões fixadas
+    pyproject.toml  conftest.py  .env.example  configuração (Black, Ruff, pytest, watsonx.ai)
+    src/
+      config.py                    constantes (seção 8.1)
+      preparar_dados.py            CSV → parquet (seção 6)
+      treinar_modelo.py            modelo e métricas (seção 7)
+      agente.py                    sinais, nota, decisão e explicação (seção 8)
+      avaliar_agente.py            avaliação de março (seção 8.6)
+      explicabilidade.py           o que pesou na nota
+      fila.py                      fila de demonstração (seção 10)
+      feedback.py                  respostas do analista (seção 10)
+      avaliar_ia.py                IA contra modelo (Issue #46)
+      api/                         API FastAPI (seção 12)
+      auditoria/                   auditoria por IA (seção 13)
+    web/                           site Next.js (seção 14)
+    tests/                         pytest; test_conformidade_*.py são do líder
+    modelos/                       sentinela.joblib e JSONs gerados pelos scripts
+    docs/                          requisitos, arquitetura, decisões e backlog
+    data/                          fora do Git: CSV, parquet e arquivos de resposta
 
 ## 4. Dados de entrada
 
@@ -367,22 +346,15 @@ Testes obrigatórios:
 
 Os testes não dependem da pasta data/ nem do Ollama.
 
-## 10. Interface
+## 10. Fila de demonstração e respostas do analista
 
-A partir da Issue #37, a interface principal é o site da seção 14, que fala com a API da seção 12;
-o Streamlit descrito abaixo fica como reserva. As regras de fila e de resposta do analista desta
-seção valem para os dois.
-
-Toda a interface Streamlit está especificada em `docs/08-design-da-interface.md`: páginas, layout,
-componentes, textos, estados, tokens de tema e acessibilidade. Os módulos estão na seção 3.
-Resumo das regras que dependem desta especificação:
-- A fila de demonstração tem todas as fraudes de março de 2025 mais TAMANHO_AMOSTRA_LEGITIMAS
-  transações legítimas de março sorteadas com `random_state=SEMENTE`, pontuadas com
-  `analisar_lote` e ordenadas pela nota, da maior para a menor (ADR-007).
-- A resposta do analista é gravada em CAMINHO_FEEDBACK com as colunas
-  `registrado_em, id_transacao, nota, decisao, resposta_analista`; `resposta_analista` só
-  aceita "fraude" ou "legitima". Vale a última resposta de cada transação.
-- As colunas `fraude` e `decisao_sistema_atual` nunca aparecem na fila nem no painel.
+- A fila (`src/fila.py`, `montar_fila`) tem todas as fraudes de março de 2025 mais
+  TAMANHO_AMOSTRA_LEGITIMAS transações legítimas de março sorteadas com `random_state=SEMENTE`,
+  pontuadas com `analisar_lote` e ordenadas pela nota, da maior para a menor (ADR-007).
+- A resposta do analista (`src/feedback.py`) é gravada em CAMINHO_FEEDBACK com as colunas
+  `registrado_em, id_transacao, nota, decisao, resposta_analista`; `resposta_analista` só aceita
+  "fraude" ou "legitima". Vale a última resposta de cada transação.
+- As colunas `fraude` e `decisao_sistema_atual` nunca aparecem na API nem no site.
 
 ## 11. Critérios de aceite e invariantes (valores exatos, base de 160.000 linhas)
 
@@ -430,8 +402,7 @@ só por esta API. Ela é o contrato entre backend e site: nenhum campo muda sem 
 esta seção. Os testes `tests/test_conformidade_api.py` traduzem esta seção.
 
 - Executar: `uvicorn src.api.app:app --port 8000`. O objeto FastAPI se chama `app` e fica em
-  `src/api/app.py`. Dependências em `requirements-api.txt` (`fastapi`, `uvicorn`, `httpx`, com
-  `==`); `requirements.txt` não muda (a conformidade do núcleo só aceita as 8 bibliotecas dele).
+  `src/api/app.py`. Dependências em `requirements.txt`.
 - Na subida, a API carrega uma única vez o parquet, o agente (`AgenteSentinela` com `base`) e a
   fila de demonstração (`montar_fila(base, agente.analisar_lote)`, ADR-007). O modelo carrega
   sozinho: sem o parquet, `POST /api/analisar` continua funcionando (só precisa do modelo), e as
@@ -463,6 +434,12 @@ esta seção. Os testes `tests/test_conformidade_api.py` traduzem esta seção.
 - **ItemHistorico:** `{"data_hora", "valor", "tipo_transacao", "modalidade_transacao",
   "dist_terminal_anterior_km"}`.
 - **Resposta:** `{"id_transacao": int, "resposta": "fraude"|"legitima", "registrado_em": str}`.
+- **PerfilAssociado** (Issue #64): o que é normal para o associado, calculado só com compras
+  anteriores do mesmo cliente: `{"compras_anteriores": int, "mediana_valor": float|null,
+  "valor_atual_sobre_mediana": float|null, "hora_mais_comum": int|null,
+  "percentual_madrugada": float|null, "percentual_credito_nao_presente": float|null}`; `null`
+  quando o cliente não tem compras anteriores. Reaproveita `perfil_do_cliente` de
+  `src/auditoria/ferramentas.py`.
 - **Relatorio** e **Auditoria:** seção 13.
 
 ### 12.2 Endpoints
@@ -471,11 +448,11 @@ esta seção. Os testes `tests/test_conformidade_api.py` traduzem esta seção.
 | --- | --- | --- |
 | `GET /api/saude` | — | `{"status": "ok", "modelo_carregado": bool, "dados_carregados": bool, "auditoria": "watsonx"\|"local"}` |
 | `GET /api/fila` | `decisoes` (opcional, separadas por vírgula; padrão `BLOQUEAR,PEDIR_CONFIRMACAO`; valor inválido → 422) | `{"total_fila": int, "contagens": {"BLOQUEAR": int, "PEDIR_CONFIRMACAO": int, "APROVAR": int}, "itens": [ItemFila]}`, itens por nota decrescente; `contagens` e `total_fila` sempre da fila inteira |
-| `GET /api/transacoes/{id_transacao}` | — | `{"transacao": Transacao, "analise": Analise, "historico": [ItemHistorico] (até 10, antes desta, mais recente primeiro), "resposta_analista": Resposta\|null}`; fora da fila → 404 |
-| `POST /api/analisar` | corpo com as 11 variáveis de `VARIAVEIS_MODELO` (todas opcionais, numéricas), `data_hora`, `valor`, `tipo_transacao`, `modalidade_transacao` opcionais e `auditar: bool = true` | `{"analise": Analise, "id_auditoria": str\|null}`; responde sem esperar a auditoria |
+| `GET /api/transacoes/{id_transacao}` | — | `{"transacao": Transacao, "analise": Analise, "historico": [ItemHistorico] (até 10, antes desta, mais recente primeiro), "resposta_analista": Resposta\|null, "perfil_associado": PerfilAssociado\|null, "notificacao": Notificacao\|null}`; fora da fila → 404. `perfil_associado` entra na Issue #64 e `notificacao` na #62 |
+| `POST /api/analisar` | corpo com as 11 variáveis de `VARIAVEIS_MODELO` (todas opcionais, numéricas), `data_hora`, `valor`, `tipo_transacao`, `modalidade_transacao` opcionais e `auditar: bool = true` | `{"analise": Analise, "id_auditoria": str\|null, "id_notificacao": str\|null}`; responde sem esperar a auditoria; `id_notificacao` (Issue #62) só existe quando a decisão é PEDIR_CONFIRMACAO ou BLOQUEAR |
 | `POST /api/transacoes/{id_transacao}/auditoria` | — | 202 `{"id_auditoria": str, "status": str}`; se já existe auditoria dessa transação, devolve a mesma; fora da fila → 404 |
 | `GET /api/auditorias/{id_auditoria}` | — | Auditoria; desconhecida → 404 |
-| `POST /api/respostas` | `{"id_transacao": int, "resposta": "fraude"\|"legitima"}` | 201 Resposta; grava com `src/interface/feedback.py` em `CAMINHO_FEEDBACK` (seção 10); fora da fila → 404 |
+| `POST /api/respostas` | `{"id_transacao": int, "resposta": "fraude"\|"legitima"}` | 201 Resposta; grava com `src/feedback.py` em `CAMINHO_FEEDBACK` (seção 10); fora da fila → 404 |
 | `GET /api/respostas` | — | `{"total": int, "fraudes": int, "legitimas": int, "concordancia": float\|null, "itens": [{"id_transacao", "resposta", "registrado_em", "decisao", "nota"}]}`; vale a última resposta de cada transação; concordância = fração de respostas em que "fraude" veio com BLOQUEAR, ou "legitima" com APROVAR ou PEDIR_CONFIRMACAO (1 casa, em %; `null` sem respostas) |
 | `GET /api/metricas` | — | `{"metricas": obj, "avaliacao": obj, "extras": {"avaliacao_rigorosa": obj\|null, "custos": obj\|null, "eda": obj\|null, "ia_contra_modelo": obj\|null}}`, lidos de `modelos/`; sem `metricas.json` ou `avaliacao_agente.json` → 503 |
 
@@ -527,7 +504,7 @@ relatório para o analista, ao lado da decisão.
 - **Privacidade:** ao watsonx.ai só vão as variáveis da transação e os agregados das ferramentas,
   nunca identificadores. O log nunca registra a chave nem o conteúdo das respostas do modelo.
 
-## 14. Site: `web/` (Issues #40, #43, #44, #45 e #48; ADR-011)
+## 14. Site: `web/` (ADR-011 e ADR-014)
 
 - Next.js (App Router) com TypeScript estrito e o Carbon Design System da IBM (`@carbon/react`),
   em `web/`. Rotas: `/` (Fila de alertas), `/desempenho`, `/como-funciona`, `/simulador`,
@@ -544,5 +521,57 @@ relatório para o analista, ao lado da decisão.
 - Acessibilidade WCAG 2.2 AA (os componentes do Carbon já ajudam): contraste, foco visível, rótulos
   em todos os controles, nada que dependa só de cor. Nunca exibir `fraude` nem
   `decisao_sistema_atual`.
-- O Streamlit (`app.py` e `src/interface/`) fica congelado como reserva: só correção de defeito,
-  até a Issue #32 decidir se sai.
+
+## 15. Canal do associado: `src/associado/` (Issues #62, #63 e #65; ADR-015)
+
+O agente não só decide: ele age. Quando a decisão é PEDIR_CONFIRMACAO ou BLOQUEAR, o Sentinela
+avisa o associado e registra a resposta dele. É uma simulação: nada é enviado por SMS ou push de
+verdade; o "App do associado" do site faz o papel do celular.
+
+- **Notificacao:** `{"id_notificacao": str, "id_transacao": int|null, "tipo":
+  "CONFIRMACAO"|"AVISO_BLOQUEIO", "mensagem": str, "fonte_mensagem": "watsonx"|"modelo",
+  "criada_em": str, "status": "aguardando"|"confirmada"|"negada", "respondida_em": str|null,
+  "resultado": str|null}`. Guardada em memória, como as auditorias.
+- **Regras de negócio:**
+  - PEDIR_CONFIRMACAO → `tipo` CONFIRMACAO. Resposta "sim" → `status` confirmada,
+    `resultado` "Compra liberada pelo associado."; "nao" → `status` negada, `resultado`
+    "Compra bloqueada e cartão protegido. O caso foi para o analista."
+  - BLOQUEAR → `tipo` AVISO_BLOQUEIO. A compra continua bloqueada em qualquer caso. Resposta
+    "sim" → confirmada, `resultado` "O associado diz que fez a compra; a liberação depende do
+    analista."; "nao" → negada, `resultado` "O associado não reconhece a compra: fraude provável."
+  - APROVAR não gera notificação. Uma notificação respondida não aceita nova resposta.
+- **Mensagem** (`redigir_mensagem(transacao, analise) -> tuple[str, str]`, devolve texto e
+  fonte): com credenciais do watsonx.ai (Issue #65), o Granite redige; senão, ou se a mensagem
+  dele for recusada, usa o modelo fixo (fonte "modelo"):
+  - CONFIRMACAO: "Sicredi: compra de {valor} em {data} às {hora} no seu cartão de {tipo}. Foi
+    você? Responda no app."
+  - AVISO_BLOQUEIO: "Sicredi: bloqueamos uma compra de {valor} em {data} às {hora} por segurança.
+    Seu cartão está protegido. Foi você? Responda no app."
+  - Valor com `formatar_moeda` pt-BR ("R$ 341,79"); data "dd/mm"; sem data, omite "em … às …".
+- **Regras contra golpe (validadas em toda mensagem, inclusive a do modelo fixo):** começa com
+  "Sicredi:"; até 160 caracteres; sem link ("http", "www", ".com"); sem pedir senha, código,
+  token ou dados do cartão; sem sequência de 4 dígitos ou mais fora do valor; nenhum
+  identificador. Mensagem do Granite que quebra uma regra é trocada pelo modelo fixo.
+- **Endpoints:**
+
+| Método e caminho | Entrada | Saída |
+| --- | --- | --- |
+| `POST /api/transacoes/{id_transacao}/notificacao` | — | 201 Notificacao (200 com a mesma, se já existe); fora da fila → 404; decisão APROVAR → 422 |
+| `GET /api/notificacoes` | — | `{"itens": [Notificacao]}`, da mais recente para a mais antiga |
+| `GET /api/notificacoes/{id_notificacao}` | — | Notificacao; desconhecida → 404 |
+| `POST /api/notificacoes/{id_notificacao}/resposta` | `{"resposta": "sim"\|"nao"}` | 200 Notificacao atualizada; já respondida → 409; desconhecida → 404; valor inválido → 422 |
+
+- `POST /api/analisar` cria a notificação automaticamente quando a decisão é PEDIR_CONFIRMACAO
+  ou BLOQUEAR (com `id_transacao` null) e devolve o `id_notificacao`.
+- `GET /api/transacoes/{id}` devolve a notificação da transação, se existir, em `notificacao`.
+
+## 16. "Pergunte à IA sobre este caso": extra (Issue #66)
+
+- `POST /api/transacoes/{id_transacao}/perguntas` com `{"pergunta": str}` (1 a 300
+  caracteres; fora disso → 422; fora da fila → 404) → 200 `{"resposta": str, "ferramentas_usadas":
+  [{"nome": str, "resumo": str}], "fonte": "watsonx"|"local", "latencia_ms": float}`.
+- Com credenciais, o Granite responde em português usando as mesmas 5 ferramentas da auditoria
+  (seção 13), com os mesmos limites de iterações e tempo, e só afirma o que as ferramentas
+  mostraram. Sem credenciais (modo local), a resposta lista o resumo de cada ferramenta e diz
+  que a IA está indisponível.
+- A resposta nunca traz identificador, rótulo ou decisão do sistema atual.

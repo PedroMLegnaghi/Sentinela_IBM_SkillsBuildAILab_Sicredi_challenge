@@ -1,13 +1,15 @@
-"""Testes de conformidade da API (ESPECIFICACAO, seções 12 e 13). Arquivo do líder.
+"""Testes de conformidade da API (ESPECIFICACAO, seções 12 a 16). Arquivo do líder.
 
-O IBM Bob não pode editar, apagar ou renomear este arquivo (AGENTS.md, seção 12).
+O IBM Bob não pode editar, apagar ou renomear este arquivo (AGENTS.md, seção 1).
 
 Grupos e quando rodam:
 - Todos: só depois da Issue #38 (existe src/api/app.py) e com fastapi instalado
-  (requirements-api.txt).
+  (requirements.txt).
 - Análise: precisam de modelos/sentinela.joblib.
 - Fila, transação, respostas e métricas: precisam também de data/transacoes_preparadas.parquet.
 - Auditoria concluída: só depois da Issue #39 (existe src/auditoria/__init__.py).
+- Canal do associado: só depois da Issue #62 (existe src/associado/__init__.py).
+- Perfil do associado (#64) e perguntas (#66): pulam até a chave ou a rota existir.
 """
 
 from __future__ import annotations
@@ -25,12 +27,16 @@ TEM_API = (RAIZ / "src" / "api" / "app.py").exists()
 TEM_AUDITORIA = (RAIZ / "src" / "auditoria" / "__init__.py").exists()
 TEM_MODELO = (RAIZ / "modelos" / "sentinela.joblib").exists()
 TEM_DADOS = (RAIZ / "data" / "transacoes_preparadas.parquet").exists()
+TEM_CANAL = (RAIZ / "src" / "associado" / "__init__.py").exists()
 
 pytestmark = pytest.mark.skipif(not TEM_API, reason="Issue #38 ainda não implementada")
 
 precisa_modelo = pytest.mark.skipif(not TEM_MODELO, reason="sem modelos/sentinela.joblib")
 precisa_dados = pytest.mark.skipif(
     not (TEM_MODELO and TEM_DADOS), reason="sem data/transacoes_preparadas.parquet ou modelo"
+)
+precisa_canal = pytest.mark.skipif(
+    not (TEM_CANAL and TEM_MODELO and TEM_DADOS), reason="Issue #62 ainda não implementada"
 )
 precisa_auditoria = pytest.mark.skipif(not TEM_AUDITORIA, reason="Issue #39 ainda não implementada")
 
@@ -138,9 +144,8 @@ def _confere_analise(analise: dict) -> None:
 # --- Requisitos e estrutura -------------------------------------------------------------------
 
 
-def test_requirements_api_tem_fastapi_uvicorn_e_httpx_fixados():
-    caminho = RAIZ / "requirements-api.txt"
-    assert caminho.exists(), "Falta requirements-api.txt. ESPECIFICACAO, seção 12."
+def test_requirements_tem_fastapi_uvicorn_e_httpx_fixados():
+    caminho = RAIZ / "requirements.txt"
     linhas = [
         linha.strip()
         for linha in caminho.read_text(encoding="utf-8").splitlines()
@@ -250,7 +255,7 @@ def test_analisar_devolve_a_mesma_decisao_do_agente(cliente):
 
     assert resposta.status_code == 200
     corpo = resposta.json()
-    assert set(corpo) == {"analise", "id_auditoria"}
+    assert {"analise", "id_auditoria"} <= set(corpo)
     _confere_analise(corpo["analise"])
     assert corpo["analise"]["nota"] == esperado["nota"]
     assert corpo["analise"]["decisao"] == esperado["decisao"]
@@ -376,7 +381,7 @@ def test_transacao_da_fila_traz_analise_historico_e_resposta(cliente):
 
     assert resposta.status_code == 200
     corpo = resposta.json()
-    assert set(corpo) == {"transacao", "analise", "historico", "resposta_analista"}
+    assert {"transacao", "analise", "historico", "resposta_analista"} <= set(corpo)
     _confere_analise(corpo["analise"])
     assert corpo["analise"]["decisao"] == item["decisao"]
     assert abs(corpo["analise"]["nota"] - item["nota"]) <= 0.1
@@ -488,3 +493,152 @@ def test_metricas_trazem_os_json_do_modelo_e_os_extras(cliente):
     assert set(corpo["extras"]) == {"avaliacao_rigorosa", "custos", "eda", "ia_contra_modelo"}
     assert corpo["avaliacao"]["fraudes_total"] == 54
     assert corpo["metricas"]["teste"]["fraudes"] == 54
+
+
+# --- Perfil do associado (Issue #64) -------------------------------------------------------
+
+CHAVES_PERFIL = {
+    "compras_anteriores",
+    "mediana_valor",
+    "valor_atual_sobre_mediana",
+    "hora_mais_comum",
+    "percentual_madrugada",
+    "percentual_credito_nao_presente",
+}
+
+
+@precisa_dados
+def test_transacao_traz_o_perfil_do_associado(cliente):
+    item = cliente.get("/api/fila").json()["itens"][0]
+    corpo = cliente.get(f"/api/transacoes/{item['id_transacao']}").json()
+    if "perfil_associado" not in corpo:
+        pytest.skip("Issue #64 ainda não implementada")
+
+    perfil = corpo["perfil_associado"]
+
+    assert perfil is None or set(perfil) == CHAVES_PERFIL
+    assert not (_chaves_recursivas(corpo) & CHAVES_PROIBIDAS)
+
+
+# --- Canal do associado (Issue #62) ---------------------------------------------------------
+
+CHAVES_NOTIFICACAO = {
+    "id_notificacao",
+    "id_transacao",
+    "tipo",
+    "mensagem",
+    "fonte_mensagem",
+    "criada_em",
+    "status",
+    "respondida_em",
+    "resultado",
+}
+PALAVRAS_PROIBIDAS_NA_MENSAGEM = ("http", "www", ".com", "senha", "código", "token")
+
+
+def _confere_mensagem(mensagem: str) -> None:
+    assert mensagem.startswith("Sicredi:")
+    assert len(mensagem) <= 160
+    assert not any(p in mensagem.lower() for p in PALAVRAS_PROIBIDAS_NA_MENSAGEM)
+    sem_valor = re.sub(r"R\$ ?[\d.,]+", "", mensagem)
+    assert not re.search(r"\d{4,}", sem_valor), "Sequência longa de dígitos fora do valor."
+
+
+def _id_por_decisao(cliente, decisao: str) -> int:
+    itens = cliente.get("/api/fila", params={"decisoes": decisao}).json()["itens"]
+    return itens[0]["id_transacao"]
+
+
+@precisa_canal
+def test_bloqueio_gera_aviso_ao_associado_e_e_idempotente(cliente):
+    id_transacao = _id_por_decisao(cliente, "BLOQUEAR")
+
+    primeira = cliente.post(f"/api/transacoes/{id_transacao}/notificacao")
+    segunda = cliente.post(f"/api/transacoes/{id_transacao}/notificacao")
+
+    assert primeira.status_code in (200, 201)
+    notificacao = primeira.json()
+    assert set(notificacao) == CHAVES_NOTIFICACAO
+    assert notificacao["tipo"] == "AVISO_BLOQUEIO"
+    assert notificacao["status"] == "aguardando"
+    assert segunda.json()["id_notificacao"] == notificacao["id_notificacao"]
+    _confere_mensagem(notificacao["mensagem"])
+
+
+@precisa_canal
+def test_pedido_de_confirmacao_vira_confirmacao_ao_associado(cliente):
+    id_transacao = _id_por_decisao(cliente, "PEDIR_CONFIRMACAO")
+
+    notificacao = cliente.post(f"/api/transacoes/{id_transacao}/notificacao").json()
+
+    assert notificacao["tipo"] == "CONFIRMACAO"
+    _confere_mensagem(notificacao["mensagem"])
+
+
+@precisa_canal
+def test_compra_aprovada_nao_gera_notificacao(cliente):
+    id_transacao = _id_por_decisao(cliente, "APROVAR")
+
+    resposta = cliente.post(f"/api/transacoes/{id_transacao}/notificacao")
+
+    assert resposta.status_code == 422
+
+
+@precisa_canal
+def test_associado_responde_uma_vez_e_o_resultado_segue_a_regra(cliente):
+    id_transacao = _id_por_decisao(cliente, "PEDIR_CONFIRMACAO")
+    notificacao = cliente.post(f"/api/transacoes/{id_transacao}/notificacao").json()
+    rota = f"/api/notificacoes/{notificacao['id_notificacao']}/resposta"
+
+    respondida = cliente.post(rota, json={"resposta": "nao"})
+    repetida = cliente.post(rota, json={"resposta": "sim"})
+
+    assert respondida.status_code == 200
+    assert respondida.json()["status"] == "negada"
+    assert respondida.json()["resultado"].startswith("Compra bloqueada")
+    assert repetida.status_code == 409
+    assert cliente.post(rota, json={"resposta": "talvez"}).status_code in (409, 422)
+
+
+@precisa_canal
+def test_analisar_compra_suspeita_ja_avisa_o_associado(cliente):
+    corpo = cliente.post("/api/analisar", json={**TRANSACAO_ALTO_RISCO, "auditar": False}).json()
+
+    id_notificacao = corpo["id_notificacao"]
+    lista = cliente.get("/api/notificacoes").json()["itens"]
+
+    assert isinstance(id_notificacao, str)
+    assert lista[0]["id_notificacao"] == id_notificacao
+    assert cliente.get(f"/api/notificacoes/{id_notificacao}").status_code == 200
+    assert cliente.get("/api/notificacoes/nao-existe").status_code == 404
+
+
+@precisa_canal
+def test_transacao_mostra_a_notificacao_do_associado(cliente):
+    id_transacao = _id_por_decisao(cliente, "BLOQUEAR")
+    cliente.post(f"/api/transacoes/{id_transacao}/notificacao")
+
+    corpo = cliente.get(f"/api/transacoes/{id_transacao}").json()
+
+    assert corpo["notificacao"]["id_transacao"] == id_transacao
+
+
+# --- Pergunte à IA (Issue #66, extra) ------------------------------------------------------
+
+
+@precisa_dados
+def test_pergunta_sobre_o_caso_responde_com_ferramentas(cliente, monkeypatch):
+    if "/api/transacoes/{id_transacao}/perguntas" not in cliente.app.openapi()["paths"]:
+        pytest.skip("Issue #66 ainda não implementada")
+    for nome in ("WATSONX_APIKEY", "WATSONX_PROJECT_ID"):
+        monkeypatch.delenv(nome, raising=False)
+    id_transacao = _id_por_decisao(cliente, "BLOQUEAR")
+    rota = f"/api/transacoes/{id_transacao}/perguntas"
+
+    resposta = cliente.post(rota, json={"pergunta": "Esse cliente costuma comprar de madrugada?"})
+    vazia = cliente.post(rota, json={"pergunta": ""})
+
+    assert resposta.status_code == 200
+    assert set(resposta.json()) == {"resposta", "ferramentas_usadas", "fonte", "latencia_ms"}
+    assert not (_chaves_recursivas(resposta.json()) & CHAVES_PROIBIDAS)
+    assert vazia.status_code == 422

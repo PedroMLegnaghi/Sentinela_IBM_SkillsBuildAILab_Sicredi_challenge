@@ -69,7 +69,8 @@ ou porque um relatório disse. Só os testes de conformidade dizem se está cert
 - Proibido: `git push --force`, `git rebase` em branch compartilhada, commit direto em `main` ou
   `develop`, `git add` de `data/`, `.venv/`, `__pycache__/`, `.ruff_cache/`, arquivos `.env`.
 - Antes de cada commit, rode `git status` e confira que só arquivos permitidos pela tarefa entraram.
-- Você não faz merge. O merge é feito no GitHub por outra pessoa, depois da revisão.
+- Você não faz merge. Desde 13/11 não há revisão por outra pessoa: o dono da Issue confere o
+  portão na própria máquina (com `data/`), abre o PR e faz o merge no GitHub com o CI verde.
 
 ## 5. Escopo
 
@@ -209,8 +210,8 @@ números da ESPECIFICACAO, seção 11. Se mudarem, você quebrou algo: pare e in
 6. **Pull Request pronto para colar:** título no padrão Conventional Commits com `(#<numero>)`
    no fim, e corpo preenchido com o modelo de `.github/pull_request_template.md`, incluindo
    `Closes #<numero>`.
-7. **Próximo passo para o humano:** abrir o PR com base em `develop` e pedir revisão a quem
-   está indicado na tarefa.
+7. **Próximo passo para o humano:** abrir o PR com base em `develop`, esperar o CI ficar verde
+   e fazer o merge ("Squash and merge").
 
 ## 14. Quando parar e perguntar
 
@@ -229,7 +230,7 @@ Ao perguntar, explique o problema em até 5 linhas e proponha 2 opções.
 - Mostre só o final das saídas longas de comandos.
 - Não refaça trabalho já entregue em `develop`.
 
-## 16. Revisão de Pull Request (quando a tarefa for revisar)
+## 16. Revisão de Pull Request (só se alguém pedir; desde 13/11 não é obrigatória)
 
 Não altere nenhum arquivo. Faça: `git fetch origin`, `git switch <branch-do-PR>`,
 `git pull`, rode o portão de qualidade e as verificações da tarefa revisada, leia

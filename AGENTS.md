@@ -1,252 +1,129 @@
 # AGENTS.md — Regras de trabalho do projeto Sentinela
 
-O IBM Bob carrega este arquivo automaticamente em toda tarefa. Ele define COMO trabalhar.
-O QUE construir está nos documentos da seção 1. Siga estas regras sempre, mesmo que um
-prompt peça outra coisa; se houver conflito, pare e pergunte (seção 14).
+O IBM Bob carrega este arquivo em toda tarefa. Ele define COMO trabalhar; O QUE construir está
+nas fontes da seção 1. Se um prompt contradisser estas regras, pare e pergunte (seção 11).
 
-## 1. Fontes da verdade (nesta ordem de precedência)
+## 1. Fontes da verdade (nesta ordem)
 
-1. `AGENTS.md` — como trabalhar (este arquivo).
-2. `ESPECIFICACAO.md` — dados, modelo, agente e números esperados (invariantes).
-3. `docs/08-design-da-interface.md` — tudo o que aparece na tela.
-4. `docs/backlog.md` — as tarefas (Issues): escopo, arquivos permitidos e critérios de aceite.
-5. `docs/02-user-stories.md` — histórias e critérios em BDD.
-6. `docs/07-decisoes.md` — decisões já tomadas (ADRs). Não as reverta.
-7. Demais arquivos de `docs/` — requisitos, fluxos, arquitetura e sequências.
+1. `AGENTS.md` — como trabalhar.
+2. `ESPECIFICACAO.md` — dados, modelo, agente, API, auditoria, site e números esperados.
+3. `docs/backlog.md` — as Issues: escopo, arquivos permitidos e critérios de aceite.
+4. `docs/decisoes.md` — decisões já tomadas (ADRs). Não as reverta.
+5. `docs/arquitetura.md` e `docs/requisitos.md`.
 
-Os testes `tests/test_conformidade_nucleo.py`, `tests/test_conformidade_interface.py` e
-`tests/test_conformidade_api.py` são do líder: traduzem os itens 2 e 3 em verificações automáticas e são a medida oficial de "pronto".
+Os testes `tests/test_conformidade_nucleo.py` e `tests/test_conformidade_api.py` são do líder e
+são a medida oficial de "pronto". Nunca edite esses testes, a ESPECIFICACAO, este arquivo nem
+`docs/`, salvo quando a Issue mandar. Nunca invente coluna, arquivo, biblioteca, rota ou número
+que não esteja nas fontes.
 
-Nunca edite os arquivos 1 a 6, os demais de `docs/` nem os testes de conformidade, salvo quando a
-Issue em execução mandar.
-Nunca invente coluna, arquivo, biblioteca, texto de tela ou número que não esteja nesses documentos.
+## 2. O projeto
 
-## 2. O projeto em 5 linhas
+Sentinela é um agente antifraude para compras com cartão (desafio Sicredi, IBM SkillsBuild). A API
+calcula 9 sinais, dá uma nota de 0 a 100 (regressão logística) e decide na hora APROVAR,
+PEDIR_CONFIRMACAO ou BLOQUEAR. Em paralelo, um agente no IBM watsonx.ai audita a decisão (confirma,
+diverge ou inconclusivo) sem mudá-la, e o associado é avisado e confirma a compra pelo app. Um
+analista revisa tudo num site Next.js. Dados 100% sintéticos, só na máquina de cada pessoa.
 
-Sentinela é um agente antifraude para transações de cartão (desafio Sicredi, IBM SkillsBuild).
-Para cada transação, uma API calcula sinais por regras, dá nota de risco de 0 a 100 com regressão
-logística e decide na hora APROVAR, PEDIR_CONFIRMACAO ou BLOQUEAR; em paralelo, um agente de IA no
-watsonx.ai audita a decisão e diz se confirma ou diverge (ADR-012). Um analista humano revisa num
-site Next.js. Dados 100% sintéticos, 160.000 linhas, só na máquina de cada pessoa.
+## 3. Protocolo de toda Issue
 
-**Estado de partida:** o código das antigas Etapas 1 a 4 (`src/`, `tests/test_agente.py`,
-`modelos/` e o `app.py` antigo) foi escrito antes destas regras e tem defeitos, embora os
-relatórios da época dissessem que estava tudo certo. Não presuma que algo funciona porque existe
-ou porque um relatório disse. Só os testes de conformidade dizem se está certo.
-
-## 3. Protocolo de toda Issue (siga os 9 passos, na ordem)
-
-1. **Sincronizar.** `git fetch origin`, `git switch develop`, `git pull origin develop`.
-   Se houver alterações locais não commitadas, pare e me pergunte.
-2. **Criar a branch** a partir de `develop`: `git switch -c feature/<numero>-<slug>`, com o
-   nome exato indicado em `docs/backlog.md`. Se a branch já existir, use-a (`git switch`).
-3. **Ler** a tarefa em `docs/backlog.md` e SOMENTE os documentos e arquivos que ela lista.
-4. **Ambiente.** Use o Python do `.venv` da raiz em todos os comandos
-   (Windows: `.venv\Scripts\python`; macOS/Linux: `.venv/bin/python`). Se o `.venv` não
-   existir, crie-o e instale `requirements.txt` e `requirements-dev.txt`.
-   Se `data/transacoes_preparadas.parquet` faltar e a tarefa precisar dele, rode
-   `python -m src.preparar_dados`. Nunca rode `src.treinar_modelo` sem a Issue mandar.
-5. **Planejar.** Antes de editar, escreva um plano curto: arquivos que vai criar ou alterar,
-   funções, testes e como vai verificar. Confira se todos os arquivos estão na lista
-   "Arquivos permitidos" da tarefa. Se precisar de outro arquivo, pare e pergunte.
-6. **Implementar** em passos pequenos, seguindo as seções 5 a 11.
-7. **Verificar** com o portão de qualidade (seção 12), com os testes de conformidade e com
-   as verificações da tarefa. Compare cada resultado com os critérios de aceite. Se algo falhar,
-   corrija a causa no código e verifique de novo. Nunca altere um critério, um teste ou um número
-   esperado para "passar".
-8. **Commitar e enviar.** Commits pequenos e coerentes (seção 4). Depois
-   `git push -u origin feature/<numero>-<slug>`. Nunca faça push em `main` ou `develop`.
-9. **Relatar** no formato da seção 13 e pare. Não abra outra Issue por conta própria.
+1. **Sincronizar:** `git switch develop && git pull`. Alterações locais não commitadas? Pare e pergunte.
+2. **Branch:** `git switch -c feature/<numero>-<slug>`, com o nome exato do backlog.
+3. **Ler** a Issue em `docs/backlog.md` e só os arquivos que ela lista.
+4. **Ambiente:** Python do `.venv` da raiz (`.venv/bin/python`; Windows `.venv\Scripts\python`).
+   Faltou `data/transacoes_preparadas.parquet`? Rode `python -m src.preparar_dados`. Nunca rode
+   `src.treinar_modelo` sem a Issue mandar.
+5. **Planejar:** arquivos, funções, testes e verificação. Todos em "Arquivos permitidos"?
+6. **Implementar** em passos pequenos (seções 5 a 9).
+7. **Verificar** com o portão (seção 10) e os critérios de aceite. Falhou? Corrija a causa.
+   Nunca altere critério, teste ou número esperado para passar.
+8. **Commitar e enviar:** commits pequenos (seção 4) e `git push -u origin <branch>`.
+9. **Relatar** (seção 12) e parar.
 
 ## 4. Git
 
-- Branches: `main` (versão entregue, protegida), `develop` (integração, protegida, alvo de
-  todo Pull Request), `feature/<numero>-<slug>` (uma Issue, uma branch).
-- Mensagens no padrão Conventional Commits: prefixo em inglês, assunto em português, verbo no
-  presente, minúscula, sem ponto final, até 72 caracteres.
-  Prefixos: `feat`, `fix`, `refactor`, `test`, `docs`, `style`, `perf`, `chore`.
-  Exemplos: `feat: adiciona painel de análise da transação`; `test: cobre registro de resposta inválida`.
-- Proibido: `git push --force`, `git rebase` em branch compartilhada, commit direto em `main` ou
-  `develop`, `git add` de `data/`, `.venv/`, `__pycache__/`, `.ruff_cache/`, arquivos `.env`.
-- Antes de cada commit, rode `git status` e confira que só arquivos permitidos pela tarefa entraram.
-- Você não faz merge. Desde 13/11 não há revisão por outra pessoa: o dono da Issue confere o
-  portão na própria máquina (com `data/`), abre o PR e faz o merge no GitHub com o CI verde.
+- `main` recebe só a versão de entrega; `develop` é o alvo de todo PR; uma Issue, uma branch.
+- Conventional Commits: prefixo em inglês, assunto em português, minúsculo, sem ponto final, até
+  72 caracteres (`feat: cria o app do associado`).
+- Proibido: `push --force`, `rebase` em branch compartilhada, commit direto em `main`/`develop`,
+  `git add -A`, `git add .`, e adicionar `data/`, `.venv/`, `node_modules/`, caches ou `.env`.
+- Você não faz merge. Não há revisão por outra pessoa: o dono da Issue confere o portão na
+  própria máquina (com `data/`), abre o PR e faz o merge com o CI verde.
 
 ## 5. Escopo
 
-- Altere somente os arquivos listados em "Arquivos permitidos" da tarefa.
-- Encontrou um problema fora do escopo? Não corrija. Anote em "Achados fora do escopo" no
-  relatório; ele vira uma Issue nova.
-- Não adicione funcionalidades que não estejam nos critérios de aceite, mesmo que pareçam úteis.
+Altere só os "Arquivos permitidos". Problema fora do escopo vai para "Achados fora do escopo" no
+relatório. Nada de funcionalidade que não esteja nos critérios de aceite.
 
-## 6. Convenções de código (Python)
+## 6. Código
 
-- Formatação: Black (linha de 100 caracteres). Lint: Ruff com a configuração do `pyproject.toml`.
-  Não discuta estilo; o formatador decide.
-- Idioma (ADR-001): identificadores, comentários, docstrings, logs e textos de tela em português
-  do Brasil, sem acento em identificadores e nomes de arquivo. Nunca misture idiomas num mesmo
-  nome (proibido `get_transacao`, `calcular_score`).
-- Nomes: funções e variáveis `snake_case` com verbo para funções (`calcular_sinais`); classes
-  `PascalCase` com um único conceito (`AgenteSentinela`); constantes `UPPER_SNAKE_CASE`;
-  booleanos com prefixo afirmativo (`esta_disponivel`, `tem_sinais`), nunca negativo.
-- Sem valores soltos: limiares, caminhos, tamanhos e URLs ficam em `src/config.py`; textos de
-  tela em `src/interface/textos.py`; cores, ícones e rótulos de decisão em `src/interface/tema.py`.
-- Tipagem: anotações de tipo em todas as funções públicas.
-- Tamanho: função com no máximo 50 linhas; módulo com uma responsabilidade e, de preferência,
-  até 150 linhas. Passou disso, divida.
-- Mais de 4 parâmetros: agrupe numa `dataclass` (exceto assinaturas já fixadas na ESPECIFICACAO).
-- Sem duplicação: a interface nunca reimplementa regra do agente; importa de `src.agente` e
-  `src.config`.
-- Sem código morto nem código comentado. TODO só no formato
-  `# TODO(#<issue>, AAAA-MM-DD): o que falta e por quê`.
+- **Idioma (ADR-001):** nomes, comentários, docstrings, logs e textos em português, sem acento em
+  identificadores e nomes de arquivo; nunca misture idiomas num nome.
+- **Python:** Black (100 colunas) e Ruff (`pyproject.toml`); `snake_case` com verbo para funções,
+  `PascalCase` para classes, `UPPER_SNAKE_CASE` para constantes; tipos em toda função pública;
+  limiares, caminhos e URLs em `src/config.py`; docstring Google em português (`Args`, `Returns`,
+  `Raises`); comentário explica o porquê.
+- **TypeScript (`web/`):** Next.js App Router, TypeScript estrito, Carbon (`@carbon/react`) — não
+  troque nem acrescente biblioteca de UI. `camelCase` para funções, `PascalCase` para componentes e
+  tipos; textos em `web/lib/textos.ts`, formatação em `web/lib/formatacao.ts`, chamadas à API só
+  por `web/lib/api.ts` com os tipos de `web/lib/tipos.ts`. Sem `any` e sem `console.log`.
+- **Tamanho:** função até 50 linhas; módulo e componente até cerca de 150. Passou, divida.
+- Sem código morto, código comentado ou duplicação de regra do agente (importe de `src/`).
 
-## 7. Documentação no código
+## 7. Erros e logs
 
-- Docstring no estilo Google, em português, em todo módulo, classe e função pública, com
-  `Args:`, `Returns:` e `Raises:` quando houver.
-- Comentário explica o PORQUÊ de uma decisão, nunca o que a linha faz.
+- Nunca `except:` nem `except Exception:`; capture o tipo específico, trate ou registre em log.
+- Logs com `logging.getLogger(__name__)`; `print` só nos scripts `python -m`.
+- Erro para o usuário em português, dizendo o que aconteceu e o que fazer; nunca stack trace.
 
-## 8. Erros e logs
+## 8. Dados, privacidade e segredos
 
-- Nunca `except:` nem `except Exception:` genérico; capture o tipo específico
-  (`requests.RequestException`, `FileNotFoundError`, `ValueError`, `KeyError`).
-- Todo `except` trata, relança ou registra em log. Nunca `pass` silencioso.
-- Logs com `logging.getLogger(__name__)`; `print` só nos scripts executados com `python -m`
-  para mostrar o resumo pedido pela ESPECIFICACAO.
-- Erro para o usuário: em português, dizendo o que aconteceu e como resolver, com texto de
-  `textos.py`. Nunca mostre stack trace, nome de exceção ou `st.exception` na tela.
-- Falhe cedo: arquivo ausente é verificado na entrada, com mensagem clara.
+- Do CSV, só as 16 colunas da ESPECIFICACAO, seção 4; nunca colunas pessoais nem proibidas (seção 5).
+- Nunca abra, imprima ou cole linhas de `data/` (o `.bobignore` bloqueia); mostre só agregados.
+- Logs, respostas da API e mensagens à IA nunca levam identificador de cartão, cliente ou
+  estabelecimento.
+- Testes só com valores inventados.
+- O único segredo são as credenciais do watsonx.ai: só no `.env` (ignorado pelo Git);
+  `.env.example` lista os nomes. Nunca escreva chave ou token em código, teste, log ou commit.
 
-## 9. Dados, privacidade e segredos
+## 9. Testes
 
-- Leia do CSV somente as 16 colunas da ESPECIFICACAO, seção 4. Nunca leia colunas pessoais
-  (nomes, e-mails, telefones, documentos, endereços) nem as colunas proibidas da seção 5.
-- Nunca abra, imprima ou cole linhas dos arquivos de `data/` (o `.bobignore` bloqueia a leitura;
-  scripts Python podem usá-los normalmente). Para conferir, mostre só contagens e agregados.
-- Log nunca registra identificadores de cartão, cliente ou estabelecimento.
-- Testes usam somente valores inventados, nunca linhas da base.
-- O único segredo do projeto são as credenciais do watsonx.ai (ESPECIFICACAO, seção 13): só em
-  variáveis de ambiente, lidas do `.env`, que o Git ignora. `.env.example` lista os nomes sem
-  valores. Nunca escreva chave, token ou senha em código, teste, log, relatório ou commit.
+- Python: pytest; site: Vitest com os mocks de `web/lib/mocks/`, sem depender da API.
+- Obrigatório testar regra de negócio, cálculo, validação e todo defeito corrigido.
+- Nome do teste é uma frase; um comportamento por teste (Arranjo–Ação–Asserção).
+- Sem depender de ordem, de `data/`, do Ollama ou do watsonx.ai (use `monkeypatch`/mocks).
 
-## 10. Testes
+## 10. Portão de qualidade (antes de todo commit)
 
-- pytest. Obrigatório testar: regra de negócio, cálculo, validação de entrada e todo defeito
-  corrigido (o teste reproduz o defeito antes da correção).
-- Nome do teste é uma frase: `test_bloqueia_transacao_com_ip_desconhecido`.
-- Um comportamento por teste, no padrão Arranjo–Ação–Asserção, com linhas em branco separando.
-- Testes independentes, sem depender de ordem, da pasta `data/` ou do Ollama (use `monkeypatch`).
-- Teste que precisa do modelo usa `pytest.mark.skipif` quando `modelos/sentinela.joblib` não existir.
+```bash
+python -m black --check .
+python -m ruff check .
+python -m pytest -q
+```
 
-## 11. Interface
+Se mexeu em `web/`: `npm run lint`, `npm run typecheck`, `npm test` e `npm run build`, dentro de
+`web/`. Depois, `python -m src.avaliar_agente` continua com os números da ESPECIFICACAO, seção 11.
 
-**Site (`web/`, a interface principal desde a Issue #37; ESPECIFICACAO, seção 14):**
+- Conformidade sem falhas, rodada com `data/` presente. Os dois arquivos são intocáveis: nada de
+  `skip`, `xfail`, `-k`, `--deselect` ou configuração para escondê-los. Achou um teste que
+  contradiz a ESPECIFICACAO? Pare e relate.
+- O CI não tem `data/` e pula os testes que precisam dela; por isso o portão local é obrigatório.
 
-- Next.js com TypeScript estrito e Carbon Design System (`@carbon/react`). Não troque a biblioteca
-  de componentes nem acrescente outra de UI sem a Issue mandar.
-- O site só fala com a API da ESPECIFICACAO, seção 12, pelo cliente `web/lib/api.ts`, com os tipos
-  de `web/lib/tipos.ts`. Nunca invente campo: se faltar algo na API, pare e pergunte (seção 14).
-- Nomes em português, sem acento: funções e variáveis em `camelCase` (`carregarFila`),
-  componentes e tipos em `PascalCase` (`PainelTransacao`), arquivos de componente em
-  `PascalCase.tsx`. Textos de tela em `web/lib/textos.ts`; formatação em `web/lib/formatacao.ts`.
-- Todo estado previsto é implementado: carregando, vazio, erro e sucesso. Toda ação tem resposta
-  visível. Nunca exiba `fraude` ou `decisao_sistema_atual`.
-- Componentes com no máximo 150 linhas e funções com no máximo 50; sem `any`; sem `console.log`
-  no código entregue.
-- Testes com Vitest e Testing Library, com os mocks de `web/lib/mocks/`, sem depender da API.
+## 11. Quando parar e perguntar
 
-**API (`src/api/`) e auditoria (`src/auditoria/`):** seguem as seções 6 a 10 deste arquivo, como
-o resto do Python. A auditoria nunca muda a decisão do modelo (ADR-012).
+Fontes em conflito; arquivo fora da lista, biblioteca nova ou mudança de contrato da API;
+número invariante mudou; teste que passava começou a falhar; alterações não commitadas,
+conflito ou push recusado. Explique em até 5 linhas e proponha 2 opções.
 
-**Streamlit (`app.py`, `src/interface/`), congelado como reserva:**
+## 12. Relatório final
 
-- Siga `docs/08-design-da-interface.md` à risca: layout, componentes, textos e estados.
-- Todo estado previsto no design é implementado: carregando, vazio, erro, sucesso.
-- Cache: dados e fila com `st.cache_data`; agente com `st.cache_resource`; a análise de cada
-  transação (com a explicação) guardada em `st.session_state["analises"]`, para não chamar o
-  Granite de novo a cada clique. A resposta do analista é sempre lida do arquivo.
-- Nunca exiba as colunas `fraude` ou `decisao_sistema_atual` na fila ou no painel da transação.
-- Toda ação produz resposta visível (spinner, toast ou mensagem).
+1. Resumo em até 5 linhas.
+2. Tabela `critério | esperado | obtido | OK?` (OK só com evidência).
+3. A última linha REAL de cada comando do portão, com passed/failed/skipped.
+4. Arquivos criados ou alterados.
+5. Achados fora do escopo (ou "nenhum").
+6. Título e corpo do PR (modelo de `.github/pull_request_template.md`, com `Closes #N`).
 
-## 12. Portão de qualidade (rode antes de todo commit)
+## 13. Economia de Bob Coins
 
-    python -m black --check .
-    python -m ruff check .
-    python -m pytest -q
-
-Se a tarefa mexeu em `web/`, rode também, dentro de `web/`:
-
-    npm run lint
-    npm run typecheck
-    npm test
-    npm run build
-
-Todos precisam passar. Depois rode as verificações específicas da tarefa.
-Invariantes: depois de qualquer tarefa, `python -m src.avaliar_agente` continua mostrando os
-números da ESPECIFICACAO, seção 11. Se mudarem, você quebrou algo: pare e investigue.
-
-**Conformidade** (o `pytest -q` acima já inclui; rode também isolado para o relatório):
-
-    python -m pytest tests/test_conformidade_nucleo.py tests/test_conformidade_interface.py tests/test_conformidade_api.py -q -rs
-
-- Os três arquivos de conformidade são intocáveis. Não os edite, apague ou renomeie; não use
-  `skip`, `xfail`, `-k`, `--deselect`, `conftest.py` nem a configuração do pytest no
-  `pyproject.toml` para escondê-los.
-- Teste de conformidade falhando significa erro no código, nunca no teste. Se você tiver certeza
-  de que um teste contradiz a ESPECIFICACAO ou o design, pare e relate (seção 14).
-- Na sua máquina, com `data/` presente, nenhum teste do núcleo pode ser pulado. Na interface, só
-  podem ser pulados os testes com o motivo "Issue #N ainda não implementada" de Issues futuras.
-- No CI não há `data/`: os testes que precisam dos dados são pulados lá, e isso é esperado.
-
-## 13. Relatório final (formato obrigatório)
-
-1. **Resumo** em até 5 linhas.
-2. **Critérios de aceite:** tabela `critério | esperado | obtido | OK?`.
-3. **Portão de qualidade:** a última linha REAL da saída de cada comando da seção 12, inclusive
-   a da conformidade com as contagens de passed, failed e skipped, e os motivos dos skips.
-   Nunca escreva "tudo passou" sem colar a linha. Na tabela do item 2, "OK? = sim" só com evidência.
-4. **Arquivos criados ou alterados.**
-5. **Achados fora do escopo** (ou "nenhum").
-6. **Pull Request pronto para colar:** título no padrão Conventional Commits com `(#<numero>)`
-   no fim, e corpo preenchido com o modelo de `.github/pull_request_template.md`, incluindo
-   `Closes #<numero>`.
-7. **Próximo passo para o humano:** abrir o PR com base em `develop`, esperar o CI ficar verde
-   e fazer o merge ("Squash and merge").
-
-## 14. Quando parar e perguntar
-
-- Um documento da seção 1 contradiz outro, ou a tarefa contradiz este arquivo.
-- Precisa alterar arquivo fora da lista permitida, adicionar biblioteca ou mudar assinatura
-  pública fixada na ESPECIFICACAO.
-- Um número invariante mudou, ou um teste que já passava começou a falhar sem motivo claro.
-- Um teste de conformidade parece contradizer a ESPECIFICACAO ou o design.
-- Há alterações locais não commitadas, conflito de merge ou push recusado.
-Ao perguntar, explique o problema em até 5 linhas e proponha 2 opções.
-
-## 15. Economia de créditos
-
-- Não leia arquivos que a tarefa não lista. Não releia arquivos inteiros se só precisa de um trecho.
-- Não abra arquivos de `data/` nem binários (`.joblib`, `.parquet`).
-- Mostre só o final das saídas longas de comandos.
-- Não refaça trabalho já entregue em `develop`.
-
-## 16. Revisão de Pull Request (só se alguém pedir; desde 13/11 não é obrigatória)
-
-Não altere nenhum arquivo. Faça: `git fetch origin`, `git switch <branch-do-PR>`,
-`git pull`, rode o portão de qualidade e as verificações da tarefa revisada, leia
-`git diff origin/develop...HEAD` e responda com a tabela `verificação | OK? | evidência`:
-
-- resolve a tarefa: todos os critérios de aceite da `docs/backlog.md` atendidos;
-- conformidade rodada aqui, com `data/` presente: 0 falhas; skips só de Issues futuras;
-- o diff não toca `tests/test_conformidade_*.py` nem a configuração do pytest;
-- só alterou arquivos permitidos; nenhum arquivo desnecessário, de dados ou segredo no diff;
-- casos de erro tratados, não só o caminho feliz; nenhuma exceção engolida;
-- nomes e idioma conforme a seção 6; docstrings conforme a seção 7;
-- testes presentes onde a seção 10 exige, e eles falhariam sem a mudança;
-- interface: estados, textos e acessibilidade conforme o design;
-- diagramas de `docs/` atualizados se a mudança alterou uma assinatura, módulo ou dependência;
-- invariantes numéricas preservadas.
-
-Termine com o veredito **Approve** ou **Request changes** e os comentários no formato
-`<rótulo>: <assunto>` (rótulos: `issue`, `suggestion`, `question`, `nitpick`), em tom
-colaborativo. Formatação não é item de revisão.
+Leia só o que a Issue lista; não abra `data/` nem binários; mostre só o fim das saídas longas;
+uma sessão nova por Issue.

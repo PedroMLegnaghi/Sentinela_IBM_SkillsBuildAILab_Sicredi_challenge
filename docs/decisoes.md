@@ -1,4 +1,4 @@
-# 07 — Registro de decisões (ADRs)
+# Registro de decisões (ADRs)
 
 Cada decisão cara de reverter tem um registro. Um ADR aceito não é editado: se a decisão
 mudar, escreva um ADR novo que substitui o anterior.
@@ -33,7 +33,7 @@ ao lado de nomes em português, o que é aceitável. Nenhum nome híbrido é per
 
 # ADR-002 — Streamlit e Python, rodando localmente, fora da stack padrão da IDE
 
-**Status:** Substituído em parte pelo ADR-011 (a interface) · **Data:** 2026-11-12
+**Status:** Substituído pelo ADR-011 e pelo ADR-014 · **Data:** 2026-11-12
 
 ## Contexto
 A stack padrão da IDE é Next.js, Django e PostgreSQL. Este projeto não é de cliente da IDE: é um
@@ -222,7 +222,7 @@ líder faz, numa Issue própria.
 **Status:** Aceito · **Data:** 2026-11-12
 
 ## Contexto
-O `app.py` da Etapa 4 não segue o design (`docs/08`), que mudou a estrutura em módulos,
+O `app.py` da Etapa 4 não segue o design da interface da época, que mudou a estrutura em módulos,
 textos centralizados, estados e acessibilidade.
 
 ## Decisão
@@ -240,7 +240,7 @@ Quem testou a interface antiga apaga o próprio `data/feedback.csv`, cujo format
 
 # ADR-011 — Aplicação web: site em Next.js e API em FastAPI
 
-**Status:** Aceito · **Data:** 2026-11-12 · **Substitui em parte:** ADR-002 (a interface)
+**Status:** Aceito · **Data:** 2026-11-12 · **Substitui em parte:** ADR-002 (a interface) · **Completado por:** ADR-014
 
 ## Contexto
 O protótipo em Streamlit (ADR-002) cumpriu a versão 1.0, mas não parece um produto: não tem API
@@ -321,3 +321,49 @@ regra simples, e o relatório diz `fonte: "local"`.
 ## Consequências
 Só quem tem as credenciais vê o parecer da IA real; o resto do time desenvolve e testa no modo
 local. Nenhuma chave entra no Git; `.env.example` documenta os nomes.
+
+---
+
+# ADR-014 — O Streamlit é aposentado; uma única lista de dependências
+
+**Status:** Aceito · **Data:** 2026-11-13 · **Substitui:** ADR-002 (o que restava) e a reserva do ADR-011
+
+## Contexto
+O site Next.js (Issues #40, #43, #44 e #45) cobre tudo o que o Streamlit mostrava, com a API real.
+Manter as duas interfaces dobrava código, testes e documentação, e obrigava a separar as
+dependências da API num segundo arquivo.
+
+## Decisão
+Remover `app.py`, `src/interface/`, `.streamlit/`, o design do Streamlit e os testes dele. As duas
+peças que a API usava viram `src/fila.py` (fila de demonstração) e `src/feedback.py` (respostas do
+analista). FastAPI, Uvicorn e httpx entram no `requirements.txt`, que deixa de ter o Streamlit; o
+teste de conformidade do núcleo passa a exigir essa lista.
+
+## Consequências
+Uma interface só, uma lista de dependências e menos 2.000 linhas para manter. Quem quiser a versão
+Streamlit encontra no histórico do Git (até o PR #59).
+
+---
+
+# ADR-015 — O agente avisa o associado; o canal é simulado
+
+**Status:** Aceito · **Data:** 2026-11-13
+
+## Contexto
+O desafio pede para "prever e intervir" e cita alerta preventivo e comunicação com o associado.
+Até aqui, "Pedir confirmação" só aparecia escrito na tela: o agente decidia, mas não agia.
+
+## Decisão
+Quando a decisão é PEDIR_CONFIRMACAO ou BLOQUEAR, o Sentinela cria uma notificação ao associado
+(ESPECIFICACAO, seção 15), com mensagem do Granite ou de um modelo fixo, sempre validada por regras
+contra golpe (sem link, sem pedir senha ou código, sem dados do cartão). O associado responde "sim"
+ou "não" num "App do associado" simulado no site, e a resposta muda o estado do caso para o analista.
+Nada é enviado de verdade.
+
+## Alternativas rejeitadas
+- **Integrar SMS ou push real:** exige contas, custos e dados pessoais que o desafio não fornece.
+- **Só indicar na tela:** não responde ao "intervir" do desafio.
+
+## Consequências
+O ciclo fica completo e demonstrável: compra suspeita → aviso ao associado → resposta → caso para o
+analista. Guardado em memória, como as auditorias; reiniciar a API apaga as notificações.

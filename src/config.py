@@ -95,3 +95,17 @@ COLUNAS_VELOCIDADE = [
 
 # Origens permitidas no CORS (só o site local em desenvolvimento)
 API_ORIGENS_PERMITIDAS = ["http://localhost:3000"]
+
+# Auditoria por IA (ESPECIFICACAO, seção 13; ADR-012 e ADR-013)
+AUDITORIA_MAX_ITERACOES = 6
+AUDITORIA_TIMEOUT_S = 30
+WATSONX_URL_PADRAO = "https://us-south.ml.cloud.ibm.com"
+WATSONX_URL_IAM = "https://iam.cloud.ibm.com/identity/token"
+WATSONX_VERSAO_API = "2024-10-08"
+# Modelo sugerido; conferir no Prompt Lab da conta e definir WATSONX_MODELO no .env.
+AUDITORIA_MODELO_PADRAO = "ibm/granite-4-h-small"
+CAMINHO_ENV = RAIZ / ".env"
+# Regra do modo local da auditoria (medida em 12/11: 4 sinais ou mais pegam as 54 fraudes de
+# março com 57 alertas).
+AUDITORIA_SINAIS_RISCO_ALTO = 4
+AUDITORIA_SINAIS_SUSPEITO = 2

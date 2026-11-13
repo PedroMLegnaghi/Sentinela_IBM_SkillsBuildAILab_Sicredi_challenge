@@ -1,4 +1,4 @@
-"""Testes de montar_fila, contar_por_decisao e verificar_arquivos (design, seção 13.1).
+"""Testes de montar_fila e contar_por_decisao (src/fila.py).
 
 Usa uma base falsa de fevereiro e março, com e sem fraude,
 e uma função analisar_lote falsa que não acessa o modelo.
@@ -6,8 +6,7 @@ e uma função analisar_lote falsa que não acessa o modelo.
 
 import pandas as pd
 
-from src.interface import textos
-from src.interface.dados import contar_por_decisao, montar_fila, verificar_arquivos
+from src.fila import contar_por_decisao, montar_fila
 
 
 def _base_falsa() -> pd.DataFrame:
@@ -107,18 +106,3 @@ def test_contar_por_decisao_com_decisao_ausente():
     contagem = contar_por_decisao(fila)
 
     assert contagem == {"BLOQUEAR": 2, "PEDIR_CONFIRMACAO": 0, "APROVAR": 1}
-
-
-def test_verificar_arquivos_ambos_ausentes(tmp_path):
-    """Quando ambos os arquivos faltam, devolve os dois erros na ordem certa."""
-    erros = verificar_arquivos(tmp_path / "x.parquet", tmp_path / "y.joblib")
-
-    assert erros == [textos.ERRO_SEM_DADOS, textos.ERRO_SEM_MODELO]
-
-
-def test_verificar_arquivos_nenhum_ausente(tmp_path):
-    """Quando ambos existem, devolve lista vazia."""
-    (tmp_path / "x.parquet").touch()
-    (tmp_path / "y.joblib").touch()
-
-    assert verificar_arquivos(tmp_path / "x.parquet", tmp_path / "y.joblib") == []

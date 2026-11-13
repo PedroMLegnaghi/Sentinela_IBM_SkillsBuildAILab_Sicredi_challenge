@@ -29,10 +29,10 @@ const esperar = (ms: number) =>
   new Promise((resolver) => setTimeout(resolver, ms));
 
 async function acompanhar(
-  idTransacao: number,
+  iniciar: () => Promise<string>,
   cancelado: () => boolean,
 ): Promise<Estado> {
-  const { id_auditoria: id } = await iniciarAuditoria(idTransacao);
+  const id = await iniciar();
   const inicio = Date.now();
   while (!cancelado()) {
     const auditoria = await obterAuditoria(id);
@@ -52,10 +52,16 @@ async function acompanhar(
 }
 
 interface PropsCartaoAuditoria {
-  idTransacao: number;
+  /** Transação da fila: o cartão dispara a auditoria dela. */
+  idTransacao?: number;
+  /** Auditoria já disparada (por exemplo, pelo POST /api/analisar do simulador). */
+  idAuditoria?: string;
 }
 
-export default function CartaoAuditoria({ idTransacao }: PropsCartaoAuditoria) {
+export default function CartaoAuditoria({
+  idTransacao,
+  idAuditoria,
+}: PropsCartaoAuditoria) {
   const [estado, setEstado] = useState<Estado>({ tipo: "pendente" });
   const [tentativa, setTentativa] = useState(0);
 
@@ -66,7 +72,10 @@ export default function CartaoAuditoria({ idTransacao }: PropsCartaoAuditoria) {
 
   useEffect(() => {
     let cancelado = false;
-    acompanhar(idTransacao, () => cancelado)
+    const iniciar = async () =>
+      idAuditoria ??
+      (await iniciarAuditoria(idTransacao as number)).id_auditoria;
+    acompanhar(iniciar, () => cancelado)
       .then((novo) => !cancelado && setEstado(novo))
       .catch(
         (erro: Error) =>
@@ -75,7 +84,7 @@ export default function CartaoAuditoria({ idTransacao }: PropsCartaoAuditoria) {
     return () => {
       cancelado = true;
     };
-  }, [idTransacao, tentativa]);
+  }, [idTransacao, idAuditoria, tentativa]);
 
   return (
     <Tile

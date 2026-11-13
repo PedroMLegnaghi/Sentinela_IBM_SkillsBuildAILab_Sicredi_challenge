@@ -1,16 +1,9 @@
 /**
- * Página Simulador.
- * Conteúdo completo implementado na Issue #45.
+ * Página Simulador (Issue #45).
  */
 
-import { Heading } from "@carbon/react";
-import { NAV_SIMULADOR } from "@/lib/textos";
+import PaginaSimulador from "@/components/simulador/PaginaSimulador";
 
-export default function PaginaSimulador() {
-  return (
-    <div>
-      <Heading>{NAV_SIMULADOR}</Heading>
-      <p>Em preparação na Issue #45.</p>
-    </div>
-  );
+export default function Pagina() {
+  return <PaginaSimulador />;
 }

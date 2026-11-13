@@ -1,16 +1,9 @@
 /**
- * Página Desempenho.
- * Conteúdo completo implementado na Issue #44.
+ * Página Desempenho (Issue #44).
  */
 
-import { Heading } from "@carbon/react";
-import { NAV_DESEMPENHO } from "@/lib/textos";
+import PaginaDesempenho from "@/components/desempenho/PaginaDesempenho";
 
-export default function PaginaDesempenho() {
-  return (
-    <div>
-      <Heading>{NAV_DESEMPENHO}</Heading>
-      <p>Em preparação na Issue #44.</p>
-    </div>
-  );
+export default function Pagina() {
+  return <PaginaDesempenho />;
 }

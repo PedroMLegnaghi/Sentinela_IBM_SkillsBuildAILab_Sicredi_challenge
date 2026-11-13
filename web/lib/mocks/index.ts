@@ -205,35 +205,48 @@ const respostas: RespostaRespostas = {
 
 const metricas: RespostaMetricas = {
   metricas: {
-    fraudes_total: 54,
-    transacoes: 13608,
-    sentinela: {
-      fraudes_bloqueadas: 54,
-      bloqueadas: 54,
-      confirmacoes: 159,
-    },
-    sistema_atual: {
-      fraudes_bloqueadas: 26,
-    },
-    pr_auc: 0.981,
-    roc_auc: 0.998,
+    modelo: "regressao_logistica",
+    treino: { linhas: 25923, fraudes: 92 },
+    teste: { linhas: 13608, fraudes: 54 },
+    pr_auc: 1.0,
+    roc_auc: 1.0,
+    limiares: [
+      { limiar: 30, alertas: 54, fraudes_detectadas: 54, precisao: 1.0, recall: 1.0 },
+      { limiar: 50, alertas: 54, fraudes_detectadas: 54, precisao: 1.0, recall: 1.0 },
+      { limiar: 70, alertas: 54, fraudes_detectadas: 54, precisao: 1.0, recall: 1.0 },
+      { limiar: 90, alertas: 52, fraudes_detectadas: 52, precisao: 1.0, recall: 0.963 },
+    ],
+    comparacao_hgb: { pr_auc: 1.0, roc_auc: 1.0 },
   },
   avaliacao: {
-    limiares: [
-      {
-        nota_corte: 50,
-        alertas: 213,
-        fraudes_detectadas: 54,
-        precisao: 0.253,
-        recall: 1.0,
-      },
-    ],
+    periodo: "2025-03",
+    transacoes: 13608,
+    fraudes_total: 54,
+    sentinela: {
+      bloqueadas: 54,
+      fraudes_bloqueadas: 54,
+      confirmacoes: 159,
+      fraudes_em_confirmacao: 0,
+      aprovadas: 13395,
+      fraudes_aprovadas: 0,
+    },
+    sistema_atual: { bloqueadas: 26, fraudes_bloqueadas: 26, fraudes_nao_bloqueadas: 28 },
   },
   extras: {
     avaliacao_rigorosa: null,
     custos: null,
     eda: null,
-    ia_contra_modelo: null,
+    ia_contra_modelo: {
+      transacoes: 254,
+      fraudes: 54,
+      fontes: { watsonx: 254 },
+      latencia_modelo: { p50_ms: 1.5, p95_ms: 2.1 },
+      latencia_ia: { p50_ms: 3200.0, p95_ms: 5400.0 },
+      pareceres: { CONFIRMA: 232, DIVERGE: 18, INCONCLUSIVO: 4 },
+      concordancia_por_decisao: { APROVAR: 89.0, PEDIR_CONFIRMACAO: 100.0, BLOQUEAR: 100.0 },
+      modelo: { alertas: 56, fraudes_pegas: 54, recall: 100.0, precisao: 96.4 },
+      ia_sozinha: { alertas: 78, fraudes_pegas: 54, recall: 100.0, precisao: 69.2 },
+    },
   },
 };
 

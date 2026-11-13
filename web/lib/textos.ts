@@ -138,7 +138,134 @@ export const COLUNAS_HISTORICO = {
 };
 
 // --- Issue #44 ---
-// (textos das páginas Desempenho e Como funciona serão adicionados aqui)
+export const TITULO_DESEMPENHO = "Desempenho em março de 2025";
+export const LEGENDA_DESEMPENHO = (transacoes: string) =>
+  `Comparação entre o Sentinela e o sistema atual da Sicredi nas ${transacoes} transações de teste.`;
+export const INDICADORES_DESEMPENHO = {
+  fraudes: "Fraudes em março",
+  sentinela: "Bloqueadas pelo Sentinela",
+  sistemaAtual: "Bloqueadas pelo sistema atual",
+  legitimas: "Compras legítimas bloqueadas",
+  confirmacoes: "Pedidos de confirmação",
+};
+export const DE_TOTAL = (parte: string, total: string) =>
+  `${parte} de ${total}`;
+export const DELTA_SENTINELA = (diferenca: number) =>
+  `${diferenca >= 0 ? "+" : ""}${diferenca} em relação ao sistema atual`;
+export const AJUDA_CONFIRMACOES = (percentual: string) =>
+  `${percentual} das transações de março.`;
+export const TITULO_GRAFICO_FRAUDES = "Fraudes de março bloqueadas";
+export const ROTULO_SENTINELA = "Sentinela";
+export const ROTULO_SISTEMA_ATUAL = "Sistema atual";
+export const TITULO_COMPARACAO = "Comparação";
+export const COLUNAS_COMPARACAO = {
+  indicador: "Indicador",
+  sistemaAtual: "Sistema atual",
+  sentinela: "Sentinela",
+};
+export const LINHAS_COMPARACAO = {
+  bloqueadas: "Fraudes bloqueadas",
+  naoBloqueadas: "Fraudes não bloqueadas",
+  percentual: "Percentual das fraudes bloqueadas",
+  legitimas: "Compras legítimas bloqueadas",
+};
+export const TITULO_DETALHES_MODELO =
+  "Detalhes do modelo (regressão logística)";
+export const LEGENDA_DETALHES_MODELO = (
+  treino: string,
+  fraudesTreino: string,
+) =>
+  `Treinado com ${treino} transações de janeiro e fevereiro (${fraudesTreino} fraudes) e testado em março, como seria em produção.`;
+export const COLUNAS_LIMIARES = {
+  limiar: "Nota de corte",
+  alertas: "Alertas",
+  fraudes: "Fraudes detectadas",
+  precisao: "Precisão",
+  recall: "Recall",
+};
+export const COMPARACAO_HGB = (prAuc: string) =>
+  `Um gradient boosting treinado para comparação chegou à mesma PR-AUC (${prAuc}); ficamos com a regressão logística por ser explicável variável a variável.`;
+export const TITULO_IA_CONTRA_MODELO = "Modelo e IA lado a lado";
+export const LEGENDA_IA_CONTRA_MODELO = (transacoes: string, fraudes: string) =>
+  `Amostra de março com ${transacoes} transações (${fraudes} fraudes). O modelo decide; a IA audita a mesma compra em paralelo.`;
+export const LINHAS_IA_CONTRA_MODELO = {
+  latenciaP50: "Tempo típico (p50)",
+  latenciaP95: "Tempo no pior caso comum (p95)",
+  alertas: "Alertas",
+  fraudes: "Fraudes pegas",
+  precisao: "Precisão",
+  recall: "Recall",
+};
+export const COLUNAS_IA_CONTRA_MODELO = {
+  medida: "Medida",
+  modelo: "Modelo (decide)",
+  ia: "IA sozinha (audita)",
+};
+export const CONCORDANCIA_IA = (confirma: string) =>
+  `A IA confirmou ${confirma} das decisões do modelo; as divergências viram casos para o analista olhar com atenção.`;
+export const FONTES_IA = (fontes: string) => `Fonte das auditorias: ${fontes}.`;
+export const TITULO_CUSTOS = "Custo da fraude em março";
+export const ROTULOS_CUSTOS = {
+  evitado: "Prejuízo evitado",
+  sentinela: "Custo com o Sentinela",
+  sistemaAtual: "Custo com o sistema atual",
+};
+export const AVISO_SINTETICO =
+  "Dados sintéticos: o resultado é otimista. Em produção, o modelo precisaria de monitoramento e retreino com as respostas dos analistas.";
+export const TITULO_COMO = "Como o Sentinela decide";
+export const LEAD_COMO =
+  "Uma compra no cartão precisa de resposta em milissegundos. Por isso o modelo de machine learning decide na hora, e uma IA no IBM watsonx.ai audita a mesma compra logo depois, como segunda opinião para o analista.";
+export const TITULO_CAMINHO = "O caminho de uma compra";
+export const PASSOS_CAMINHO = [
+  "A API recebe a compra e calcula 9 sinais de alerta com regras simples.",
+  "O modelo (regressão logística) dá uma nota de risco de 0 a 100.",
+  "A decisão sai na hora: aprovar, pedir confirmação ao cliente ou bloquear e enviar ao analista.",
+  "Em paralelo, a IA investiga a compra com ferramentas (histórico do cartão, perfil do cliente e do estabelecimento) e diz se confirma, diverge ou não conclui.",
+  "O analista vê as duas opiniões, decide e registra a resposta.",
+];
+export const TITULO_SINAIS_COMO = "Os 9 sinais de alerta";
+export const COLUNAS_SINAIS = { sinal: "Sinal", quando: "Dispara quando" };
+// Limiares de src/config.py (ESPECIFICACAO, seção 8.1): mudar lá exige mudar aqui.
+export const SINAIS_EXPLICADOS: Array<[string, string]> = [
+  [
+    "Uso acelerado em terminais",
+    "Cartão usado 10 vezes ou mais em terminais na última hora",
+  ],
+  ["Rajada de transações", "5 transações ou mais do cartão no último minuto"],
+  ["Token de carteira digital", "Token usado 30 vezes ou mais em 3 meses"],
+  [
+    "Salto geográfico",
+    "Terminal a mais de 100 km do anterior em menos de uma hora",
+  ],
+  ["Madrugada", "Compra feita antes das 5h da manhã"],
+  ["Valor alto", "Valor acima de R$ 150"],
+  ["Crédito sem cartão presente", "Compra online no crédito"],
+  ["IP de país desconhecido", "Endereço IP sem país identificado (código ZZ)"],
+  ["Estabelecimento de risco", "Risco do estabelecimento igual ou acima de 40"],
+];
+export const TITULO_DECISAO_COMO = "Como a decisão é tomada";
+export const REGRAS_DECISAO = [
+  "Bloquear e enviar ao analista: nota de 70 ou mais, ou IP de país desconhecido.",
+  "Pedir confirmação ao cliente: nota de 30 ou mais, ou 3 sinais ou mais.",
+  "Aprovar: nos demais casos.",
+];
+export const TITULO_IA_COMO = "Como a IA audita";
+export const IA_COMO = [
+  "A IA nunca muda a decisão do modelo: ela dá uma segunda opinião.",
+  'Ela escolhe quais ferramentas usar e só afirma o que as ferramentas mostraram; o que faltou aparece em "dados que faltaram".',
+  "O parecer (confirma, diverge ou inconclusivo) é calculado comparando o risco que a IA viu com a decisão do modelo.",
+  "Sem conexão com o watsonx.ai, a auditoria roda em modo local, com as mesmas ferramentas e uma regra simples.",
+];
+export const TITULO_DADOS_COMO = "Sobre os dados";
+export const SOBRE_DADOS =
+  "A base tem 160.000 transações sintéticas de 2025, das quais 146 são fraude (0,09%). A fila de demonstração tem todas as fraudes de março e 2.000 compras legítimas de março sorteadas. Colunas que entregam a resposta (scores prontos, decisão do sistema atual, disputas) foram removidas.";
+export const TITULO_LIMITACOES = "Limitações";
+export const LIMITACOES = [
+  "Os dados são sintéticos e fáceis de separar: três colunas de velocidade já calculadas carregam o resultado; em dados reais o desempenho seria menor.",
+  "Todas as fraudes da base estão entre janeiro e março de 2025; em uso real, o modelo precisa de monitoramento.",
+  "Pedir confirmação ao cliente é só indicado na tela; nenhuma notificação é enviada.",
+  "As respostas do analista ficam salvas, mas ainda não retreinam o modelo automaticamente.",
+];
 
 // --- Issue #45 ---
 // (textos do simulador e da página de respostas serão adicionados aqui)

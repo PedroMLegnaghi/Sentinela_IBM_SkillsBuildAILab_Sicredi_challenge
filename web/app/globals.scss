@@ -175,3 +175,80 @@ ol.sentinela-lista {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+// --- Desempenho e Como funciona (Issue #44) ---
+.sentinela-pagina > * + * {
+  margin-top: 1rem;
+}
+
+.sentinela-leitura {
+  max-width: 56rem;
+}
+
+.sentinela-lead {
+  font-size: 1.125rem;
+  line-height: 1.5;
+}
+
+.sentinela-secao {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.sentinela-indicadores-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.sentinela-indicadores-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sentinela-indicadores-2 {
+  grid-template-columns: repeat(2, minmax(0, 12rem));
+}
+
+@media (max-width: 1056px) {
+  .sentinela-indicadores-5,
+  .sentinela-indicadores-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.sentinela-indicadores .sentinela-indicador-nota {
+  font-size: 0.75rem;
+  color: var(--cds-text-secondary, #525252);
+}
+
+.sentinela-barras {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 48rem;
+
+  li {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr) 6rem;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.sentinela-barras-trilho {
+  height: 1.25rem;
+  background: var(--cds-layer-02, #f4f4f4);
+
+  > span {
+    display: block;
+    height: 100%;
+  }
+}
+
+.sentinela-barra-modelo {
+  background: var(--cds-interactive, #0f62fe);
+}
+
+.sentinela-barra-atual {
+  background: var(--cds-border-strong-01, #8d8d8d);
+}

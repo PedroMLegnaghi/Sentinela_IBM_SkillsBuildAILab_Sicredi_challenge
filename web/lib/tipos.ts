@@ -114,14 +114,72 @@ export interface RespostaRespostas {
   }>;
 }
 
+/** modelos/metricas.json (ESPECIFICACAO, seção 7). */
+export interface Metricas {
+  modelo: string;
+  treino: { linhas: number; fraudes: number };
+  teste: { linhas: number; fraudes: number };
+  pr_auc: number;
+  roc_auc: number;
+  limiares: Array<{
+    limiar: number;
+    alertas: number;
+    fraudes_detectadas: number;
+    precisao: number;
+    recall: number;
+  }>;
+  comparacao_hgb?: { pr_auc: number; roc_auc: number };
+}
+
+/** modelos/avaliacao_agente.json (ESPECIFICACAO, seção 8.6). */
+export interface AvaliacaoAgente {
+  periodo: string;
+  transacoes: number;
+  fraudes_total: number;
+  sentinela: {
+    bloqueadas: number;
+    fraudes_bloqueadas: number;
+    confirmacoes: number;
+    fraudes_em_confirmacao: number;
+    aprovadas: number;
+    fraudes_aprovadas: number;
+  };
+  sistema_atual: {
+    bloqueadas: number;
+    fraudes_bloqueadas: number;
+    fraudes_nao_bloqueadas: number;
+  };
+}
+
+/** Acerto de um conjunto de alertas (Issue #46). */
+export interface AcertoAlertas {
+  alertas: number;
+  fraudes_pegas: number;
+  recall: number | null;
+  precisao: number | null;
+}
+
+/** modelos/ia_contra_modelo.json (Issue #46, src/avaliar_ia.py). */
+export interface IaContraModelo {
+  transacoes: number;
+  fraudes: number;
+  fontes: Record<string, number>;
+  latencia_modelo: { p50_ms: number; p95_ms: number };
+  latencia_ia: { p50_ms: number; p95_ms: number };
+  pareceres: Record<string, number>;
+  concordancia_por_decisao: Record<string, number | null>;
+  modelo: AcertoAlertas;
+  ia_sozinha: AcertoAlertas;
+}
+
 export interface RespostaMetricas {
-  metricas: Record<string, unknown>;
-  avaliacao: Record<string, unknown>;
+  metricas: Metricas;
+  avaliacao: AvaliacaoAgente;
   extras: {
     avaliacao_rigorosa: Record<string, unknown> | null;
     custos: Record<string, unknown> | null;
     eda: Record<string, unknown> | null;
-    ia_contra_modelo: Record<string, unknown> | null;
+    ia_contra_modelo: IaContraModelo | null;
   };
 }
 

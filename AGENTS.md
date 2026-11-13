@@ -30,7 +30,8 @@ analista revisa tudo num site Next.js. Dados 100% sintéticos, só na máquina d
 2. **Branch:** `git switch -c feature/<numero>-<slug>`, com o nome exato do backlog.
 3. **Ler** a Issue em `docs/backlog.md` e só os arquivos que ela lista.
 4. **Ambiente:** Python do `.venv` da raiz (`.venv/bin/python`; Windows `.venv\Scripts\python`).
-   Faltou `data/transacoes_preparadas.parquet`? Rode `python -m src.preparar_dados`. Nunca rode
+   O parquet de `data/` já vem no repositório. Para recriá-lo, descompacte o CSV
+   (`gunzip -k data/*.csv.gz`) e rode `python -m src.preparar_dados`. Nunca rode
    `src.treinar_modelo` sem a Issue mandar.
 5. **Planejar:** arquivos, funções, testes e verificação. Todos em "Arquivos permitidos"?
 6. **Implementar** em passos pequenos (seções 5 a 9).
@@ -45,7 +46,8 @@ analista revisa tudo num site Next.js. Dados 100% sintéticos, só na máquina d
 - Conventional Commits: prefixo em inglês, assunto em português, minúsculo, sem ponto final, até
   72 caracteres (`feat: cria o app do associado`).
 - Proibido: `push --force`, `rebase` em branch compartilhada, commit direto em `main`/`develop`,
-  `git add -A`, `git add .`, e adicionar `data/`, `.venv/`, `node_modules/`, caches ou `.env`.
+  `git add -A`, `git add .`, e adicionar a `data/` algo além dos 4 arquivos do ADR-016,
+  `.venv/`, `node_modules/`, caches ou `.env`.
 - Você não faz merge. Não há revisão por outra pessoa: o dono da Issue confere o portão na
   própria máquina (com `data/`), abre o PR e faz o merge com o CI verde.
 
@@ -103,10 +105,11 @@ python -m pytest -q
 Se mexeu em `web/`: `npm run lint`, `npm run typecheck`, `npm test` e `npm run build`, dentro de
 `web/`. Depois, `python -m src.avaliar_agente` continua com os números da ESPECIFICACAO, seção 11.
 
-- Conformidade sem falhas, rodada com `data/` presente. Os dois arquivos são intocáveis: nada de
+- Conformidade sem falhas. Os dois arquivos são intocáveis: nada de
   `skip`, `xfail`, `-k`, `--deselect` ou configuração para escondê-los. Achou um teste que
   contradiz a ESPECIFICACAO? Pare e relate.
-- O CI não tem `data/` e pula os testes que precisam dela; por isso o portão local é obrigatório.
+- O CI roda tudo, inclusive os testes com dados (o parquet é versionado); o portão local continua
+  obrigatório antes do push.
 
 ## 11. Quando parar e perguntar
 

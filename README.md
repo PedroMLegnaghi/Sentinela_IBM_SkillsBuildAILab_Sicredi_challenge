@@ -32,13 +32,12 @@ Detalhes em [docs/arquitetura.md](docs/arquitetura.md).
 
 ## Como rodar
 
-Pré-requisitos: Python 3.14, Node 22 e o CSV da Sicredi em
-`data/case_transacoes_cartoes_sintetico_900k.csv` (não versionado).
+Pré-requisitos: Python 3.14 e Node 22. Os dados sintéticos da Sicredi já vêm em `data/` (o CSV
+comprimido e o parquet preparado).
 
 ```bash
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt -r requirements-dev.txt
-python -m src.preparar_dados                        # gera data/transacoes_preparadas.parquet
 uvicorn src.api.app:app --port 8000                 # API em http://localhost:8000/docs
 ```
 
@@ -61,8 +60,8 @@ python -m src.avaliar_agente                        # confere os números acima
 cd web && npm run lint && npm run typecheck && npm test && npm run build
 ```
 
-O CI "Qualidade" roda tudo isso em todo Pull Request (sem `data/`, ele pula os testes que dependem
-dos dados).
+O CI "Qualidade" roda tudo isso em todo Pull Request. Para recriar o parquet a partir do CSV:
+`gunzip -k data/case_transacoes_cartoes_sintetico_900k.csv.gz && python -m src.preparar_dados`.
 
 ## Estrutura
 
@@ -76,7 +75,7 @@ web/                site Next.js
 tests/              pytest; test_conformidade_*.py são a régua de "pronto"
 modelos/            modelo treinado e métricas (versionados)
 docs/               requisitos, arquitetura, decisões (ADRs) e backlog
-data/               dados da Sicredi (fora do Git)
+data/               dados sintéticos da Sicredi (CSV comprimido, dicionário, parquet)
 ```
 
 ## Documentação

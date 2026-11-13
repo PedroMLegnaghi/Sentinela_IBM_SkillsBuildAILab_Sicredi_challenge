@@ -7,7 +7,8 @@ teste falhar, o erro está no código: a mensagem diz qual seção da ESPECIFICA
 Grupos e quando rodam:
 - estrutura, configuração, sinais e decisão: sempre;
 - agente com o modelo salvo e JSON versionados: quando modelos/ existe (também no CI);
-- dados preparados e reprodutibilidade: só na máquina com data/transacoes_preparadas.parquet.
+- dados preparados e reprodutibilidade: precisam de data/transacoes_preparadas.parquet
+  (versionado desde o ADR-016).
   Na máquina de quem executa uma Issue, nenhum teste deste arquivo pode ser pulado.
 """
 
@@ -297,27 +298,47 @@ def test_requirements_dev_tem_black_e_ruff_com_versao_fixada():
     assert all("==" in linha for linha in linhas), "Fixe as versões de black e ruff com =="
 
 
-def test_nenhum_arquivo_de_dados_esta_versionado():
+DADOS_VERSIONADOS = {
+    "data/case_transacoes_cartoes_sintetico_900k.csv.gz",
+    "data/dicionario_dados_case_prevencao_sicredi.xlsx",
+    "data/Orientacoes_case_prevencao_sicredi.txt",
+    "data/transacoes_preparadas.parquet",
+}
+
+
+def _git() -> str:
     git = shutil.which("git")
     if git is None or not (RAIZ / ".git").exists():
         pytest.skip("repositório git não encontrado")
+    return git
+
+
+def test_so_os_dados_combinados_estao_versionados():
     saida = subprocess.run(  # noqa: S603 - comando fixo, sem entrada externa
-        [git, "ls-files"], cwd=RAIZ, capture_output=True, text=True, check=True
+        [_git(), "ls-files"], cwd=RAIZ, capture_output=True, text=True, check=True
     ).stdout.splitlines()
 
-    proibidos = [
+    fora_da_lista = [
         caminho
         for caminho in saida
-        if caminho.startswith(("data/", ".venv/")) or caminho.endswith((".csv", ".parquet"))
+        if (caminho.startswith("data/") and caminho not in DADOS_VERSIONADOS)
+        or caminho.startswith(".venv/")
+        or caminho.endswith(".csv")
     ]
 
-    assert not proibidos, f"Arquivos de dados no Git (remova com git rm --cached): {proibidos[:5]}"
+    assert not fora_da_lista, f"Arquivos que não deviam estar no Git (ADR-016): {fora_da_lista[:5]}"
 
 
-def test_gitignore_ignora_a_pasta_de_dados():
-    linhas = (RAIZ / ".gitignore").read_text(encoding="utf-8").splitlines()
+@pytest.mark.parametrize(
+    "caminho",
+    ["data/case_transacoes_cartoes_sintetico_900k.csv", "data/feedback.csv", "data/outro.csv"],
+)
+def test_gitignore_ignora_o_csv_bruto_e_as_respostas(caminho):
+    ignorado = subprocess.run(  # noqa: S603 - comando fixo, sem entrada externa
+        [_git(), "check-ignore", "-q", caminho], cwd=RAIZ, check=False
+    )
 
-    assert any(linha.strip() in {"data/", "/data/", "data", "/data"} for linha in linhas)
+    assert ignorado.returncode == 0, f"{caminho} deveria estar no .gitignore"
 
 
 CONSTANTES = {

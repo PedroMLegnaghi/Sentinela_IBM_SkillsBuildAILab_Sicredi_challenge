@@ -367,3 +367,27 @@ Nada é enviado de verdade.
 ## Consequências
 O ciclo fica completo e demonstrável: compra suspeita → aviso ao associado → resposta → caso para o
 analista. Guardado em memória, como as auditorias; reiniciar a API apaga as notificações.
+
+---
+
+# ADR-016 — Os dados sintéticos entram no repositório
+
+**Status:** Aceito · **Data:** 2026-11-13
+
+## Contexto
+`data/` ficava fora do Git, e cada pessoa recebia o CSV da Sicredi por fora. Trocar de máquina
+dependia de cópia manual, e o CI pulava todos os testes com dados. Os dados são sintéticos e o
+repositório é privado.
+
+## Decisão
+Versionar em `data/` o CSV comprimido (`.csv.gz`, 61 MB, idêntico ao CSV), o dicionário de dados,
+as orientações do case e `transacoes_preparadas.parquet`. O CSV bruto (281 MB) passa do limite de
+100 MB do GitHub e continua fora, assim como `feedback.csv`, que muda a cada resposta do analista.
+
+## Alternativas rejeitadas
+- **Git LFS para o CSV bruto:** cota pequena e mais um passo para cada pessoa; o `.gz` basta.
+- **Manter tudo fora:** o CI continuaria sem testar os números da base.
+
+## Consequências
+O CI roda a conformidade completa. O `.bobignore` continua bloqueando `data/` para as ferramentas
+de arquivo do Bob. Se o repositório ficar público, os dados ficam públicos.

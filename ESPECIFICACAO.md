@@ -29,7 +29,8 @@ a resposta dele (seção 15); (7) registra a resposta do analista para retreino 
 - Toda aleatoriedade usa a semente 42 (constante SEMENTE).
 - `src/` é um pacote (tem `__init__.py`). Scripts são executados da raiz com
   `python -m src.nome_do_modulo`. Existe um `conftest.py` vazio na raiz para o pytest.
-- A pasta `data/` nunca vai para o Git. A pasta `modelos/` vai.
+- Da pasta `data/`, só vão para o Git o CSV comprimido (`.csv.gz`), o dicionário, as orientações e o
+  parquet (ADR-016); o CSV bruto (281 MB) e `feedback.csv` ficam fora. A pasta `modelos/` vai.
 
 ## 3. Estrutura de pastas
 
@@ -52,7 +53,7 @@ a resposta dele (seção 15); (7) registra a resposta do analista para retreino 
     tests/                         pytest; test_conformidade_*.py são do líder
     modelos/                       sentinela.joblib e JSONs gerados pelos scripts
     docs/                          requisitos, arquitetura, decisões e backlog
-    data/                          fora do Git: CSV, parquet e arquivos de resposta
+    data/                          CSV comprimido, dicionário e parquet no Git; CSV e respostas fora
 
 ## 4. Dados de entrada
 

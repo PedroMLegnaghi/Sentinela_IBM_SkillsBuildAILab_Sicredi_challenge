@@ -1,4 +1,9 @@
-data/
+# Dados (ADR-016): só estes quatro são versionados; o CSV bruto passa de 100 MB.
+data/*
+!data/case_transacoes_cartoes_sintetico_900k.csv.gz
+!data/dicionario_dados_case_prevencao_sicredi.xlsx
+!data/Orientacoes_case_prevencao_sicredi.txt
+!data/transacoes_preparadas.parquet
 .venv/
 __pycache__/
 *.pyc

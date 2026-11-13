@@ -7,11 +7,11 @@ Closes #
 <!-- comandos e o que observar -->
 
 ## Verificações do autor
-- [ ] Portão Python: `black --check .`, `ruff check .` e `pytest -q` (com `data/`): cole a última linha
+- [ ] Portão Python: `black --check .`, `ruff check .` e `pytest -q` cole a última linha
 - [ ] Portão do site, se mexeu em `web/`: lint, typecheck, test e build
 - [ ] Invariantes preservadas (`python -m src.avaliar_agente`)
 - [ ] Não alterei `tests/test_conformidade_*.py`
-- [ ] Só arquivos permitidos pela Issue; nada de `data/`, `.venv/`, caches ou `.env`
+- [ ] Só arquivos permitidos pela Issue; nada de CSV bruto, `feedback.csv`, `.venv/`, caches ou `.env`
 - [ ] Nenhum segredo, identificador ou linha da base em código, teste ou log
 - [ ] CI verde antes do merge
 

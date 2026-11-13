@@ -268,7 +268,56 @@ export const LIMITACOES = [
 ];
 
 // --- Issue #45 ---
-// (textos do simulador e da página de respostas serão adicionados aqui)
+export const TITULO_SIMULADOR = 'Simulador "e se"';
+export const LEGENDA_SIMULADOR =
+  "Escolha uma transação da fila, mude o que quiser e veja a decisão do modelo na hora e o parecer da IA logo depois. Nada é gravado.";
+export const ESCOLHA_TRANSACAO = "Transação de partida";
+export const OPCAO_TRANSACAO = (id: number, nota: string, decisao: string) =>
+  `ID ${id} · nota ${nota} · ${decisao}`;
+export const CAMPOS_SIMULADOR = {
+  valor: "Valor (R$)",
+  hora: "Hora da compra",
+  credito: "Crédito",
+  naoPresente: "Cartão não presente (online)",
+  ip: "IP de país desconhecido",
+  rajada: "Transações do cartão no último minuto",
+  terminais: "Uso do cartão em terminais na última hora",
+  token: "Uso do token de carteira em 3 meses",
+  distancia: "Distância do terminal anterior (km)",
+  risco: "Risco do estabelecimento (0 a 100)",
+};
+export const SIM = "Sim";
+export const NAO = "Não";
+export const BOTAO_ANALISAR = "Analisar a compra simulada";
+export const BOTAO_VOLTAR_ORIGINAL = "Voltar aos valores originais";
+export const TITULO_ORIGINAL = "Original";
+export const TITULO_SIMULADA = "Simulada";
+export const SIMULADA_VAZIA =
+  'Mude algum valor e clique em "Analisar a compra simulada".';
+export const MADRUGADA_CALCULADA = (sim: boolean) =>
+  sim ? "Madrugada: sim (antes das 5h)" : "Madrugada: não";
+export const TITULO_RESPOSTAS = "Respostas do analista";
+export const LEGENDA_RESPOSTAS =
+  "As respostas gravadas na Fila de alertas. Vale a última resposta de cada transação.";
+export const INDICADORES_RESPOSTAS = {
+  total: "Respostas",
+  fraudes: "Fraudes confirmadas",
+  legitimas: "Marcadas como legítimas",
+  concordancia: "Concordância com o modelo",
+};
+export const AJUDA_CONCORDANCIA =
+  "Fraude confirmada em transação bloqueada, ou legítima em transação aprovada ou com pedido de confirmação.";
+export const COLUNAS_RESPOSTAS = {
+  id: "ID",
+  resposta: "Resposta",
+  quando: "Respondida em",
+  decisao: "Decisão do modelo",
+  nota: "Nota",
+};
+export const BOTAO_EXPORTAR = "Exportar CSV";
+export const NOME_ARQUIVO_CSV = "respostas-do-analista.csv";
+export const RESPOSTAS_VAZIAS =
+  'Ainda não há respostas. Abra uma transação na Fila de alertas e use "Confirmar fraude" ou "Marcar como legítima".';
 
 // --- Issue #48 ---
 // (textos de acessibilidade e correções serão adicionados aqui)

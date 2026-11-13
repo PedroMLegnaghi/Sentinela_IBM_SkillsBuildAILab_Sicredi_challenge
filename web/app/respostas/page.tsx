@@ -1,16 +1,9 @@
 /**
- * Página Respostas dos analistas.
- * Conteúdo completo implementado na Issue #45.
+ * Página Respostas do analista (Issue #45).
  */
 
-import { Heading } from "@carbon/react";
-import { NAV_RESPOSTAS } from "@/lib/textos";
+import PaginaRespostas from "@/components/respostas/PaginaRespostas";
 
-export default function PaginaRespostas() {
-  return (
-    <div>
-      <Heading>{NAV_RESPOSTAS}</Heading>
-      <p>Em preparação na Issue #45.</p>
-    </div>
-  );
+export default function Pagina() {
+  return <PaginaRespostas />;
 }

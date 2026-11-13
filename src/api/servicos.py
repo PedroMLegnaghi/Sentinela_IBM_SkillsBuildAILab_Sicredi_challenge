@@ -39,30 +39,57 @@ class _Estado:
 _estado = _Estado()
 
 
-def inicializar() -> None:
-    """Carrega parquet, agente e fila na subida da API.
+def _carregar_agente(base: pd.DataFrame | None) -> AgenteSentinela | None:
+    """Carrega o agente com o modelo salvo, com ou sem a base de histórico.
 
-    Falhas de arquivo são registradas em log; a API sobe mesmo assim e informa
-    o problema em ``/api/saude`` e 503 nas rotas de dados.
+    Args:
+        base: DataFrame preparado, ou None quando o parquet não está disponível.
+
+    Returns:
+        O agente carregado, ou None se o modelo não puder ser lido.
     """
-    if CAMINHO_PREPARADO.exists() and CAMINHO_MODELO.exists():
-        try:
-            base = pd.read_parquet(CAMINHO_PREPARADO)
-            agente = AgenteSentinela(base=base)
-            fila = montar_fila(base, agente.analisar_lote)
-            _estado.base = base
-            _estado.agente = agente
-            _estado.fila = fila
-            logger.info("API inicializada: %d transações na fila.", len(fila))
-        except (FileNotFoundError, OSError, ValueError) as erro:
-            logger.error("Falha ao inicializar dados ou agente: %s", erro)
-            _estado.base = None
-            _estado.agente = None
-            _estado.fila = None
-    elif not CAMINHO_PREPARADO.exists():
+    try:
+        return AgenteSentinela(base=base)
+    except (FileNotFoundError, OSError, ValueError) as erro:
+        logger.error("Falha ao carregar o modelo: %s", erro)
+        return None
+
+
+def _ler_base() -> pd.DataFrame | None:
+    """Lê o parquet preparado, ou devolve None se ele faltar ou estiver ilegível."""
+    if not CAMINHO_PREPARADO.exists():
         logger.warning("Parquet não encontrado: %s", CAMINHO_PREPARADO)
-    elif not CAMINHO_MODELO.exists():
+        return None
+    try:
+        return pd.read_parquet(CAMINHO_PREPARADO)
+    except (OSError, ValueError) as erro:
+        logger.error("Falha ao ler o parquet: %s", erro)
+        return None
+
+
+def inicializar() -> None:
+    """Carrega o modelo e, se houver, o parquet e a fila na subida da API.
+
+    O modelo carrega sozinho, para ``/api/analisar`` funcionar sem os dados.
+    Sem o parquet, as rotas de dados respondem 503 e ``/api/saude`` informa.
+    """
+    _estado.base = None
+    _estado.fila = None
+    _estado.agente = None
+    if not CAMINHO_MODELO.exists():
         logger.warning("Modelo não encontrado: %s", CAMINHO_MODELO)
+        return
+    base = _ler_base()
+    _estado.agente = _carregar_agente(base)
+    if _estado.agente is None or base is None:
+        return
+    try:
+        _estado.fila = montar_fila(base, _estado.agente.analisar_lote)
+    except (KeyError, ValueError) as erro:
+        logger.error("Falha ao montar a fila: %s", erro)
+        return
+    _estado.base = base
+    logger.info("API inicializada: %d transações na fila.", len(_estado.fila))
 
 
 def modelo_carregado() -> bool:

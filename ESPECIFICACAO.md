@@ -433,9 +433,11 @@ esta seção. Os testes `tests/test_conformidade_api.py` traduzem esta seção.
   `src/api/app.py`. Dependências em `requirements-api.txt` (`fastapi`, `uvicorn`, `httpx`, com
   `==`); `requirements.txt` não muda (a conformidade do núcleo só aceita as 8 bibliotecas dele).
 - Na subida, a API carrega uma única vez o parquet, o agente (`AgenteSentinela` com `base`) e a
-  fila de demonstração (`montar_fila(base, agente.analisar_lote)`, ADR-007). Sem parquet ou sem
-  modelo, a API sobe mesmo assim: `/api/saude` informa o que falta e os demais endpoints de dados
-  respondem 503 com a mensagem do que rodar.
+  fila de demonstração (`montar_fila(base, agente.analisar_lote)`, ADR-007). O modelo carrega
+  sozinho: sem o parquet, `POST /api/analisar` continua funcionando (só precisa do modelo), e as
+  rotas que dependem da base (fila, transação, auditoria de transação da fila e respostas)
+  respondem 503 com a mensagem do que rodar. Sem o modelo, só `/api/saude` e `/api/metricas`
+  respondem. A API sobe em todos os casos, e `/api/saude` informa o que falta (Issue #52).
 - CORS liberado só para as origens de `API_ORIGENS_PERMITIDAS` em `src/config.py`
   (`["http://localhost:3000"]`).
 - Campos em `snake_case`, em português, como no resto do projeto. Datas em texto ISO 8601 sem fuso

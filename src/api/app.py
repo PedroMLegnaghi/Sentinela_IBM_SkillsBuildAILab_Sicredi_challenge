@@ -217,7 +217,7 @@ def auditoria_transacao(id_transacao: int) -> dict[str, Any]:
         },
     )
     analise = dados["analise"]
-    transacao_dict = dados["transacao"]
+    transacao_dict = servicos.transacao_para_auditoria(id_transacao)
     auditoria_mem.disparar_auditoria_em_segundo_plano(id_auditoria_fixa, transacao_dict, analise)
 
     return {"id_auditoria": id_auditoria_fixa, "status": "pendente"}

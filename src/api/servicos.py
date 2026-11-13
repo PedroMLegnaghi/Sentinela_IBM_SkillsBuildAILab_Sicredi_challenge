@@ -15,6 +15,8 @@ from typing import Any
 import pandas as pd
 
 from src.agente import AgenteSentinela, calcular_sinais, decidir
+from src.auditoria import configurar_base
+from src.auditoria.watsonx import carregar_env
 from src.config import (
     CAMINHO_MODELO,
     CAMINHO_PREPARADO,
@@ -76,6 +78,8 @@ def inicializar() -> None:
     _estado.base = None
     _estado.fila = None
     _estado.agente = None
+    carregar_env()
+    configurar_base(None)
     if not CAMINHO_MODELO.exists():
         logger.warning("Modelo não encontrado: %s", CAMINHO_MODELO)
         return
@@ -89,6 +93,7 @@ def inicializar() -> None:
         logger.error("Falha ao montar a fila: %s", erro)
         return
     _estado.base = base
+    configurar_base(base)
     logger.info("API inicializada: %d transações na fila.", len(_estado.fila))
 
 
@@ -314,6 +319,30 @@ def obter_transacao(id_transacao: int) -> dict[str, Any]:
         "historico": _montar_historico(historico_df),
         "resposta_analista": _ler_resposta(id_transacao),
     }
+
+
+def transacao_para_auditoria(id_transacao: int) -> dict[str, Any]:
+    """Linha completa da transação na base, só para as ferramentas da auditoria.
+
+    Os identificadores internos ficam dentro do servidor: a auditoria não os devolve nem os
+    envia ao watsonx.ai (ESPECIFICACAO, seção 13).
+
+    Args:
+        id_transacao: Identificador da transação.
+
+    Returns:
+        Dicionário com todas as colunas da base para essa transação.
+
+    Raises:
+        KeyError: Se a transação não estiver na base.
+        RuntimeError: Se os dados não estiverem carregados.
+    """
+    if _estado.base is None:
+        raise RuntimeError("Dados não carregados.")
+    linha = _estado.base[_estado.base["id_transacao"] == id_transacao]
+    if linha.empty:
+        raise KeyError(f"Transação {id_transacao} não encontrada na base.")
+    return linha.iloc[0].to_dict()
 
 
 def dados_fila_para_resposta(id_transacao: int) -> tuple[float, str] | None:

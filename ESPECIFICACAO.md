@@ -519,8 +519,11 @@ relatório para o analista, ao lado da decisão.
   BAIXA) quando a evidência é insuficiente ou contraditória; nunca recomenda bloquear ou liberar
   por conta própria.
 - **Modo local** (sem credenciais, sem resposta ou JSON inválido): roda as mesmas ferramentas e
-  decide `risco_ia` por regra independente da nota: IP de país desconhecido ou 3 sinais ou mais →
-  ALTO; 1 ou 2 sinais → SUSPEITO; nenhum → BAIXO; `confianca` MEDIA; `fonte` "local".
+  decide `risco_ia` por regra independente da nota: IP de país desconhecido ou 4 sinais ou mais →
+  ALTO; 2 ou 3 sinais → SUSPEITO; 0 ou 1 → BAIXO; `confianca` MEDIA; `fonte` "local"
+  (`AUDITORIA_SINAIS_RISCO_ALTO` e `AUDITORIA_SINAIS_SUSPEITO` em `src/config.py`). Medido na fila
+  de demonstração em 13/11: concorda com o modelo em 88,4% das transações e diverge só em
+  aprovações com 2 ou 3 sinais (a regra anterior, com 1 sinal já suspeito, concordava em 47,5%).
 - **Privacidade:** ao watsonx.ai só vão as variáveis da transação e os agregados das ferramentas,
   nunca identificadores. O log nunca registra a chave nem o conteúdo das respostas do modelo.
 

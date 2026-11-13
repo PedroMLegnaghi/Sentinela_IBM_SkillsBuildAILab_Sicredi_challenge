@@ -16,7 +16,9 @@ from src.config import (
     CAMINHO_AVALIACAO,
     CAMINHO_AVALIACAO_RIGOROSA,
     CAMINHO_CUSTOS,
+    CAMINHO_EDA,
     CAMINHO_FEEDBACK,
+    CAMINHO_IA_CONTRA_MODELO,
     CAMINHO_METRICAS,
 )
 from src.interface.feedback import RespostaAnalista, registrar_resposta
@@ -179,7 +181,7 @@ def obter_metricas() -> dict[str, Any]:
     extras = {
         "avaliacao_rigorosa": _carregar_json_opcional(CAMINHO_AVALIACAO_RIGOROSA),
         "custos": _carregar_json_opcional(CAMINHO_CUSTOS),
-        "eda": None,
-        "ia_contra_modelo": None,
+        "eda": _carregar_json_opcional(CAMINHO_EDA),
+        "ia_contra_modelo": _carregar_json_opcional(CAMINHO_IA_CONTRA_MODELO),
     }
     return {"metricas": metricas, "avaliacao": avaliacao, "extras": extras}

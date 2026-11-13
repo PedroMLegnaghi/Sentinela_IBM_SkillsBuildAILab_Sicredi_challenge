@@ -76,6 +76,7 @@ CAMINHO_AVALIACAO_RIGOROSA = RAIZ / "modelos" / "avaliacao_rigorosa.json"
 CAMINHO_CENARIO_DIFICIL = RAIZ / "modelos" / "cenario_dificil.json"
 CAMINHO_LATENCIA = RAIZ / "modelos" / "latencia.json"
 CAMINHO_EDA = RAIZ / "modelos" / "eda.json"
+CAMINHO_IA_CONTRA_MODELO = RAIZ / "modelos" / "ia_contra_modelo.json"
 CAMINHO_NOTIFICACOES = RAIZ / "data" / "notificacoes.csv"
 
 # Custo por pedido de confirmação em reais (premissa do time; não é cobrado pelo Sicredi)

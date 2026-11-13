@@ -48,7 +48,8 @@ def _evidencias_do_cliente(perfil: dict[str, Any]) -> tuple[list[str], list[str]
     if razao is None:
         return [], []
     if razao >= RAZAO_VALOR_ATIPICO:
-        return [f"Valor {razao:.1f} vezes a mediana das compras do cliente."], []
+        vezes = f"{razao:.1f}".replace(".", ",")
+        return [f"Valor {vezes} vezes a mediana das compras do cliente."], []
     if razao < RAZAO_VALOR_HABITUAL:
         return [], ["Valor dentro do padrão de gasto do cliente."]
     return [], []

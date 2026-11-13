@@ -1,16 +1,9 @@
 /**
- * Página raiz: Fila de alertas.
- * Conteúdo completo implementado na Issue #43.
+ * Página raiz: Fila de alertas (Issue #43).
  */
 
-import { Heading } from "@carbon/react";
-import { NAV_FILA } from "@/lib/textos";
+import PaginaFila from "@/components/fila/PaginaFila";
 
-export default function PaginaFila() {
-  return (
-    <div>
-      <Heading>{NAV_FILA}</Heading>
-      <p>Em preparação na Issue #43.</p>
-    </div>
-  );
+export default function Pagina() {
+  return <PaginaFila />;
 }

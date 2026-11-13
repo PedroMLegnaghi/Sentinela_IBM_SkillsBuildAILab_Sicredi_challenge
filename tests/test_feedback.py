@@ -9,7 +9,7 @@ from datetime import datetime
 import pandas as pd
 import pytest
 
-from src.interface.feedback import (
+from src.feedback import (
     COLUNAS_FEEDBACK,
     RespostaAnalista,
     ler_ultima_resposta,

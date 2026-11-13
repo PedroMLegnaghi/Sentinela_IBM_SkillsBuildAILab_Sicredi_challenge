@@ -73,8 +73,6 @@ ROTULOS_DECISAO = {
 # Caminhos dos JSONs gerados pelos scripts dos incrementos
 CAMINHO_CUSTOS = RAIZ / "modelos" / "custos.json"
 CAMINHO_AVALIACAO_RIGOROSA = RAIZ / "modelos" / "avaliacao_rigorosa.json"
-CAMINHO_CENARIO_DIFICIL = RAIZ / "modelos" / "cenario_dificil.json"
-CAMINHO_LATENCIA = RAIZ / "modelos" / "latencia.json"
 CAMINHO_EDA = RAIZ / "modelos" / "eda.json"
 CAMINHO_IA_CONTRA_MODELO = RAIZ / "modelos" / "ia_contra_modelo.json"
 CAMINHO_NOTIFICACOES = RAIZ / "data" / "notificacoes.csv"

@@ -21,14 +21,14 @@ from src.config import (
     CAMINHO_IA_CONTRA_MODELO,
     CAMINHO_METRICAS,
 )
-from src.interface.feedback import RespostaAnalista, registrar_resposta
+from src.feedback import RespostaAnalista, registrar_resposta
 
 logger = logging.getLogger(__name__)
 
 
 def _ler_resposta(id_transacao: int) -> dict[str, Any] | None:
     """Lê a última resposta do analista para a transação, ou None."""
-    from src.interface.feedback import ler_ultima_resposta  # noqa: PLC0415
+    from src.feedback import ler_ultima_resposta  # noqa: PLC0415
 
     try:
         resp = ler_ultima_resposta(CAMINHO_FEEDBACK, id_transacao)

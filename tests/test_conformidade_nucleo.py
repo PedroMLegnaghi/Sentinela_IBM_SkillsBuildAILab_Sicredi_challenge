@@ -1,7 +1,7 @@
 """Testes de conformidade do núcleo do Sentinela (dados, modelo e agente).
 
 Arquivo do líder, escrito a partir da ESPECIFICACAO.md e independente do código do Bob.
-O IBM Bob nunca altera, apaga, renomeia ou pula estes testes (AGENTS.md, seção 12). Se um
+O IBM Bob nunca altera, apaga, renomeia ou pula estes testes (AGENTS.md, seção 1). Se um
 teste falhar, o erro está no código: a mensagem diz qual seção da ESPECIFICACAO corrigir.
 
 Grupos e quando rodam:
@@ -272,9 +272,11 @@ def test_requirements_tem_so_bibliotecas_permitidas_e_versoes_fixadas():
         "pyarrow",
         "scikit-learn",
         "joblib",
-        "streamlit",
         "requests",
         "pytest",
+        "fastapi",
+        "uvicorn",
+        "httpx",
     }
     obrigatorias = permitidas - {"numpy"}
 

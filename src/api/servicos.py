@@ -23,7 +23,7 @@ from src.config import (
     ROTULOS_DECISAO,
 )
 from src.explicabilidade import contribuicoes
-from src.interface.dados import montar_fila
+from src.fila import montar_fila
 
 logger = logging.getLogger(__name__)
 

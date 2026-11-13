@@ -90,7 +90,7 @@ data/               dados da Sicredi (fora do Git)
 
 ## Como usamos o IBM Bob
 
-O Bob escreveu o código a partir de Issues com escopo fechado. O `AGENTS.md` define o protocolo
+O time trabalha com o Bob a partir de Issues com escopo fechado. O `AGENTS.md` define o protocolo
 (branch, arquivos permitidos, portão de qualidade, quando parar); a `ESPECIFICACAO.md` fixa o
 contrato e os números; os testes de conformidade, escritos pelo líder, dizem quando uma Issue
 está pronta, e o Bob não pode alterá-los.

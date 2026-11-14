@@ -1110,3 +1110,86 @@ h3,
 .sc-tabela--estatica tbody tr {
   cursor: default;
 }
+
+// --- Chat do associado (Issue #106) ---
+.sc-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.sc-chat {
+  &__conversa {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 6px;
+  }
+  &__campo {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+
+    input {
+      flex: 1;
+      min-width: 0;
+      background: var(--sc-branco);
+      border: 1.5px solid var(--sc-borda);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font: inherit;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--sc-verde-acao);
+    }
+  }
+}
+
+.sc-balao {
+  max-width: 86%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 0.875rem;
+  display: grid;
+  gap: 2px;
+  box-shadow: var(--sc-sombra);
+
+  b {
+    font-size: 0.71875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.8;
+  }
+  small {
+    font-size: 0.6875rem;
+    opacity: 0.75;
+    margin-top: 4px;
+  }
+  &--ia {
+    background: var(--sc-branco);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+  &--associado {
+    background: var(--sc-verde-acao);
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+  &--gerente {
+    background: var(--sc-verde-fundo);
+    color: var(--sc-verde-escuro);
+    align-self: flex-start;
+    border: 1.5px solid var(--sc-neutro-claro);
+    border-bottom-left-radius: 4px;
+  }
+  &--digitando {
+    color: var(--sc-texto-apoio);
+    font-style: italic;
+  }
+}

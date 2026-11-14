@@ -626,3 +626,32 @@ export const COLUNAS_BLOQUEIOS = {
 export const EXPLICA_BLOQUEIOS =
   "\"Correto\" é quando o associado confirma que não fez a compra; \"liberado depois\" é quando ele responde \"fui eu\" e a compra é liberada sozinha.";
 export const SEM_BLOQUEIOS_EQUIPE = "Nenhum bloqueio feito pela equipe até agora.";
+
+// --- Issue #106: chat do associado ---
+export const TITULO_CHAT = "Assistente Sicredi";
+export const SUBTITULO_CHAT = "Tire dúvidas sobre os seus gastos e as suas compras.";
+export const BOAS_VINDAS_CHAT =
+  "Olá! Posso resumir os seus gastos, explicar uma compra bloqueada ou mostrar o que está esperando a sua confirmação. O que você quer saber?";
+export const SUGESTOES_CHAT = [
+  "Quanto gastei este mês?",
+  "Por que minha compra foi bloqueada?",
+  "Quais compras estão pendentes?",
+];
+export const ROTULO_SUGESTOES = "Sugestões de pergunta";
+export const CAMPO_CHAT = "Escreva a sua pergunta";
+export const ENVIAR = "Enviar";
+export const DIGITANDO = "Digitando…";
+export const FONTE_CHAT: Record<string, string> = {
+  watsonx: "Resposta do IBM Granite (watsonx.ai)",
+  local: "Resposta automática",
+  gerente: "Gerente da agência",
+};
+export const CONVERSAR_COM_GERENTE = "Conversar com gerente";
+export const CHAMANDO_GERENTE = "Chamando o gerente…";
+export const GERENTE_DA_AGENCIA = (nome: string) => `${nome} · gerente da agência`;
+export const AVISO_GERENTE_SIMULADO =
+  "Conversa simulada: neste protótipo, o gerente não responde depois do resumo.";
+export const ROTULO_CONVERSA = "Conversa";
+export const ERRO_CHAT = "Não consegui responder agora. Tente de novo em instantes.";
+export const VOCE = "Você";
+export const ASSISTENTE = "Assistente";

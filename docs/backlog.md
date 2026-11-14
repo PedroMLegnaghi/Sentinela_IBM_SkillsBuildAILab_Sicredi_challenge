@@ -339,6 +339,7 @@ Issue está no fim deste arquivo e na própria Issue do GitHub.
 | #99 (R10) | feat: cria o painel do gerente | Pedro Muller | #97 |
 | #100 (R11) | feat: leva "Desempenho" e "Como funciona" para a área da filial | Bruno | #91, #98 |
 | #101 (R12) | test: integra o site com a API e confere tudo com o watsonx.ai | os dois | #99, #100 |
+| #127 (R19) | feat: guarda os rótulos de retorno para o retreino do modelo | Bruno | #94 |
 
 ## Prioridade 2 (ações do auditor)
 
@@ -793,6 +794,48 @@ Rodar o site contra a API real, sem mocks, e conferir o fluxo inteiro antes da l
 - Os dois portões e as invariantes da seção 11 estão verdes.
 
 **Fora desta Issue:** Funcionalidades novas.
+
+## #127 (R19) — feat: guarda os rótulos de retorno para o retreino do modelo
+
+**Dono:** Bruno · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #94 · **Branch:** `feature/127-rotulos-retreino` (a partir de `refatoracao`)
+
+### Objetivo
+
+Toda resposta do associado vira um rótulo que pode retreinar o modelo, mas hoje ela fica só em memória e some quando a API reinicia. Esta Issue grava, a cada evento, o que o modelo viu, o que decidiu e o que o associado disse, num repositório só de acréscimo pensado para o retreino. O retreino em si fica fora (o campeão não muda nesta entrega).
+
+### Arquivos
+
+- `ESPECIFICACAO.md` (seção 17.7, nova)
+- `src/dominio/rotulos.py` (novo: o evento e a regra do rótulo)
+- `src/portas/repositorios.py` (só a porta `RepositorioRotulos`)
+- `src/adaptadores/memoria/` e `src/adaptadores/arquivo/rotulos.py` (novo)
+- `src/composicao.py`, `src/config.py` (só `CAMINHO_ROTULOS`)
+- `src/aplicacao/associado.py` e `src/aplicacao/filial.py` (só as chamadas que gravam o evento)
+- `src/exportar_retreino.py` (novo)
+- `.gitignore` (só `data/rotulos_retreino.csv` e `data/retreino.parquet`)
+- `tests/test_rotulos.py` (novo)
+
+### Passo a passo
+
+1. Escreva a seção 17.7 da `ESPECIFICACAO.md` com o formato do evento, a tabela de rótulos e o script de exportação, como abaixo.
+2. Em `src/dominio/rotulos.py`, crie a dataclass `EventoRotulo` com: `registrado_em`, `origem` (`resposta_aviso`, `contestacao` ou `bloqueio_auditor`), `id_compra` (opaco), `id_transacao` (só para compras de março; `None` nas simuladas), `simulada`, `nota`, `decisao_modelo`, `situacao`, `resposta` (`sim`, `nao` ou `None`), `rotulo` (`fraude`, `legitima` ou `None`), `data_hora`, `valor`, `tipo_transacao`, `modalidade_transacao` e as 11 variáveis de `VARIAVEIS_MODELO` (os valores que o modelo realmente usou).
+3. Ainda em `rotulos.py`, crie a função pura `rotulo_do_evento(origem, resposta)`: resposta "nao" → `fraude`; resposta "sim" → `legitima`; contestação → `fraude` (fraude que o modelo aprovou); bloqueio do auditor sem resposta → `None`. Evento sem rótulo também é gravado (serve para medir quanto fica sem resposta).
+4. Em `src/portas/repositorios.py`, crie a porta `RepositorioRotulos` com só dois métodos: `acrescentar(evento)` e `listar()`. Nada de editar ou apagar: é um histórico.
+5. Crie dois adaptadores: em memória (para os testes) e em arquivo (`src/adaptadores/arquivo/rotulos.py`), que acrescenta uma linha por evento em `data/rotulos_retreino.csv` (caminho em `src/config.py`, `CAMINHO_ROTULOS`), com cabeçalho na primeira vez e escrita protegida por `threading.Lock`. Em `src/composicao.py`, a API usa o de arquivo.
+6. Grave o evento nos três momentos: quando o associado responde ao aviso (em `src/aplicacao/associado.py`, junto de `aplicar_resposta`), quando contesta uma compra e quando o auditor bloqueia (em `src/aplicacao/filial.py`, Issue #102). As variáveis vêm da transação que foi analisada: guarde-as na `Compra` no momento da análise, para não ter de recalcular.
+7. Privacidade: o evento nunca leva nome, `id_cartao`, `id_cliente` nem `id_estabelecimento`. Confira com um teste que as colunas do CSV não incluem nenhuma delas.
+8. Crie `src/exportar_retreino.py` (`python -m src.exportar_retreino`): lê os eventos, descarta os sem rótulo, fica com o último evento de cada `id_compra` e grava `data/retreino.parquet` com as 11 variáveis, `valor`, `data_hora` e a coluna `rotulo_retorno` (1 = fraude, 0 = legítima). No fim, imprime quantos eventos leu, quantos rótulos de fraude e de legítima exportou e quantos ficaram sem rótulo.
+9. Ponha `data/rotulos_retreino.csv` e `data/retreino.parquet` no `.gitignore`: são dados gerados na hora, não vão para o repositório.
+10. Testes: a tabela de rótulos; o último evento vence na exportação; os eventos sobrevivem a recriar o adaptador de arquivo (simula reiniciar a API); responder a um aviso pela rota grava um evento com as variáveis; nenhuma coluna proibida no CSV.
+
+### Pronto quando
+
+- Depois de reiniciar a API, os eventos de antes continuam em `data/rotulos_retreino.csv`.
+- `python -m src.exportar_retreino` gera uma base que `src/treinar_modelo.py` conseguiria ler (mesmas variáveis e nomes).
+- Nenhum identificador nem nome no CSV ou no parquet.
+- `src/treinar_modelo.py`, `src/agente.py` e `modelos/` não foram alterados; `python -m src.avaliar_agente` mostra os mesmos números.
+
+**Fora desta Issue:** Retreinar ou trocar o modelo; tela nova no site; o adaptador Postgres (Issue #107, que deve implementar esta mesma porta).
 
 ## #102 (R13) — feat: auditor bloqueia compra que aguarda confirmação (API)
 

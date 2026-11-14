@@ -143,6 +143,30 @@ def test_calibracao_soma_n_igual_total():
     assert sum(f["n"] for f in cal["faixas"]) == n
 
 
+def test_calibracao_nota_100_entra_na_ultima_faixa():
+    """Uma nota igual a 100 é contada na faixa 90-100, e não fica fora de todas."""
+    y_true = np.array([1, 1, 0])
+    y_prob = np.array([100.0, 95.0, 5.0])
+
+    cal = _calibracao(y_true, y_prob)
+
+    ultima = cal["faixas"][-1]
+    assert ultima["n"] == 2
+    assert ultima["fraudes"] == 2
+    assert sum(f["fraudes"] for f in cal["faixas"]) == 2
+
+
+def test_calibracao_taxa_prevista_e_a_media_da_faixa():
+    """A taxa prevista de uma faixa é a média das notas dela, e None quando ela está vazia."""
+    y_true = np.array([0, 0])
+    y_prob = np.array([2.0, 6.0])
+
+    cal = _calibracao(y_true, y_prob)
+
+    assert cal["faixas"][0]["taxa_prevista_pct"] == 4.0
+    assert cal["faixas"][1]["taxa_prevista_pct"] is None
+
+
 # ---------------------------------------------------------------------------
 # Testes de calcular_avaliacao_rigorosa
 # ---------------------------------------------------------------------------

@@ -1,5 +1,6 @@
-// Importa os estilos do Carbon Design System (tema g10)
+// Importa os estilos do Carbon Design System e a identidade da Sicredi (Issue #91)
 @use "@carbon/react";
+@use "../styles/sicredi";
 
 // --- Fila de alertas e painel da transação (Issue #43) ---
 .sentinela-legenda {
@@ -75,7 +76,7 @@
 .sentinela-link-linha {
   background: none;
   border: none;
-  color: var(--cds-link-primary, #0f62fe);
+  color: var(--cds-link-primary, #33820d);
   cursor: pointer;
   font: inherit;
   padding: 0;
@@ -123,7 +124,7 @@ ol.sentinela-lista {
 }
 
 .sentinela-cartao-auditoria {
-  border-left: 4px solid var(--cds-interactive, #0f62fe);
+  border-left: 4px solid var(--cds-interactive, #33820d);
 }
 
 .sentinela-contribuicoes {
@@ -246,7 +247,7 @@ ol.sentinela-lista {
 }
 
 .sentinela-barra-modelo {
-  background: var(--cds-interactive, #0f62fe);
+  background: var(--cds-interactive, #33820d);
 }
 
 .sentinela-barra-atual {

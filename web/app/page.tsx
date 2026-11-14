@@ -1,9 +1,9 @@
 /**
- * Página raiz: Fila de alertas (Issue #43).
+ * Página raiz: leva para a tela de entrada (Issue #91).
  */
 
-import PaginaFila from "@/components/fila/PaginaFila";
+import { redirect } from "next/navigation";
 
 export default function Pagina() {
-  return <PaginaFila />;
+  redirect("/entrar");
 }

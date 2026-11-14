@@ -19,7 +19,20 @@ import type {
   Notificacao,
   RespostaNotificacoes,
   EntradaRespostaNotificacao,
+  RespostaPerfis,
+  Sessao,
+  RespostaInicio,
+  RespostaExtrato,
+  SituacaoCompra,
+  DetalheCompra,
+  EntradaCompra,
+  RespostaCompra,
+  RespostaContestacao,
+  RespostaFilaFilial,
+  RespostaCompraFilial,
+  RespostaMetricasFilial,
 } from "@/lib/tipos";
+import { obterSessao } from "@/lib/sessao";
 
 const URL_BASE =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -264,4 +277,117 @@ export async function responderNotificacao(
       body: JSON.stringify(entrada),
     },
   );
+}
+
+// --- Seção 17: área do associado e da filial (Issues #91 a #99) ---
+
+/** Cabeçalho da sessão simulada (ESPECIFICACAO, seção 17.1). */
+function comSessao(opcoes: RequestInit = {}): RequestInit {
+  const token = obterSessao()?.token ?? "";
+  return {
+    ...opcoes,
+    headers: { ...(opcoes.headers ?? {}), "X-Sessao": token },
+  };
+}
+
+async function obterMocksRefatoracao() {
+  const { mocksRefatoracao } = await import("@/lib/mocks/refatoracao");
+  return mocksRefatoracao;
+}
+
+const comoJson = (corpo: unknown): RequestInit => ({
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(corpo),
+});
+
+/** GET /api/sessao/perfis */
+export async function obterPerfis(): Promise<RespostaPerfis> {
+  if (USAR_MOCK) return (await obterMocksRefatoracao()).perfis;
+  return buscar<RespostaPerfis>("/api/sessao/perfis");
+}
+
+/** POST /api/sessao */
+export async function entrar(idPerfil: string): Promise<Sessao> {
+  if (USAR_MOCK) return (await obterMocksRefatoracao()).sessaoDe(idPerfil);
+  return buscar<Sessao>("/api/sessao", comoJson({ id_perfil: idPerfil }));
+}
+
+/** GET /api/associado/inicio */
+export async function obterInicio(): Promise<RespostaInicio> {
+  if (USAR_MOCK) return (await obterMocksRefatoracao()).inicio;
+  return buscar<RespostaInicio>("/api/associado/inicio", comSessao());
+}
+
+/** GET /api/associado/extrato */
+export async function obterExtrato(situacoes?: SituacaoCompra[]): Promise<RespostaExtrato> {
+  if (USAR_MOCK) {
+    const extrato = (await obterMocksRefatoracao()).extrato;
+    if (!situacoes?.length) return extrato;
+    const itens = extrato.itens.filter((c) => situacoes.includes(c.situacao));
+    return { total: itens.length, itens };
+  }
+  const filtro = situacoes?.length ? `?situacao=${situacoes.join(",")}` : "";
+  return buscar<RespostaExtrato>(`/api/associado/extrato${filtro}`, comSessao());
+}
+
+/** GET /api/associado/compras/{id_compra} */
+export async function obterCompra(idCompra: string): Promise<DetalheCompra> {
+  if (USAR_MOCK) {
+    const m = await obterMocksRefatoracao();
+    if (idCompra === m.compraBloqueada.id_compra) return m.compraBloqueada;
+    const item = m.extrato.itens.find((c) => c.id_compra === idCompra);
+    return {
+      ...(item ?? m.compraAprovada),
+      bloqueio: null,
+      resposta_associado: null,
+      pode_contestar: (item?.situacao ?? "APROVADA") === "APROVADA",
+    };
+  }
+  return buscar<DetalheCompra>(`/api/associado/compras/${idCompra}`, comSessao());
+}
+
+/** POST /api/associado/compras */
+export async function simularCompra(entrada: EntradaCompra): Promise<RespostaCompra> {
+  if (USAR_MOCK) return (await obterMocksRefatoracao()).compraSimulada;
+  return buscar<RespostaCompra>("/api/associado/compras", comSessao(comoJson(entrada)));
+}
+
+/** POST /api/associado/compras/{id_compra}/contestacao */
+export async function contestarCompra(idCompra: string): Promise<RespostaContestacao> {
+  if (USAR_MOCK) return (await obterMocksRefatoracao()).contestacao;
+  return buscar<RespostaContestacao>(
+    `/api/associado/compras/${idCompra}/contestacao`,
+    comSessao({ method: "POST" }),
+  );
+}
+
+/** GET /api/filial/fila */
+export async function obterFilaFilial(
+  situacoes?: SituacaoCompra[],
+): Promise<RespostaFilaFilial> {
+  if (USAR_MOCK) {
+    const fila = (await obterMocksRefatoracao()).filaFilial;
+    if (!situacoes?.length) return fila;
+    const itens = fila.itens.filter((i) => situacoes.includes(i.situacao));
+    return { ...fila, total: itens.length, itens };
+  }
+  const filtro = situacoes?.length ? `?situacao=${situacoes.join(",")}` : "";
+  return buscar<RespostaFilaFilial>(`/api/filial/fila${filtro}`, comSessao());
+}
+
+/** GET /api/filial/compras/{id_compra} */
+export async function obterCompraFilial(idCompra: string): Promise<RespostaCompraFilial> {
+  if (USAR_MOCK) {
+    const m = await obterMocksRefatoracao();
+    const item = m.filaFilial.itens.find((i) => i.id_compra === idCompra);
+    return { ...m.compraFilial, compra: item ?? m.compraFilial.compra };
+  }
+  return buscar<RespostaCompraFilial>(`/api/filial/compras/${idCompra}`, comSessao());
+}
+
+/** GET /api/filial/metricas */
+export async function obterMetricasFilial(): Promise<RespostaMetricasFilial> {
+  if (USAR_MOCK) return (await obterMocksRefatoracao()).metricasFilial;
+  return buscar<RespostaMetricasFilial>("/api/filial/metricas", comSessao());
 }

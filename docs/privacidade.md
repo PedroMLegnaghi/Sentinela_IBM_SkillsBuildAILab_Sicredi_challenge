@@ -19,8 +19,9 @@ identificável:
 | `dist_terminal_anterior_km` | Distância do terminal anterior em km |
 | `risco_estabelecimento` | Risco do estabelecimento (0 a 100) |
 
-Além dessas, o modelo recebe `tipo_transacao`, `modalidade_transacao`, `data_hora` e `mcc`
-para cálculo de sinais e exibição.
+Os dados preparados guardam ainda `tipo_transacao`, `modalidade_transacao`, `data_hora` e `mcc`,
+usados para derivar variáveis, calcular os sinais e exibir a compra; eles não entram na nota como
+variáveis próprias.
 
 ## O que o Sentinela nunca lê
 
@@ -33,18 +34,23 @@ de informação) ou porque são dados pessoais que não devem ser processados:
   são o resultado, não a entrada.
 - **Disputas e fraudes declaradas:** `fraud`, `alert_id`, `dispute_*`, `fdz_*`, `oob_*` — só
   existem depois do evento.
-- **Identificadores pessoais:** `id_cartao`, `id_cliente` e `id_estabelecimento` nunca aparecem
-  nas respostas da API, nos logs nem nas mensagens enviadas à IA.
+- **Identificadores:** `id_cartao`, `id_cliente` e `id_estabelecimento` servem só para agrupar o
+  histórico do cartão, do cliente e do estabelecimento; nunca aparecem nas respostas da API, nos
+  logs nem nas mensagens enviadas à IA.
 
 ## O que vai para o IBM watsonx.ai
 
 Quando a IA audita uma compra, ela recebe apenas:
 
+- Os dados da própria compra: valor, data e hora, tipo e modalidade
 - Os 9 sinais de alerta calculados (booleanos e valores agregados)
 - As contribuições de cada variável para a nota
-- O histórico de compras do cartão (valor, hora, tipo — sem identificadores)
+- O histórico de compras do cartão (agregados das últimas 10 — sem identificadores)
 - O perfil comportamental do cliente (mediana de valor, percentual de madrugada — sem nome nem id)
-- O perfil do estabelecimento (percentual de fraude histórico — sem razão social nem id)
+- O perfil do estabelecimento (quantidade de compras anteriores, mediana de valor e a nota de
+  risco de 0 a 100 já presente na compra — sem razão social nem id)
+
+Nenhuma ferramenta devolve o rótulo de fraude nem a decisão do sistema atual.
 
 Nenhum identificador de cartão, cliente ou estabelecimento é enviado ao watsonx.ai.
 

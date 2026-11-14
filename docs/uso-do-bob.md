@@ -4,7 +4,7 @@ O Sentinela foi construído por cinco pessoas, sem reuniões, em cerca de quatro
 trabalhar em paralelo com o IBM Bob sem perder a qualidade, transformamos o processo em
 arquivos que o próprio Bob lê, e criamos uma régua de "pronto" que ele não pode alterar.
 Os números deste documento vêm do GitHub (`gh pr list --state all`, `gh issue list`,
-`gh run list`) em 14/11/2026.
+`gh run list`) na noite de 14/11/2026.
 
 ## 1. O que o Bob lê
 
@@ -69,14 +69,14 @@ só lê arquivos e roda comandos: roda o portão completo, confere as invariante
 branch e devolve uma tabela de achados, sem editar nada. Para usar: abrir o seletor de modos do
 Bob e escolher "Auditor Sentinela".
 
-## 6. Números do processo (14/11/2026)
+## 6. Números do processo (noite de 14/11/2026)
 
 | Item | Quantidade |
 | --- | --- |
 | Issues no GitHub | 51 |
-| Pull Requests | 33 (32 integrados; o #18 é a publicação final em `main`) |
-| Execuções do CI "Qualidade" | 93 (87 verdes, 4 vermelhas, 2 sem conclusão) |
-| Testes Python | 335 passando, 1 pulado de propósito (Issue #66, extra) |
+| Pull Requests | 38 (37 integrados; o #18 é a publicação final em `main`) |
+| Execuções do CI "Qualidade" | mais de 100, só 4 vermelhas |
+| Testes Python | 347 passando, 1 pulado de propósito (Issue #66, extra) |
 | Testes do site (Vitest) | 68 |
 
 PRs por fase:
@@ -87,7 +87,7 @@ PRs por fase:
 | Arquitetura web | #49–#59 | API FastAPI, auditoria no watsonx.ai, site Next.js + Carbon, simulador |
 | Estrutura enxuta | #56, #68, #69, #71 | Streamlit aposentado, dados versionados |
 | Associado e análises | #72–#78 | Canal e app do associado, explicabilidade, perfil, EDA, avaliação rigorosa, privacidade |
-| Correções finais | #79, #80, #83, #84 | Feitas fora do Bob, para cumprir o prazo |
+| Reta final | #79–#89 | Correções, mensagem ao associado pelo Granite, comparação IA × modelo, README e este documento: feitos fora do Bob, para cumprir o prazo |
 
 ## 7. O que aprendemos
 

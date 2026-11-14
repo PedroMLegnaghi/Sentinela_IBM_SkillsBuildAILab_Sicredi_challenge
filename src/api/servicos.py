@@ -17,6 +17,7 @@ import pandas as pd
 from src.agente import AgenteSentinela, calcular_sinais, decidir
 from src.associado import notificacoes
 from src.auditoria import configurar_base
+from src.auditoria.ferramentas import CaixaDeFerramentas
 from src.auditoria.watsonx import carregar_env
 from src.config import (
     CAMINHO_MODELO,
@@ -243,6 +244,34 @@ _COLUNAS_PROIBIDAS = frozenset(
 )
 
 
+def _montar_perfil_associado(
+    transacao_dict: dict[str, Any], base: pd.DataFrame, analise: dict[str, Any]
+) -> dict[str, Any] | None:
+    """Calcula o perfil do associado usando ``perfil_do_cliente`` das ferramentas.
+
+    Args:
+        transacao_dict: Linha completa da transação (com id_cliente e data_hora).
+        base: DataFrame preparado com o histórico.
+        analise: Resultado da análise (sinais e contribuições).
+
+    Returns:
+        Dicionário com os campos de PerfilAssociado, ou None sem compras anteriores.
+    """
+    caixa = CaixaDeFerramentas(transacao_dict, analise, base)
+    envelope = caixa.executar("perfil_do_cliente")
+    if envelope.get("status") != "ok":
+        return None
+    dados = envelope.get("dados", {})
+    return {
+        "compras_anteriores": dados.get("compras_anteriores"),
+        "mediana_valor": dados.get("mediana_valor"),
+        "valor_atual_sobre_mediana": dados.get("valor_atual_sobre_mediana"),
+        "hora_mais_comum": dados.get("hora_mais_comum"),
+        "percentual_madrugada": dados.get("percentual_madrugada"),
+        "percentual_credito_nao_presente": dados.get("percentual_credito_nao_presente"),
+    }
+
+
 def _montar_historico(historico_df: pd.DataFrame) -> list[dict[str, Any]]:
     """Converte o DataFrame do histórico em lista de ItemHistorico.
 
@@ -315,11 +344,14 @@ def obter_transacao(id_transacao: int) -> dict[str, Any]:
 
     from src.api.respostas import _ler_resposta  # noqa: PLC0415
 
+    perfil_associado = _montar_perfil_associado(transacao_dict, _estado.base, analise)
+
     return {
         "transacao": _montar_transacao_publica(transacao_dict),
         "analise": analise,
         "historico": _montar_historico(historico_df),
         "resposta_analista": _ler_resposta(id_transacao),
+        "perfil_associado": perfil_associado,
         "notificacao": notificacoes.obter_por_transacao(id_transacao),
     }
 

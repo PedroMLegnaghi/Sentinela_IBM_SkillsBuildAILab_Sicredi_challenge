@@ -352,3 +352,19 @@ export const ERRO_NOTIFICACAO_422 =
 export const LINK_VER_NO_APP = "Ver no app do associado";
 export const RESPONDIDA_EM = (quando: string) => `Respondida em ${quando}`;
 export const CRIADA_EM = (quando: string) => `Enviada em ${quando}`;
+
+// --- Issue #64 — Perfil do associado ---
+export const TITULO_PERFIL_ASSOCIADO = "O normal deste associado";
+export const PERFIL_SEM_HISTORICO = "Primeira compra registrada deste associado.";
+export const PERFIL_COMPRAS_ANTERIORES = (n: number) =>
+  `${n} ${n === 1 ? "compra anterior" : "compras anteriores"} na base`;
+export const PERFIL_MEDIANA_VALOR = (valor: string) => `Mediana de valor: ${valor}`;
+export const PERFIL_RAZAO_MEDIANA = (razao: string) =>
+  `Esta compra é ${razao}× a mediana`;
+export const PERFIL_RAZAO_ALTA = "⚠ Esta compra é alta em relação à mediana";
+export const PERFIL_HORA_MAIS_COMUM = (hora: number) =>
+  `Hora mais comum: ${hora}h`;
+export const PERFIL_PERCENTUAL_MADRUGADA = (pct: string) =>
+  `Compras na madrugada: ${pct}%`;
+export const PERFIL_CREDITO_NAO_PRESENTE = (pct: string) =>
+  `Crédito não presente: ${pct}%`;

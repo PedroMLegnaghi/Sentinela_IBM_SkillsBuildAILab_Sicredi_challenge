@@ -177,6 +177,15 @@ class CaixaDeFerramentas:
         }
         return _envelope(dados, []), f"{len(linhas)} compras anteriores do cartão"
 
+    def _hora_mais_comum(self, linhas: pd.DataFrame) -> int | None:
+        """Hora inteira mais frequente nas compras anteriores, ou None se vazio."""
+        if "hora" not in linhas.columns:
+            return None
+        horas = linhas["hora"].dropna()
+        if horas.empty:
+            return None
+        return int(horas.apply(int).mode().iloc[0])
+
     def _perfil_cliente(self) -> tuple[dict[str, Any], str]:
         sem = self._sem_historico("id_cliente")
         if sem is not None:
@@ -191,6 +200,7 @@ class CaixaDeFerramentas:
             "compras_anteriores": len(linhas),
             "mediana_valor": mediana,
             "valor_atual_sobre_mediana": razao,
+            "hora_mais_comum": self._hora_mais_comum(linhas),
             "percentual_madrugada": _proporcao(linhas["madrugada"]),
             "percentual_credito_nao_presente": _proporcao(
                 linhas["credito"] * linhas["nao_presente"]

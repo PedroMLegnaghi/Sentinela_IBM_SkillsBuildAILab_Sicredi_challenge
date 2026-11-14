@@ -14,6 +14,7 @@ import type {
   RespostaMetricas,
   Notificacao,
   RespostaNotificacoes,
+  PerfilAssociado,
 } from "@/lib/tipos";
 
 const saude: RespostaSaude = {
@@ -115,6 +116,14 @@ const transacao: RespostaTransacao = {
     },
   ],
   resposta_analista: null,
+  perfil_associado: {
+    compras_anteriores: 8,
+    mediana_valor: 150.0,
+    valor_atual_sobre_mediana: 30.1,
+    hora_mais_comum: 14,
+    percentual_madrugada: 12.5,
+    percentual_credito_nao_presente: 25.0,
+  } satisfies PerfilAssociado,
   notificacao: null,
 };
 

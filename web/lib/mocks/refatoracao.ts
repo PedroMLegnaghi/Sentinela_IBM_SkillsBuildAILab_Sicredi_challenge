@@ -16,6 +16,8 @@ import type {
   RespostaInicio,
   RespostaMetricasFilial,
   RespostaPerfis,
+  RespostaChat,
+  RespostaChatGerente,
   Sessao,
 } from "@/lib/tipos";
 import { mocks } from "@/lib/mocks/index";
@@ -342,6 +344,35 @@ const metricasFilial: RespostaMetricasFilial = {
     ],
   },
   tempo_resposta_mediano_s: 240.0,
+  bloqueios_por_auditor: [
+    { auditor: "Rafael Moura", bloqueios: 14, corretos: 12, liberados_depois: 2 },
+    { auditor: "Júlia Prates", bloqueios: 9, corretos: 9, liberados_depois: 0 },
+  ],
+};
+
+/** Resposta de POST /api/filial/compras/{id}/bloqueio para a compra aguardando da Ana. */
+const compraBloqueadaPeloAuditor: RespostaCompraFilial = {
+  ...compraFilial,
+  compra: { ...filaFilial.itens[1], situacao: "BLOQUEADA" },
+  resposta_associado: null,
+  bloqueio: {
+    por: "Rafael Moura",
+    em: "2025-03-12T03:25:00",
+    motivo:
+      "A auditoria confirma a decisão de bloqueio. Nota do analista: valor alto de madrugada, sem resposta do associado.",
+  },
+};
+
+const respostaChat: RespostaChat = {
+  resposta:
+    "Em março você fez 6 compras, somando R$ 3.667,30. A maior foi de R$ 2.340,00 em Eletrônicos Web, que foi bloqueada porque fugiu do seu padrão de uso. Uma compra de R$ 980,00 ainda espera a sua confirmação.",
+  fonte: "local",
+};
+
+const resumoGerente: RespostaChatGerente = {
+  gerente: { nome: "Helena Castro" },
+  resumo:
+    "Olá, Ana! Sou a Helena, gerente da Agência Centro. Vi que você conversou com o assistente sobre os gastos de março e a compra bloqueada em Eletrônicos Web. Como posso ajudar?",
 };
 
 export const mocksRefatoracao = {
@@ -356,4 +387,7 @@ export const mocksRefatoracao = {
   filaFilial,
   compraFilial,
   metricasFilial,
+  compraBloqueadaPeloAuditor,
+  respostaChat,
+  resumoGerente,
 };

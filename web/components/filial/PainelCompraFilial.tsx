@@ -6,7 +6,11 @@
  * agregado. Pela LGPD, nada de saldo, extrato ou nome completo.
  */
 
+import { useState } from "react";
 import { obterCompraFilial } from "@/lib/api";
+import { useSessao } from "@/lib/sessao";
+import type { RespostaCompraFilial } from "@/lib/tipos";
+import BotaoBloquear from "@/components/filial/BotaoBloquear";
 import { useCarregar } from "@/lib/useCarregar";
 import CartaoAuditoria from "@/components/painel/CartaoAuditoria";
 import GraficoContribuicoes from "@/components/painel/GraficoContribuicoes";
@@ -21,6 +25,7 @@ import {
 } from "@/lib/formatacao";
 import {
   ASSOCIADO_E_CARTAO,
+  BLOQUEIO_FEITO,
   BLOQUEIO_POR,
   CARREGANDO,
   COMPRA_EM_ANALISE,
@@ -43,7 +48,14 @@ import {
 } from "@/lib/textos";
 
 export default function PainelCompraFilial({ idCompra }: { idCompra: string }) {
-  const { dados, erro, recarregar } = useCarregar(() => obterCompraFilial(idCompra), idCompra);
+  const carregado = useCarregar(() => obterCompraFilial(idCompra), idCompra);
+  const sessao = useSessao();
+  const [atualizada, setAtualizada] = useState<RespostaCompraFilial | null>(null);
+  const [bloqueioFeito, setBloqueioFeito] = useState(false);
+  const { erro, recarregar } = carregado;
+  const dados = atualizada ?? carregado.dados;
+  const podeBloquear =
+    sessao?.perfil.papel === "auditor" && dados?.compra.situacao === "AGUARDANDO";
 
   if (erro) return <EstadoErro mensagem={erro} aoTentarNovamente={recarregar} />;
   if (!dados) return <p className="sc-carregando">{CARREGANDO}</p>;
@@ -79,6 +91,21 @@ export default function PainelCompraFilial({ idCompra }: { idCompra: string }) {
           <dd className="sc-num">{formatarDiaHora(compra.data_hora)}</dd>
         </div>
       </dl>
+
+      {podeBloquear && (
+        <BotaoBloquear
+          idCompra={compra.id_compra}
+          aoBloquear={(nova) => {
+            setAtualizada(nova);
+            setBloqueioFeito(true);
+          }}
+        />
+      )}
+      {bloqueioFeito && (
+        <div className="sc-aviso sc-aviso--ok sc-acao-auditor" role="status">
+          {BLOQUEIO_FEITO}
+        </div>
+      )}
 
       <hr className="sc-separador" />
       <div className="sc-rotulo">{DECISAO_DO_MODELO}</div>

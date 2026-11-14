@@ -171,6 +171,16 @@ const notificacaoNegada: Notificacao = {
     "Compra bloqueada e cartão protegido. O caso foi para o analista.",
 };
 
+// Notificação com mensagem redigida pelo IBM Granite (fonte "watsonx") — Issue #109.
+const notificacaoGranite: Notificacao = {
+  ...notificacaoAguardando,
+  id_notificacao: "not-mock-003",
+  id_transacao: 100001,
+  mensagem:
+    "Sicredi: identificamos uma compra suspeita de R$ 4.520,00 em 15/03 às 03:12 e a bloqueamos por segurança. Seu cartão segue protegido. Foi você? Responda no app.",
+  fonte_mensagem: "watsonx",
+};
+
 const notificacoes: RespostaNotificacoes = {
   itens: [notificacaoAguardando, notificacaoNegada],
 };
@@ -305,5 +315,6 @@ export const mocks = {
   metricas,
   notificacaoAguardando,
   notificacaoNegada,
+  notificacaoGranite,
   notificacoes,
 };

@@ -12,6 +12,7 @@ import EstadoErro from "@/components/comuns/EstadoErro";
 import FaixaDecisao from "@/components/comuns/FaixaDecisao";
 import CartaoAssociado from "@/components/associado/CartaoAssociado";
 import CartaoAuditoria from "@/components/painel/CartaoAuditoria";
+import PerfilAssociado from "@/components/painel/PerfilAssociado";
 import GraficoContribuicoes from "@/components/painel/GraficoContribuicoes";
 import HistoricoCartao from "@/components/painel/HistoricoCartao";
 import RespostaAnalista from "@/components/painel/RespostaAnalista";
@@ -70,7 +71,7 @@ export default function PainelTransacao({ idTransacao }: PropsPainelTransacao) {
     );
   }
 
-  const { transacao, analise, historico, resposta_analista, notificacao } =
+  const { transacao, analise, historico, resposta_analista, perfil_associado, notificacao } =
     estado.dados;
   const resumo = [
     formatarDataHora(transacao.data_hora),
@@ -113,6 +114,7 @@ export default function PainelTransacao({ idTransacao }: PropsPainelTransacao) {
         <h3 className="sentinela-subtitulo">{TITULO_EXPLICACAO}</h3>
         <p>{analise.explicacao}</p>
       </Tile>
+      <PerfilAssociado perfil={perfil_associado ?? null} />
       <CartaoAssociado
         idTransacao={transacao.id_transacao}
         decisao={analise.decisao}

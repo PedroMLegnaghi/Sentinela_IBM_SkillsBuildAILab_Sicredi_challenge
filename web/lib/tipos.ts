@@ -83,11 +83,23 @@ export interface RespostaFila {
   itens: ItemFila[];
 }
 
+// --- Seção 12.1: PerfilAssociado (Issue #64) ---
+
+export interface PerfilAssociado {
+  compras_anteriores: number;
+  mediana_valor: number | null;
+  valor_atual_sobre_mediana: number | null;
+  hora_mais_comum: number | null;
+  percentual_madrugada: number | null;
+  percentual_credito_nao_presente: number | null;
+}
+
 export interface RespostaTransacao {
   transacao: Transacao;
   analise: Analise;
   historico: ItemHistorico[];
   resposta_analista: Resposta | null;
+  perfil_associado: PerfilAssociado | null;
   notificacao: Notificacao | null;
 }
 

@@ -17,6 +17,13 @@ from src.config import LIMIAR_RAJADA_1MIN, VARIAVEIS_MODELO
 
 LIMITE_HISTORICO = 10
 MAX_CONTRIBUICOES = 6
+# O que falta, em texto legível, quando a compra não tem o identificador (ex.: simulador)
+HISTORICO_POR_IDENTIFICADOR = {
+    "id_cartao": "histórico do cartão",
+    "id_cliente": "histórico do cliente",
+    "id_estabelecimento": "histórico do estabelecimento",
+}
+RESUMO_SEM_IDENTIFICACAO = "sem histórico: compra sem identificação (simulada)"
 
 DESCRICOES = {
     "sinais_da_transacao": "Sinais de alerta disparados pelas regras e campos vazios da compra.",
@@ -154,10 +161,15 @@ class CaixaDeFerramentas:
         return _envelope(dados, [] if principais else ["contribuicoes"]), resumo
 
     def _sem_historico(self, coluna: str) -> tuple[dict[str, Any], str] | None:
+        """Envelope sem dados quando falta a base ou o identificador da compra.
+
+        Sem identificador (compra do simulador), o texto é legível e nunca cita o nome da
+        coluna interna: a IA repete ``campos_ausentes`` em "Dados que faltaram".
+        """
         if self.base is None:
             return _envelope({}, ["base de dados"]), "base de dados indisponível"
         if self.transacao.get(coluna) is None or pd.isna(self.transacao.get(coluna)):
-            return _envelope({}, [coluna]), "identificador ausente"
+            return _envelope({}, [HISTORICO_POR_IDENTIFICADOR[coluna]]), RESUMO_SEM_IDENTIFICACAO
         return None
 
     def _historico_cartao(self) -> tuple[dict[str, Any], str]:

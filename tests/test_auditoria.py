@@ -193,6 +193,35 @@ def test_nenhuma_ferramenta_devolve_rotulo_ou_identificador():
     assert not (_chaves(envelopes) & CHAVES_PROIBIDAS)
 
 
+@pytest.mark.parametrize(
+    ("ferramenta", "esperado"),
+    [
+        ("historico_do_cartao", "histórico do cartão"),
+        ("perfil_do_cliente", "histórico do cliente"),
+        ("perfil_do_estabelecimento", "histórico do estabelecimento"),
+    ],
+)
+def test_compra_sem_identificador_informa_historico_em_texto_legivel(ferramenta, esperado):
+    transacao = _transacao(id_cartao=None, id_cliente=None, id_estabelecimento=None)
+    caixa = CaixaDeFerramentas(transacao, _analise(), _base_inventada())
+
+    envelope = caixa.executar(ferramenta)
+
+    assert envelope["status"] == "sem_dados"
+    assert envelope["campos_ausentes"] == [esperado]
+    assert caixa.usadas[-1]["resumo"] == "sem histórico: compra sem identificação (simulada)"
+
+
+def test_compra_sem_identificador_nao_cita_colunas_internas():
+    transacao = _transacao(id_cartao=None, id_cliente=None, id_estabelecimento=None)
+    caixa = CaixaDeFerramentas(transacao, _analise(), _base_inventada())
+
+    envelopes = [caixa.executar(nome) for nome in caixa.nomes()]
+
+    assert "id_" not in json.dumps(envelopes, default=str)
+    assert all("id_" not in usada["resumo"] for usada in caixa.usadas)
+
+
 def test_ferramenta_sem_base_informa_o_que_faltou():
     caixa = CaixaDeFerramentas(_transacao(), _analise(), None)
 

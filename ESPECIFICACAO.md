@@ -582,3 +582,126 @@ verdade; o "App do associado" do site faz o papel do celular.
   mostraram. Sem credenciais (modo local), a resposta lista o resumo de cada ferramenta e diz
   que a IA está indisponível.
 - A resposta nunca traz identificador, rótulo ou decisão do sistema atual.
+
+## 17. Associado e filial (refatoração; Issues #90 a #101)
+
+O site passa a ter duas áreas: a do **associado** (celular), que vê saldo, extrato, simula compras
+e responde aos avisos, e a da **filial** (desktop), em que o auditor revisa a fila da agência e o
+gerente acompanha as métricas. O núcleo (seções 6 a 11) não muda: BLOQUEAR bloqueia na hora e
+PEDIR_CONFIRMACAO espera o associado. As rotas das seções 12 a 16 continuam iguais. Os testes
+`tests/test_contrato_refatoracao.py` traduzem esta seção; cada teste fica pulado até a rota
+existir.
+
+### 17.1 Regras gerais
+
+- **Arquitetura.** As regras ficam em `src/dominio/` e `src/aplicacao/` e dependem só das
+  interfaces de `src/portas/`. O armazenamento de hoje é `src/adaptadores/memoria/`; o único lugar
+  que escolhe o adaptador é `src/composicao.py`. As rotas ficam em `src/api/sessao.py`,
+  `src/api/rotas_associado.py` e `src/api/rotas_filial.py`, incluídas em `src/api/app.py`.
+- **Dados fictícios.** Nomes, saldos, limites, filiais e funcionários são inventados (17.2). Cada
+  associado com login é ligado a um cliente real de março, para ter extrato e histórico. Nenhuma
+  resposta contém `id_cartao`, `id_cliente`, `id_estabelecimento` nem `id_transacao` da base: as
+  rotas novas usam identificadores opacos (`cmp-000123`, `car-01`, `asc-01`).
+- **Carteiras.** Os clientes com compra em março, ordenados pelo identificador, são divididos por
+  posição: posição par vai para a Agência Centro, ímpar para a Agência Norte. Cliente sem login
+  aparece na filial como "Associado NNNN" (posição com 4 dígitos).
+- **Situação de uma compra.** `APROVADA`, `AGUARDANDO`, `BLOQUEADA` ou `CONTESTADA`. Ao nascer:
+  APROVAR → `APROVADA`; PEDIR_CONFIRMACAO → `AGUARDANDO`; BLOQUEAR → `BLOQUEADA`. A resposta do
+  associado ao aviso (seção 15) muda a situação: numa `AGUARDANDO`, "sim" → `APROVADA` e "nao" →
+  `BLOQUEADA`; numa `BLOQUEADA` pelo Sentinela, a situação não muda (o analista decide, como hoje).
+  "Não reconheço esta compra" muda uma `APROVADA` para `CONTESTADA`.
+- **Saldo e limite.** Só as compras simuladas mexem neles; as de março já estão no saldo inicial.
+  Compra no débito que vira `APROVADA` desconta o saldo; no crédito, consome o limite disponível.
+  `AGUARDANDO` e `BLOQUEADA` não mexem. Contestação devolve o valor ao saldo ou ao limite.
+- **Cartões.** Cada associado tem um cartão de débito e um de crédito. As compras de março vão
+  para o cartão do mesmo tipo. Contestação bloqueia o cartão da compra; cartão bloqueado não
+  aceita compra nova (409).
+- **Avisos.** Compra simulada que vira `AGUARDANDO` ou `BLOQUEADA` cria o aviso da seção 15. Na
+  subida, as compras de março dos associados com login que estão `AGUARDANDO` ou `BLOQUEADA`
+  também ganham aviso, com status "aguardando".
+- **O que cada um vê.** O associado vê só as próprias compras, com motivo genérico (17.3), e nunca
+  sinais, nota, contribuições ou parecer da IA. O auditor e o gerente veem só a carteira da
+  própria filial, com o detalhe técnico, o nome abreviado do associado ("Ana S.") e o final do
+  cartão; nunca saldo, limite, extrato ou nome completo do associado.
+- **Sessão simulada.** Não há senha. `POST /api/sessao` devolve um `token` (texto opaco, guardado
+  em memória); as outras rotas desta seção exigem o cabeçalho `X-Sessao: <token>`. Sem cabeçalho
+  ou com token desconhecido → 401; papel sem acesso à rota → 403. O CORS (seção 12) passa a
+  aceitar o cabeçalho `X-Sessao`.
+- **Erros** como na seção 12: `{"detail": "<mensagem em português>"}`. Recurso de outro associado
+  → 404 (não revela que existe); recurso de outra filial → 403.
+
+### 17.2 Dados de demonstração
+
+| Filial | `id_filial` | Gerente | Auditores |
+| --- | --- | --- | --- |
+| Agência Centro | `fil-centro` | Helena Castro (`ger-01`) | Rafael Moura (`aud-01`), Júlia Prates (`aud-02`) |
+| Agência Norte | `fil-norte` | Marcos Viana (`ger-02`) | Tiago Nunes (`aud-03`), Paula Reis (`aud-04`) |
+
+Associados com login: os 10 clientes de março com mais compras (desempate pelo identificador),
+alternando Centro e Norte a partir do primeiro. Nomes, na ordem em que entram: Ana Souza, Carlos
+Lima, Bruno Teixeira, Fernanda Alves, Carla Mendes, Gustavo Pires, Diego Prado, Isabela Costa,
+Elisa Rocha e João Martins (`asc-01` a `asc-10`; posição `p` de 0 a 9). Saldo inicial:
+R$ 4.820,35 − R$ 310,00 × `p` (Ana R$ 4.820,35; Carlos R$ 4.510,35). Limite total de crédito
+R$ 3.000,00 e disponível R$ 2.150,00 para todos. Finais de cartão, com 4 dígitos: débito
+`1111 + 111 × p` e crédito `4821 + 7 × p` (Ana: débito 1111, crédito 4821). Ids dos cartões:
+`car-NN-d` e `car-NN-c`, com `NN` = `p + 1` em 2 dígitos.
+
+### 17.3 Objetos
+
+- **Perfil:** `{"id_perfil": str, "nome": str, "papel": "associado"|"auditor"|"gerente",
+  "filial": {"id_filial": str, "nome": str}}`.
+- **Cartao:** `{"id": str, "tipo": "debito"|"credito", "final": str, "bloqueado": bool}`.
+- **CompraExtrato:** `{"id_compra": str, "estabelecimento": str, "data_hora": str|null,
+  "valor": float|null, "tipo_transacao": str, "modalidade_transacao": str, "final_cartao": str,
+  "situacao": "APROVADA"|"AGUARDANDO"|"BLOQUEADA"|"CONTESTADA", "id_notificacao": str|null,
+  "simulada": bool}`. `estabelecimento` das compras de março é um nome fictício escolhido pelo
+  risco do estabelecimento (lista fixa no adaptador); o das simuladas é o informado.
+- **Bloqueio:** `{"por": str, "em": str, "motivo": str}`. Para o associado, `por` é "Sentinela" ou
+  "Analista da agência <nome da agência>" e `motivo` é sempre "A compra fugiu do seu padrão de uso
+  e foi bloqueada por segurança." Para a filial, `por` é "Sentinela" ou o nome completo do auditor
+  e `motivo` é a explicação do modelo (seção 8.5), mais a nota do auditor quando houver.
+- **RespostaAssociado:** `{"resposta": "sim"|"nao", "em": str}`.
+- **ItemFilaFilial:** `{"id_compra": str, "nota": float, "decisao": str, "associado": str,
+  "final_cartao": str, "data_hora": str|null, "valor": float|null, "tipo_transacao": str,
+  "modalidade_transacao": str, "situacao": str, "veredito_ia": "CONFIRMA"|"DIVERGE"|
+  "INCONCLUSIVO"|null}`. `associado` é o nome abreviado; `veredito_ia` é o parecer da última
+  auditoria concluída (seção 13), ou `null`.
+
+### 17.4 Endpoints
+
+| Método e caminho | Papel | Entrada | Saída (200, salvo indicação) |
+| --- | --- | --- | --- |
+| `GET /api/sessao/perfis` | — | — | `{"perfis": [Perfil]}`: 2 gerentes, 4 auditores e 10 associados |
+| `POST /api/sessao` | — | `{"id_perfil": str}` | `{"token": str, "perfil": Perfil}`; perfil desconhecido → 404 |
+| `GET /api/associado/inicio` | associado | — | `{"associado": {"nome": str, "filial": str}, "saldo": float, "limite_total": float, "limite_disponivel": float, "cartoes": [Cartao], "pendentes": [{"id_notificacao": str, "id_compra": str, "valor": float\|null, "data_hora": str\|null}], "ultimas_compras": [CompraExtrato]}` (3 mais recentes) |
+| `GET /api/associado/extrato` | associado | `situacao` (opcional, separadas por vírgula; inválida → 422) | `{"total": int, "itens": [CompraExtrato]}`, da mais recente para a mais antiga; as simuladas primeiro, na ordem em que foram feitas |
+| `GET /api/associado/compras/{id_compra}` | associado | — | CompraExtrato + `{"bloqueio": Bloqueio\|null, "resposta_associado": RespostaAssociado\|null, "pode_contestar": bool}`; de outro associado → 404 |
+| `POST /api/associado/compras` | associado | `{"cartao": str, "estabelecimento": str (1 a 60 caracteres), "data_hora": str}` + as variáveis de `POST /api/analisar` (seção 12), exceto `credito`, `tipo_transacao` e `auditar` | 201 `{"compra": CompraExtrato, "id_notificacao": str\|null}`; cartão de outro associado → 404; cartão bloqueado → 409 |
+| `POST /api/associado/compras/{id_compra}/contestacao` | associado | — | 201 `{"compra": CompraExtrato, "cartao": Cartao}` (cartão bloqueado); situação diferente de `APROVADA` → 409 |
+| `GET /api/filial/fila` | auditor, gerente | `situacao` (opcional; padrão `BLOQUEADA,AGUARDANDO,CONTESTADA`; inválida → 422) | `{"filial": {"id_filial": str, "nome": str}, "total": int, "itens": [ItemFilaFilial]}`, por nota decrescente |
+| `GET /api/filial/compras/{id_compra}` | auditor, gerente | — | `{"compra": ItemFilaFilial, "analise": Analise (seção 12), "auditoria": Auditoria\|null (seção 13), "associado": {"nome_abreviado": str, "final_cartao": str, "historico": {"compras_90d": int, "valor_mediano": float\|null, "contestacoes": int}}, "resposta_associado": RespostaAssociado\|null, "bloqueio": Bloqueio\|null}`; de outra filial → 403 |
+| `GET /api/filial/metricas` | gerente | — | `{"filial": {"id_filial", "nome"}, "periodo": "2025-03", "totais": {"compras": int, "aprovadas": int, "confirmacoes": int, "bloqueadas": int, "valor_protegido": float}, "por_tipo": [{"tipo_transacao": str, "modalidade_transacao": str, "aprovadas": int, "confirmacoes": int, "bloqueadas": int}], "acerto_modelo": {"alertas_certos": int, "alertas_desnecessarios": int, "sem_resposta": int, "taxa": float\|null}, "fraudes_aprovadas": {"total": int, "itens": [{"associado": str, "final_cartao": str, "data_hora": str\|null, "valor": float\|null}]}, "tempo_resposta_mediano_s": float\|null}` |
+
+Notas sobre as rotas:
+
+- Na compra simulada, `credito` e `tipo_transacao` vêm do tipo do cartão; `hora` e `madrugada`,
+  quando ausentes, vêm de `data_hora`. O site manda `data_hora` com a data `2025-03-31` e a hora
+  escolhida. A compra passa por `servicos.analisar_transacao` (o mesmo de `POST /api/analisar`) e
+  dispara a auditoria por IA em segundo plano.
+- `GET /api/filial/compras/{id}` dispara a auditoria por IA se ela ainda não existe, como hoje
+  faz o painel; o site acompanha por `GET /api/auditorias/{id_auditoria}` (`auditoria.id_auditoria`).
+- `totais` soma as compras de março da carteira e as simuladas. Somando as duas filiais, sem
+  compras simuladas, os números de março são os da seção 11 (13.395 aprovadas, 159 confirmações e
+  54 bloqueadas). `valor_protegido` é a soma das bloqueadas.
+- `acerto_modelo`: entre os avisos da carteira, "nao" conta em `alertas_certos`, "sim" em
+  `alertas_desnecessarios` e o resto em `sem_resposta`; `taxa` = certos ÷ (certos +
+  desnecessários), em %, 1 casa, ou `null` sem respostas.
+- `fraudes_aprovadas` são as compras contestadas da carteira.
+- `tempo_resposta_mediano_s` é a mediana, em segundos, entre `criada_em` e `respondida_em` dos
+  avisos respondidos da carteira; `null` sem respostas.
+
+### 17.5 Prioridade 2 e 3 (contrato a fechar nas Issues)
+
+- `POST /api/filial/compras/{id_compra}/bloqueio` (auditor bloqueia compra `AGUARDANDO`, Issue
+  #102) e `bloqueios_por_auditor` nas métricas (Issue #104).
+- `POST /api/associado/chat` e `POST /api/associado/chat/gerente` (Issue #105).

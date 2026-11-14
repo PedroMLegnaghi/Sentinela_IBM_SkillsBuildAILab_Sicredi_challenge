@@ -289,3 +289,187 @@ export interface EntradaResposta {
   id_transacao: number;
   resposta: "fraude" | "legitima";
 }
+
+// --- Seção 17: Associado e filial (refatoração) ---
+
+export type Papel = "associado" | "auditor" | "gerente";
+export type SituacaoCompra = "APROVADA" | "AGUARDANDO" | "BLOQUEADA" | "CONTESTADA";
+export type TipoCartao = "debito" | "credito";
+
+export interface Filial {
+  id_filial: string;
+  nome: string;
+}
+
+export interface Perfil {
+  id_perfil: string;
+  nome: string;
+  papel: Papel;
+  filial: Filial;
+}
+
+export interface RespostaPerfis {
+  perfis: Perfil[];
+}
+
+export interface EntradaSessao {
+  id_perfil: string;
+}
+
+export interface Sessao {
+  token: string;
+  perfil: Perfil;
+}
+
+export interface Cartao {
+  id: string;
+  tipo: TipoCartao;
+  final: string;
+  bloqueado: boolean;
+}
+
+export interface CompraExtrato {
+  id_compra: string;
+  estabelecimento: string;
+  data_hora: string | null;
+  valor: number | null;
+  tipo_transacao: string;
+  modalidade_transacao: string;
+  final_cartao: string;
+  situacao: SituacaoCompra;
+  id_notificacao: string | null;
+  simulada: boolean;
+}
+
+export interface Bloqueio {
+  por: string;
+  em: string;
+  motivo: string;
+}
+
+export interface RespostaAssociado {
+  resposta: "sim" | "nao";
+  em: string;
+}
+
+export interface CompraPendente {
+  id_notificacao: string;
+  id_compra: string;
+  valor: number | null;
+  data_hora: string | null;
+}
+
+export interface RespostaInicio {
+  associado: { nome: string; filial: string };
+  saldo: number;
+  limite_total: number;
+  limite_disponivel: number;
+  cartoes: Cartao[];
+  pendentes: CompraPendente[];
+  ultimas_compras: CompraExtrato[];
+}
+
+export interface RespostaExtrato {
+  total: number;
+  itens: CompraExtrato[];
+}
+
+export interface DetalheCompra extends CompraExtrato {
+  bloqueio: Bloqueio | null;
+  resposta_associado: RespostaAssociado | null;
+  pode_contestar: boolean;
+}
+
+/** Corpo de POST /api/associado/compras: cartão, estabelecimento e as variáveis da análise. */
+export interface EntradaCompra
+  extends Omit<EntradaAnalisar, "credito" | "auditar" | "tipo_transacao"> {
+  cartao: string;
+  estabelecimento: string;
+  data_hora: string;
+}
+
+export interface RespostaCompra {
+  compra: CompraExtrato;
+  id_notificacao: string | null;
+}
+
+export interface RespostaContestacao {
+  compra: CompraExtrato;
+  cartao: Cartao;
+}
+
+export interface ItemFilaFilial {
+  id_compra: string;
+  nota: number;
+  decisao: Decisao;
+  associado: string;
+  final_cartao: string;
+  data_hora: string | null;
+  valor: number | null;
+  tipo_transacao: string;
+  modalidade_transacao: string;
+  situacao: SituacaoCompra;
+  veredito_ia: ParecerIA | null;
+}
+
+export interface RespostaFilaFilial {
+  filial: Filial;
+  total: number;
+  itens: ItemFilaFilial[];
+}
+
+export interface AssociadoNaFilial {
+  nome_abreviado: string;
+  final_cartao: string;
+  historico: {
+    compras_90d: number;
+    valor_mediano: number | null;
+    contestacoes: number;
+  };
+}
+
+export interface RespostaCompraFilial {
+  compra: ItemFilaFilial;
+  analise: Analise;
+  auditoria: Auditoria | null;
+  associado: AssociadoNaFilial;
+  resposta_associado: RespostaAssociado | null;
+  bloqueio: Bloqueio | null;
+}
+
+export interface DecisoesPorTipo {
+  tipo_transacao: string;
+  modalidade_transacao: string;
+  aprovadas: number;
+  confirmacoes: number;
+  bloqueadas: number;
+}
+
+export interface RespostaMetricasFilial {
+  filial: Filial;
+  periodo: string;
+  totais: {
+    compras: number;
+    aprovadas: number;
+    confirmacoes: number;
+    bloqueadas: number;
+    valor_protegido: number;
+  };
+  por_tipo: DecisoesPorTipo[];
+  acerto_modelo: {
+    alertas_certos: number;
+    alertas_desnecessarios: number;
+    sem_resposta: number;
+    taxa: number | null;
+  };
+  fraudes_aprovadas: {
+    total: number;
+    itens: {
+      associado: string;
+      final_cartao: string;
+      data_hora: string | null;
+      valor: number | null;
+    }[];
+  };
+  tempo_resposta_mediano_s: number | null;
+}

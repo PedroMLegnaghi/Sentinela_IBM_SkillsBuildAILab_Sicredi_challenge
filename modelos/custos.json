@@ -1,0 +1,213 @@
+{
+  "custo_confirmacao_unitario": 1.0,
+  "sentinela": {
+    "fraudes_bloqueadas": 54,
+    "valor_fraudes_bloqueadas": 13490.7,
+    "fraudes_nao_bloqueadas": 0,
+    "valor_fraudes_nao_bloqueadas": 0.0,
+    "confirmacoes": 159,
+    "custo_confirmacoes": 159.0,
+    "valores_vazios": 65
+  },
+  "sistema_atual": {
+    "fraudes_bloqueadas": 26,
+    "valor_fraudes_bloqueadas": 6836.54,
+    "fraudes_nao_bloqueadas": 28,
+    "valor_fraudes_nao_bloqueadas": 6654.16
+  },
+  "comparacao": {
+    "prejuizo_evitado_sentinela_vs_atual": 6495.16,
+    "custo_confirmacoes": 159.0
+  },
+  "curva_custo": [
+    {
+      "corte": 0,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 13608,
+      "custo_confirmacoes": 13608.0
+    },
+    {
+      "corte": 5,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 10,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 15,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 20,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 25,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 30,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 35,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 40,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 45,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 50,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 55,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 60,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 65,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 70,
+      "fraudes_capturadas": 54,
+      "valor_fraudes_capturadas": 13490.7,
+      "fraudes_perdidas": 0,
+      "valor_fraudes_perdidas": 0.0,
+      "confirmacoes": 54,
+      "custo_confirmacoes": 54.0
+    },
+    {
+      "corte": 75,
+      "fraudes_capturadas": 53,
+      "valor_fraudes_capturadas": 13048.16,
+      "fraudes_perdidas": 1,
+      "valor_fraudes_perdidas": 442.54,
+      "confirmacoes": 53,
+      "custo_confirmacoes": 53.0
+    },
+    {
+      "corte": 80,
+      "fraudes_capturadas": 53,
+      "valor_fraudes_capturadas": 13048.16,
+      "fraudes_perdidas": 1,
+      "valor_fraudes_perdidas": 442.54,
+      "confirmacoes": 53,
+      "custo_confirmacoes": 53.0
+    },
+    {
+      "corte": 85,
+      "fraudes_capturadas": 52,
+      "valor_fraudes_capturadas": 12800.35,
+      "fraudes_perdidas": 2,
+      "valor_fraudes_perdidas": 690.35,
+      "confirmacoes": 52,
+      "custo_confirmacoes": 52.0
+    },
+    {
+      "corte": 90,
+      "fraudes_capturadas": 52,
+      "valor_fraudes_capturadas": 12800.35,
+      "fraudes_perdidas": 2,
+      "valor_fraudes_perdidas": 690.35,
+      "confirmacoes": 52,
+      "custo_confirmacoes": 52.0
+    },
+    {
+      "corte": 95,
+      "fraudes_capturadas": 52,
+      "valor_fraudes_capturadas": 12800.35,
+      "fraudes_perdidas": 2,
+      "valor_fraudes_perdidas": 690.35,
+      "confirmacoes": 52,
+      "custo_confirmacoes": 52.0
+    },
+    {
+      "corte": 100,
+      "fraudes_capturadas": 51,
+      "valor_fraudes_capturadas": 12638.19,
+      "fraudes_perdidas": 3,
+      "valor_fraudes_perdidas": 852.51,
+      "confirmacoes": 51,
+      "custo_confirmacoes": 51.0
+    }
+  ]
+}

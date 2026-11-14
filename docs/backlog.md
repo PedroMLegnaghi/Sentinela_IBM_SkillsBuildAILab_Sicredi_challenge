@@ -272,3 +272,128 @@ ESPECIFICACAO, seção 16. Só depois da #65 e da #46.
 
 PR `develop` → `main` com merge commit (não squash); tag `v1.0`; vídeo de até 3 minutos;
 Textos 1 e 2; envio em My Teams → Submissions até domingo, 17h.
+
+---
+
+# Refatoração: associado e filial (branch `refatoracao`)
+
+Decidida em sáb 14/11, noite. Fica fora do `develop` até a **linha de corte: domingo 15/11, 14h**.
+Se não estiver pronta e testada nessa hora, a entrega usa a versão atual do `develop`.
+
+## O que muda
+
+O site passa a ter duas áreas, com a identidade visual da Sicredi (verde `#3FA110`, branco, Exo 2
+nos títulos e Nunito no texto):
+
+- **Associado** (pensado para celular): login simulado, saldo, cartões, extrato, simular compra,
+  aviso "Foi você?" e "Não reconheço esta compra".
+- **Filial** (pensada para desktop): fila do auditor só com a carteira da filial, painel da compra
+  com o detalhe técnico e painel do gerente com as métricas.
+
+## Regras da refatoração
+
+- **O núcleo não muda.** BLOQUEAR bloqueia na hora; PEDIR_CONFIRMACAO espera o associado.
+- **As rotas atuais e a conformidade ficam intactas.** As rotas novas ficam em arquivos próprios
+  (`src/api/rotas_associado.py` e `src/api/rotas_filial.py`), incluídos em `src/api/app.py`.
+- **Portas e adaptadores.** As regras novas dependem de interfaces de repositório (`src/portas/`);
+  hoje o adaptador é em memória (`src/adaptadores/memoria/`). Trocar por Postgres não mexe nas
+  regras.
+- **Dados fictícios.** Nomes, saldos, limites, filiais e auditores são inventados. Cada associado
+  com login é ligado a um cliente da base, para ter histórico. Os clientes de março são divididos
+  igualmente entre as duas filiais.
+- **Privacidade.** O associado vê um motivo genérico e "Analista da agência X". O detalhe técnico
+  (sinais, o que pesou, parecer da IA) e o nome completo do auditor aparecem só na filial. O
+  auditor vê nome abreviado, final do cartão, a compra em análise e histórico agregado; nunca o
+  saldo nem o extrato inteiro.
+- **Saldo.** Compra aprovada no débito desconta o saldo; no crédito, consome o limite; bloqueada
+  ou aguardando confirmação não mexe em nada.
+
+## Divisão em duas pessoas
+
+O contrato (R1) é fechado primeiro. Depois, as duas trilhas correm em paralelo e não tocam nos
+mesmos arquivos: o **site** é feito contra os mocks e a **API**, contra os testes do contrato.
+
+| Trilha | Dono | Pastas |
+| --- | --- | --- |
+| Site | Pedro Muller | `web/` (menos as pastas da R11) |
+| API | Pessoa 2 | `src/`, `tests/`, e as pastas da R11 em `web/` |
+
+Cada Issue vira uma branch `refatoracao/<id>-<slug>` a partir de `refatoracao`, com PR para
+`refatoracao`.
+
+## Prioridade 1 (entra na entrega se ficar pronta até domingo, 14h)
+
+| Id | Título | Dono | Depende de |
+| --- | --- | --- | --- |
+| R0 | design: protótipo de alta fidelidade (`docs/prototipo/`) | Pedro Muller | — |
+| R1 | docs: fecha o contrato das rotas novas (ESPECIFICACAO, tipos e mocks) | Pedro Muller, com revisão da Pessoa 2 | R0 |
+| R2 | feat: aplica a identidade Sicredi e cria as molduras e o login simulado | Pedro Muller | R1 |
+| R3 | feat: cria o domínio, as portas e os adaptadores em memória | Pessoa 2 | R1 |
+| R4 | feat: cria a tela inicial e o extrato do associado | Pedro Muller | R2 |
+| R5 | feat: cria as rotas do associado | Pessoa 2 | R3 |
+| R6 | feat: cria o simular compra, o aviso e o "não reconheço" | Pedro Muller | R4 |
+| R7 | feat: cria as rotas da filial | Pessoa 2 | R5 |
+| R8 | feat: cria a fila do auditor e o painel da compra na filial | Pedro Muller | R6 |
+| R9 | feat: calcula as métricas do gerente | Pessoa 2 | R7 |
+| R10 | feat: cria o painel do gerente | Pedro Muller | R8 |
+| R11 | feat: leva "Desempenho" e "Como funciona" para a área da filial | Pessoa 2 | R2, R9 |
+| R12 | test: integra o site com a API e confere tudo com o watsonx.ai | os dois | R10, R11 |
+
+### R1 — contrato
+
+Rotas previstas (campos fechados nesta Issue, na ESPECIFICACAO, seção 17):
+
+- `POST /api/sessao` (login simulado; devolve o perfil: associado, auditor ou gerente)
+- `GET /api/associado/inicio` (saldo, limite e cartões)
+- `GET /api/associado/extrato`
+- `POST /api/associado/compras` (simula a compra; passa pelo Sentinela e entra no extrato e na fila
+  da filial)
+- `POST /api/associado/compras/{id}/contestacao` ("não reconheço": registra, avisa a filial e
+  bloqueia o cartão)
+- `GET /api/filial/fila` e `GET /api/filial/compras/{id}` (só a carteira da filial; visão dentro
+  da LGPD)
+- `GET /api/filial/metricas`
+
+Aceite: tipos em `web/lib/tipos.ts`, mocks em `web/lib/mocks/` e um teste de contrato por rota em
+`tests/test_contrato_refatoracao.py` (pulado até a rota existir).
+
+### R3 — domínio, portas e adaptadores
+
+`src/dominio/` (associado, cartão, filial, auditor, compra, contestação), `src/portas/`
+(repositórios) e `src/adaptadores/memoria/`. Duas filiais, dois auditores e um gerente por filial,
+cerca de cinco associados com login em cada. Aceite: as regras não importam nenhum adaptador; os
+testes trocam o repositório por um dublê.
+
+### R9 — métricas do gerente
+
+Por filial: decisões por tipo de compra e por modalidade; acerto do modelo pela resposta do
+associado ("fui eu" e "não fui eu"); fraudes que o modelo aprovou (contestações); tempo de resposta
+do associado. Bloqueios por auditor entram na R15.
+
+## Prioridade 2 (ações do auditor)
+
+| Id | Título | Dono | Depende de |
+| --- | --- | --- | --- |
+| R13 | feat: auditor bloqueia compra que aguarda confirmação (API) | Pessoa 2 | R7 |
+| R14 | feat: auditor bloqueia compra que aguarda confirmação (site) | Pedro Muller | R8, R13 |
+| R15 | feat: mostra bloqueios por auditor e quantos estavam certos | os dois | R13, R14 |
+
+O bloqueio registra o nome do auditor, a data e o motivo (explicação da IA mais uma nota dele). Se
+o associado responder "fui eu", a compra é liberada sozinha e o bloqueio conta como incorreto.
+
+## Prioridade 3 (chat)
+
+| Id | Título | Dono | Depende de |
+| --- | --- | --- | --- |
+| R16 | feat: chat do associado com a IA (API, watsonx.ai) | Pessoa 2 | R5 |
+| R17 | feat: chat do associado e "conversar com gerente" (site) | Pedro Muller | R4, R16 |
+
+A IA só informa: resume os gastos e explica, em termos genéricos, as compras bloqueadas do próprio
+associado. "Conversar com gerente" abre a mesma conversa com um resumo da sessão e para aí
+(simulado).
+
+## Prioridade 4
+
+| Id | Título | Dono | Depende de |
+| --- | --- | --- | --- |
+| R18 | feat: persiste em Postgres por um adaptador novo | a definir | R3 |

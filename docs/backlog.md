@@ -316,7 +316,7 @@ mesmos arquivos: o **site** é feito contra os mocks e a **API**, contra os test
 | Trilha | Dono | Pastas |
 | --- | --- | --- |
 | Site | Pedro Muller | `web/` (menos as pastas da R11) |
-| API | Pessoa 2 | `src/`, `tests/`, e as pastas da R11 em `web/` |
+| API | Bruno | `src/`, `tests/`, e as pastas da R11 em `web/` |
 
 Cada Issue vira uma branch `feature/<n>-<slug>` a partir de `refatoracao`, com PR para
 `refatoracao` (nunca para `develop`). O CI "Qualidade" roda nesses PRs. O passo a passo de cada
@@ -327,24 +327,24 @@ Issue está no fim deste arquivo e na própria Issue do GitHub.
 | Id | Título | Dono | Depende de |
 | --- | --- | --- | --- |
 | R0 | design: protótipo de alta fidelidade (`docs/prototipo/`) — **feito** | Pedro Muller | — |
-| #90 (R1) | docs: fecha o contrato das rotas novas (ESPECIFICACAO, tipos e mocks) | Pedro Muller, com revisão da Pessoa 2 | protótipo |
+| #90 (R1) | docs: fecha o contrato das rotas novas (ESPECIFICACAO, tipos e mocks) | Pedro Muller, com revisão da Bruno | protótipo |
 | #91 (R2) | feat: aplica a identidade Sicredi e cria as molduras e o login simulado | Pedro Muller | #90 |
-| #92 (R3) | feat: cria o domínio, as portas e os adaptadores em memória | Pessoa 2 | #90 |
+| #92 (R3) | feat: cria o domínio, as portas e os adaptadores em memória | Bruno | #90 |
 | #93 (R4) | feat: cria a tela inicial e o extrato do associado | Pedro Muller | #91 |
-| #94 (R5) | feat: cria as rotas do associado | Pessoa 2 | #92 |
+| #94 (R5) | feat: cria as rotas do associado | Bruno | #92 |
 | #95 (R6) | feat: cria o simular compra, o aviso e o "não reconheço" | Pedro Muller | #93 |
-| #96 (R7) | feat: cria as rotas da filial | Pessoa 2 | #94 |
+| #96 (R7) | feat: cria as rotas da filial | Bruno | #94 |
 | #97 (R8) | feat: cria a fila do auditor e o painel da compra na filial | Pedro Muller | #95 |
-| #98 (R9) | feat: calcula as métricas do gerente | Pessoa 2 | #96 |
+| #98 (R9) | feat: calcula as métricas do gerente | Bruno | #96 |
 | #99 (R10) | feat: cria o painel do gerente | Pedro Muller | #97 |
-| #100 (R11) | feat: leva "Desempenho" e "Como funciona" para a área da filial | Pessoa 2 | #91, #98 |
+| #100 (R11) | feat: leva "Desempenho" e "Como funciona" para a área da filial | Bruno | #91, #98 |
 | #101 (R12) | test: integra o site com a API e confere tudo com o watsonx.ai | os dois | #99, #100 |
 
 ## Prioridade 2 (ações do auditor)
 
 | Id | Título | Dono | Depende de |
 | --- | --- | --- | --- |
-| #102 (R13) | feat: auditor bloqueia compra que aguarda confirmação (API) | Pessoa 2 | #96 |
+| #102 (R13) | feat: auditor bloqueia compra que aguarda confirmação (API) | Bruno | #96 |
 | #103 (R14) | feat: auditor bloqueia compra que aguarda confirmação (site) | Pedro Muller | #97, #102 |
 | #104 (R15) | feat: mostra bloqueios por auditor e quantos estavam certos | os dois | #102, #103 |
 
@@ -355,7 +355,7 @@ o associado responder "fui eu", a compra é liberada sozinha e o bloqueio conta 
 
 | Id | Título | Dono | Depende de |
 | --- | --- | --- | --- |
-| #105 (R16) | feat: chat do associado com a IA (API, watsonx.ai) | Pessoa 2 | #94 |
+| #105 (R16) | feat: chat do associado com a IA (API, watsonx.ai) | Bruno | #94 |
 | #106 (R17) | feat: chat do associado e "conversar com gerente" (site) | Pedro Muller | #93, #105 |
 
 A IA só informa: resume os gastos e explica, em termos genéricos, as compras bloqueadas do próprio
@@ -459,7 +459,7 @@ Trocar a cara do site pela identidade da Sicredi e criar a estrutura das duas á
 
 ## #92 (R3) — feat: cria o domínio, as portas e os adaptadores em memória
 
-**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #90 · **Branch:** `feature/92-dominio-e-portas` (a partir de `refatoracao`)
+**Dono:** Bruno · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #90 · **Branch:** `feature/92-dominio-e-portas` (a partir de `refatoracao`)
 
 ### Objetivo
 
@@ -530,7 +530,7 @@ Criar as telas 2 (Início), 3 (Extrato) e 6 (Detalhe da compra) do protótipo, c
 
 ## #94 (R5) — feat: cria as rotas do associado
 
-**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #92 · **Branch:** `feature/94-rotas-do-associado` (a partir de `refatoracao`)
+**Dono:** Bruno · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #92 · **Branch:** `feature/94-rotas-do-associado` (a partir de `refatoracao`)
 
 ### Objetivo
 
@@ -602,7 +602,7 @@ Criar as telas 4 (Simular compra) e 5 (Foi você?) do protótipo e o botão "Nã
 
 ## #96 (R7) — feat: cria as rotas da filial
 
-**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #94 · **Branch:** `feature/96-rotas-da-filial` (a partir de `refatoracao`)
+**Dono:** Bruno · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #94 · **Branch:** `feature/96-rotas-da-filial` (a partir de `refatoracao`)
 
 ### Objetivo
 
@@ -667,7 +667,7 @@ Criar a tela "Filial: auditor" do protótipo: a fila da agência e o painel da c
 
 ## #98 (R9) — feat: calcula as métricas do gerente
 
-**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #96 · **Branch:** `feature/98-metricas-do-gerente` (a partir de `refatoracao`)
+**Dono:** Bruno · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #96 · **Branch:** `feature/98-metricas-do-gerente` (a partir de `refatoracao`)
 
 ### Objetivo
 
@@ -732,7 +732,7 @@ Criar a tela "Filial: gerente" do protótipo com as métricas da agência.
 
 ## #100 (R11) — feat: leva "Desempenho" e "Como funciona" para a área da filial
 
-**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #91, #98 · **Branch:** `feature/100-desempenho-na-filial` (a partir de `refatoracao`)
+**Dono:** Bruno · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #91, #98 · **Branch:** `feature/100-desempenho-na-filial` (a partir de `refatoracao`)
 
 ### Objetivo
 
@@ -798,7 +798,7 @@ Rodar o site contra a API real, sem mocks, e conferir o fluxo inteiro antes da l
 
 ## #102 (R13) — feat: auditor bloqueia compra que aguarda confirmação (API)
 
-**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P2 · **Depende de:** #96 · **Branch:** `feature/102-bloqueio-do-auditor-api` (a partir de `refatoracao`)
+**Dono:** Bruno · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P2 · **Depende de:** #96 · **Branch:** `feature/102-bloqueio-do-auditor-api` (a partir de `refatoracao`)
 
 ### Objetivo
 
@@ -885,7 +885,7 @@ Acrescentar ao painel do gerente o cartão "Bloqueios da equipe".
 
 ## #105 (R16) — feat: cria o chat do associado com a IA (API)
 
-**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P3 · **Depende de:** #94 · **Branch:** `feature/105-chat-api` (a partir de `refatoracao`)
+**Dono:** Bruno · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P3 · **Depende de:** #94 · **Branch:** `feature/105-chat-api` (a partir de `refatoracao`)
 
 ### Objetivo
 

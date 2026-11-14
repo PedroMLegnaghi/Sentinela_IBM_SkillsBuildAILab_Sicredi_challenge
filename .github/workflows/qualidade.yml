@@ -2,9 +2,9 @@ name: Qualidade
 
 on:
   pull_request:
-    branches: [develop, main]
+    branches: [develop, main, refatoracao]
   push:
-    branches: [develop]
+    branches: [develop, refatoracao]
 
 jobs:
   verificar:

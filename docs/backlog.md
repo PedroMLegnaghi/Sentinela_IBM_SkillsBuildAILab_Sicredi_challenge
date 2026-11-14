@@ -318,65 +318,35 @@ mesmos arquivos: o **site** é feito contra os mocks e a **API**, contra os test
 | Site | Pedro Muller | `web/` (menos as pastas da R11) |
 | API | Pessoa 2 | `src/`, `tests/`, e as pastas da R11 em `web/` |
 
-Cada Issue vira uma branch `refatoracao/<id>-<slug>` a partir de `refatoracao`, com PR para
-`refatoracao`.
+Cada Issue vira uma branch `feature/<n>-<slug>` a partir de `refatoracao`, com PR para
+`refatoracao` (nunca para `develop`). O CI "Qualidade" roda nesses PRs. O passo a passo de cada
+Issue está no fim deste arquivo e na própria Issue do GitHub.
 
 ## Prioridade 1 (entra na entrega se ficar pronta até domingo, 14h)
 
 | Id | Título | Dono | Depende de |
 | --- | --- | --- | --- |
-| R0 | design: protótipo de alta fidelidade (`docs/prototipo/`) | Pedro Muller | — |
-| R1 | docs: fecha o contrato das rotas novas (ESPECIFICACAO, tipos e mocks) | Pedro Muller, com revisão da Pessoa 2 | R0 |
-| R2 | feat: aplica a identidade Sicredi e cria as molduras e o login simulado | Pedro Muller | R1 |
-| R3 | feat: cria o domínio, as portas e os adaptadores em memória | Pessoa 2 | R1 |
-| R4 | feat: cria a tela inicial e o extrato do associado | Pedro Muller | R2 |
-| R5 | feat: cria as rotas do associado | Pessoa 2 | R3 |
-| R6 | feat: cria o simular compra, o aviso e o "não reconheço" | Pedro Muller | R4 |
-| R7 | feat: cria as rotas da filial | Pessoa 2 | R5 |
-| R8 | feat: cria a fila do auditor e o painel da compra na filial | Pedro Muller | R6 |
-| R9 | feat: calcula as métricas do gerente | Pessoa 2 | R7 |
-| R10 | feat: cria o painel do gerente | Pedro Muller | R8 |
-| R11 | feat: leva "Desempenho" e "Como funciona" para a área da filial | Pessoa 2 | R2, R9 |
-| R12 | test: integra o site com a API e confere tudo com o watsonx.ai | os dois | R10, R11 |
-
-### R1 — contrato
-
-Rotas previstas (campos fechados nesta Issue, na ESPECIFICACAO, seção 17):
-
-- `POST /api/sessao` (login simulado; devolve o perfil: associado, auditor ou gerente)
-- `GET /api/associado/inicio` (saldo, limite e cartões)
-- `GET /api/associado/extrato`
-- `POST /api/associado/compras` (simula a compra; passa pelo Sentinela e entra no extrato e na fila
-  da filial)
-- `POST /api/associado/compras/{id}/contestacao` ("não reconheço": registra, avisa a filial e
-  bloqueia o cartão)
-- `GET /api/filial/fila` e `GET /api/filial/compras/{id}` (só a carteira da filial; visão dentro
-  da LGPD)
-- `GET /api/filial/metricas`
-
-Aceite: tipos em `web/lib/tipos.ts`, mocks em `web/lib/mocks/` e um teste de contrato por rota em
-`tests/test_contrato_refatoracao.py` (pulado até a rota existir).
-
-### R3 — domínio, portas e adaptadores
-
-`src/dominio/` (associado, cartão, filial, auditor, compra, contestação), `src/portas/`
-(repositórios) e `src/adaptadores/memoria/`. Duas filiais, dois auditores e um gerente por filial,
-cerca de cinco associados com login em cada. Aceite: as regras não importam nenhum adaptador; os
-testes trocam o repositório por um dublê.
-
-### R9 — métricas do gerente
-
-Por filial: decisões por tipo de compra e por modalidade; acerto do modelo pela resposta do
-associado ("fui eu" e "não fui eu"); fraudes que o modelo aprovou (contestações); tempo de resposta
-do associado. Bloqueios por auditor entram na R15.
+| R0 | design: protótipo de alta fidelidade (`docs/prototipo/`) — **feito** | Pedro Muller | — |
+| #90 (R1) | docs: fecha o contrato das rotas novas (ESPECIFICACAO, tipos e mocks) | Pedro Muller, com revisão da Pessoa 2 | protótipo |
+| #91 (R2) | feat: aplica a identidade Sicredi e cria as molduras e o login simulado | Pedro Muller | #90 |
+| #92 (R3) | feat: cria o domínio, as portas e os adaptadores em memória | Pessoa 2 | #90 |
+| #93 (R4) | feat: cria a tela inicial e o extrato do associado | Pedro Muller | #91 |
+| #94 (R5) | feat: cria as rotas do associado | Pessoa 2 | #92 |
+| #95 (R6) | feat: cria o simular compra, o aviso e o "não reconheço" | Pedro Muller | #93 |
+| #96 (R7) | feat: cria as rotas da filial | Pessoa 2 | #94 |
+| #97 (R8) | feat: cria a fila do auditor e o painel da compra na filial | Pedro Muller | #95 |
+| #98 (R9) | feat: calcula as métricas do gerente | Pessoa 2 | #96 |
+| #99 (R10) | feat: cria o painel do gerente | Pedro Muller | #97 |
+| #100 (R11) | feat: leva "Desempenho" e "Como funciona" para a área da filial | Pessoa 2 | #91, #98 |
+| #101 (R12) | test: integra o site com a API e confere tudo com o watsonx.ai | os dois | #99, #100 |
 
 ## Prioridade 2 (ações do auditor)
 
 | Id | Título | Dono | Depende de |
 | --- | --- | --- | --- |
-| R13 | feat: auditor bloqueia compra que aguarda confirmação (API) | Pessoa 2 | R7 |
-| R14 | feat: auditor bloqueia compra que aguarda confirmação (site) | Pedro Muller | R8, R13 |
-| R15 | feat: mostra bloqueios por auditor e quantos estavam certos | os dois | R13, R14 |
+| #102 (R13) | feat: auditor bloqueia compra que aguarda confirmação (API) | Pessoa 2 | #96 |
+| #103 (R14) | feat: auditor bloqueia compra que aguarda confirmação (site) | Pedro Muller | #97, #102 |
+| #104 (R15) | feat: mostra bloqueios por auditor e quantos estavam certos | os dois | #102, #103 |
 
 O bloqueio registra o nome do auditor, a data e o motivo (explicação da IA mais uma nota dele). Se
 o associado responder "fui eu", a compra é liberada sozinha e o bloqueio conta como incorreto.
@@ -385,8 +355,8 @@ o associado responder "fui eu", a compra é liberada sozinha e o bloqueio conta 
 
 | Id | Título | Dono | Depende de |
 | --- | --- | --- | --- |
-| R16 | feat: chat do associado com a IA (API, watsonx.ai) | Pessoa 2 | R5 |
-| R17 | feat: chat do associado e "conversar com gerente" (site) | Pedro Muller | R4, R16 |
+| #105 (R16) | feat: chat do associado com a IA (API, watsonx.ai) | Pessoa 2 | #94 |
+| #106 (R17) | feat: chat do associado e "conversar com gerente" (site) | Pedro Muller | #93, #105 |
 
 A IA só informa: resume os gastos e explica, em termos genéricos, as compras bloqueadas do próprio
 associado. "Conversar com gerente" abre a mesma conversa com um resumo da sessão e para aí
@@ -396,4 +366,613 @@ associado. "Conversar com gerente" abre a mesma conversa com um resumo da sessã
 
 | Id | Título | Dono | Depende de |
 | --- | --- | --- | --- |
-| R18 | feat: persiste em Postgres por um adaptador novo | a definir | R3 |
+| #107 (R18) | feat: persiste em Postgres por um adaptador novo | a definir | #92 |
+
+---
+
+# Refatoração: passo a passo de cada Issue
+
+## #90 (R1) — docs: fecha o contrato das rotas novas da refatoração
+
+**Dono:** Pedro Muller · **Trilha:** Site (`web/`) · **Prioridade:** P1 · **Depende de:** nenhuma · **Branch:** `feature/90-contrato` (a partir de `refatoracao`)
+
+### Objetivo
+
+Escrever, antes de qualquer código, o contrato das rotas novas. É ele que deixa as duas trilhas trabalharem em paralelo: o site usa os mocks e a API usa os testes de contrato. Depois do merge desta Issue, um campo só muda com o acordo das duas trilhas.
+
+### Arquivos
+
+- `ESPECIFICACAO.md` (seção 17, nova)
+- `web/lib/tipos.ts` (tipos novos, no fim do arquivo)
+- `web/lib/mocks/refatoracao.ts` (novo)
+- `tests/test_contrato_refatoracao.py` (novo)
+
+### Passo a passo
+
+1. Crie a seção 17 da `ESPECIFICACAO.md`, "Associado e filial". Para cada rota abaixo, escreva: método, caminho, cabeçalho, corpo de entrada, corpo de saída com o tipo de cada campo, e os códigos de erro.
+2. **Sessão.** `GET /api/sessao/perfis` devolve `{perfis: [{id_perfil, nome, papel, filial: {id_filial, nome}}]}`, com `papel` em `associado`, `auditor` ou `gerente`. `POST /api/sessao` recebe `{id_perfil}` e devolve `{token, perfil}`; perfil desconhecido dá 404. Todas as rotas abaixo exigem o cabeçalho `X-Sessao: <token>`: sem ele, 401; com papel errado, 403.
+3. **Início do associado.** `GET /api/associado/inicio` devolve `{associado: {nome, filial}, saldo, limite_total, limite_disponivel, cartoes: [{id_cartao, tipo, final, bloqueado}], pendentes: [{id_notificacao, id_compra, valor, data_hora}], ultimas_compras: [CompraExtrato]}` (as 3 mais recentes).
+4. **Extrato.** `GET /api/associado/extrato?situacao=` devolve `{total, itens: [CompraExtrato]}`, da mais nova para a mais antiga. `CompraExtrato` = `{id_compra, estabelecimento, data_hora, valor, tipo_transacao, final_cartao, situacao, id_notificacao}`, com `situacao` em `APROVADA`, `AGUARDANDO`, `BLOQUEADA` ou `CONTESTADA`.
+5. **Detalhe da compra.** `GET /api/associado/compras/{id_compra}` devolve `CompraExtrato` mais `{bloqueio: {por, em, motivo} | null, resposta_associado: {resposta, em} | null, pode_contestar}`. `por` é `"Sentinela"` ou `"Analista da agência <nome>"`; `motivo` é sempre o texto genérico. Compra de outro associado dá 404.
+6. **Simular compra.** `POST /api/associado/compras` recebe `{id_cartao}` mais os mesmos campos de `EntradaAnalise` (seção 12) e devolve 201 com `{compra: CompraExtrato, id_notificacao}`. Cartão bloqueado dá 409.
+7. **Contestação.** `POST /api/associado/compras/{id_compra}/contestacao` devolve 201 com `{compra, cartao_bloqueado: true}`. Só vale para compra `APROVADA`; nos outros casos, 409.
+8. **Aviso "Foi você?".** Continua nas rotas atuais `GET /api/notificacoes/{id}` e `POST /api/notificacoes/{id}/resposta` (seção 15). Escreva que a resposta agora também muda a situação da compra: "fui eu" vira `APROVADA`; "não fui eu" vira `BLOQUEADA`.
+9. **Fila da filial.** `GET /api/filial/fila?situacao=` devolve `{filial, total, itens: [{id_compra, nota, decisao, associado, final_cartao, data_hora, valor, situacao, veredito_ia}]}`, só com a carteira da filial da sessão. `associado` é o nome abreviado ("Ana S.").
+10. **Compra na filial.** `GET /api/filial/compras/{id_compra}` devolve `{compra, sinais, contribuicoes, explicacao, auditoria, associado: {nome_abreviado, final_cartao, historico: {compras_90d, valor_mediano, contestacoes}}, resposta_associado, bloqueio}`. Nunca devolve saldo, limite nem o extrato. Compra de outra filial dá 403.
+11. **Métricas do gerente.** `GET /api/filial/metricas` devolve `{filial, periodo, totais: {compras, aprovadas, confirmacoes, bloqueadas, valor_protegido}, por_tipo: [{tipo_transacao, modalidade, aprovadas, confirmacoes, bloqueadas}], acerto_modelo: {alertas_certos, alertas_desnecessarios, sem_resposta, taxa}, fraudes_aprovadas: {total, itens}, tempo_resposta_mediano_s}`. Só para o papel `gerente`.
+12. Escreva na seção 17 as regras de negócio: saldo (débito desconta o saldo, crédito consome o limite, bloqueada ou aguardando não mexe), identificadores públicos opacos (nunca `id_cartao`, `id_cliente` ou `id_estabelecimento` da base) e a divisão da carteira entre as duas filiais.
+13. Em `web/lib/tipos.ts`, crie um tipo para cada corpo de saída, com os mesmos nomes de campo.
+14. Em `web/lib/mocks/refatoracao.ts`, crie um mock para cada rota, com os dados do protótipo (`docs/prototipo/index.html`): Ana Souza, Agência Centro, saldo R$ 4.820,35 e as seis compras do extrato.
+15. Em `tests/test_contrato_refatoracao.py`, crie um teste por rota que chama a rota com o `TestClient` e confere o código e as chaves do corpo. Marque cada um com `pytest.mark.skip(reason="rota da Issue #N")`; quem fizer a rota tira a marca.
+16. Peça a revisão da trilha API no PR antes do merge. Esta é a única Issue com revisão obrigatória.
+
+### Pronto quando
+
+- A seção 17 descreve todas as rotas acima, com tipos e erros.
+- `npm run typecheck` passa com os tipos e os mocks novos.
+- `pytest -q -rs` mostra os testes de contrato como pulados, com o motivo.
+- A outra trilha aprovou o PR.
+
+**Fora desta Issue:** Implementar qualquer rota ou tela.
+
+## #91 (R2) — feat: aplica a identidade Sicredi e cria as molduras e o login simulado
+
+**Dono:** Pedro Muller · **Trilha:** Site (`web/`) · **Prioridade:** P1 · **Depende de:** #90 · **Branch:** `feature/91-identidade-sicredi` (a partir de `refatoracao`)
+
+### Objetivo
+
+Trocar a cara do site pela identidade da Sicredi e criar a estrutura das duas áreas: a moldura do associado (celular), a moldura da filial (desktop) e a tela de entrada.
+
+### Arquivos
+
+- `web/app/layout.tsx`, `web/app/globals.scss`, `web/app/page.tsx`
+- `web/styles/sicredi.scss` (novo: cores, fontes, raios e sombras)
+- `web/public/logo-sicredi.png` e `web/public/logo-sicredi-branco.png` (cópias de `docs/prototipo/`)
+- `web/components/layout/MolduraAssociado.tsx` e `MolduraFilial.tsx` (novos); `Shell.tsx` sai
+- `web/app/entrar/page.tsx` (novo)
+- `web/lib/sessao.ts` (novo), `web/lib/api.ts` (funções de sessão), `web/lib/textos.ts`
+- `web/tests/sessao.test.tsx` (novo)
+
+### Passo a passo
+
+1. Leia `web/AGENTS.md` antes de começar: o Next.js 16 difere do que os modelos conhecem.
+2. Abra o protótipo (`docs/prototipo/index.html`, aba "Guia de estilo"). Ele é a referência de cores, tamanhos e espaçamentos.
+3. Em `web/styles/sicredi.scss`, declare as variáveis do protótipo: verde `#3FA110`, verde de ação `#33820D`, verde escuro `#146E37`, fundo verde `#ECF6E7`, texto `#323C32`, texto de apoio `#5A645A`, amarelo `#FFCD00` e magenta `#E60050`.
+4. Em `web/app/layout.tsx`, carregue as fontes com `next/font/google`: Exo 2 (títulos, itálico 600 e 700) e Nunito (texto, 400 a 800).
+5. Em `web/app/globals.scss`, sobreponha os tokens do Carbon para que botões, links e foco usem o verde de ação. Botão com texto branco usa `#33820D`, nunca `#3FA110` (contraste).
+6. Copie os dois logos para `web/public/`. Use o colorido em fundo branco e o branco em fundo verde. Não altere cor nem proporção do logo.
+7. Crie `MolduraAssociado`: coluna de até 420 px centralizada, com a barra de navegação embaixo (Início, Extrato, Comprar, Chat).
+8. Crie `MolduraFilial`: menu lateral com o logo, o nome da agência, os links e, embaixo, o nome e o papel de quem entrou. Os links mudam com o papel (auditor ou gerente).
+9. Em `web/lib/api.ts`, crie `obterPerfis()` e `entrar(idPerfil)`. Em `web/lib/sessao.ts`, guarde `{token, perfil}` no `sessionStorage` e exponha `obterSessao()`, `sair()` e um hook `useSessao()`. Toda chamada nova à API envia o cabeçalho `X-Sessao`.
+10. Crie `/entrar`: lista os perfis de `obterPerfis()`, agrupados por papel; ao escolher e clicar em "Entrar", guarda a sessão e leva o associado para `/associado` e o auditor ou gerente para `/filial`.
+11. `/` passa a redirecionar para `/entrar`. As páginas de `/associado` e `/filial` redirecionam para `/entrar` quando não há sessão ou o papel não serve.
+12. Mova a fila atual de `/` para `/filial/fila` dentro da `MolduraFilial`, sem mudar o conteúdo (ele é refeito na Issue da fila do auditor). As páginas `/simulador`, `/respostas`, `/desempenho` e `/como-funciona` continuam funcionando dentro da moldura nova.
+13. Teste: a tela de entrada mostra os perfis do mock; entrar como associado leva a `/associado`; sem sessão, `/filial` leva a `/entrar`.
+
+### Pronto quando
+
+- Com `NEXT_PUBLIC_USAR_MOCK=1 npm run dev`, a tela de entrada fica igual à tela 1 do protótipo.
+- Nenhuma tela usa mais a cor azul do Carbon em botão, link ou foco.
+- Os testes antigos do site continuam passando.
+
+**Fora desta Issue:** As telas internas do associado e da filial (Issues seguintes).
+
+## #92 (R3) — feat: cria o domínio, as portas e os adaptadores em memória
+
+**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #90 · **Branch:** `feature/92-dominio-e-portas` (a partir de `refatoracao`)
+
+### Objetivo
+
+Criar a base das regras novas com inversão de dependências: o domínio conhece só interfaces; o armazenamento em memória é um adaptador que depois pode ser trocado por Postgres sem mexer nas regras.
+
+### Arquivos
+
+- `src/dominio/` (novo): `entidades.py`, `regras.py`
+- `src/portas/repositorios.py` (novo)
+- `src/adaptadores/memoria/` (novo): `repositorios.py`, `dados_demo.py`
+- `src/composicao.py` (novo: monta os repositórios usados pela API)
+- `tests/test_dominio.py` (novo)
+
+### Passo a passo
+
+1. Em `src/dominio/entidades.py`, crie dataclasses para `Filial`, `Funcionario` (papel `auditor` ou `gerente`), `Associado`, `Cartao` (tipo, final, bloqueado), `Compra` (com `situacao`) e `Contestacao`. Use identificadores públicos opacos (por exemplo `asc-01`, `car-01`, `cmp-000001`); o identificador da base fica num campo interno que nunca sai pela API.
+2. Em `src/dominio/regras.py`, escreva funções puras: `situacao_inicial(decisao)` (APROVAR vira `APROVADA`, PEDIR_CONFIRMACAO vira `AGUARDANDO`, BLOQUEAR vira `BLOQUEADA`), `aplicar_no_saldo(associado, cartao, compra)` (débito desconta o saldo, crédito consome o limite, só para `APROVADA`), `aplicar_resposta(compra, resposta)` e `contestar(compra, cartao)`.
+3. Em `src/portas/repositorios.py`, declare um `Protocol` por repositório: `RepositorioFiliais`, `RepositorioPerfis`, `RepositorioAssociados`, `RepositorioCartoes`, `RepositorioCompras` e `RepositorioContestacoes`. Cada um só com os métodos que as regras usam (`obter`, `listar_por_...`, `salvar`).
+4. Em `src/adaptadores/memoria/repositorios.py`, implemente cada porta com dicionários e um `threading.Lock`.
+5. Em `src/adaptadores/memoria/dados_demo.py`, monte os dados fictícios: 2 filiais ("Agência Centro" e "Agência Norte"), cada uma com 1 gerente, 2 auditores e 5 associados com nome, saldo e limite inventados.
+6. Ligue cada associado com login a um cliente real de março: ordene os clientes de março pela quantidade de compras (maior primeiro, desempate pelo identificador) e pegue os 10 primeiros, alternando entre as filiais. Os cartões saem dos cartões desse cliente; o `final` é inventado.
+7. Divida a carteira: ordene todos os clientes de março pelo identificador; posição par vai para a Agência Centro e posição ímpar, para a Agência Norte. Cliente sem login aparece na filial como "Associado 0421" (número da posição).
+8. Em `src/composicao.py`, crie `obter_repositorios()`, que devolve os adaptadores em memória já carregados. É o único lugar que importa adaptadores.
+9. Testes: as regras de saldo e de situação; a divisão da carteira (as duas metades diferem em no máximo 1 cliente); e um teste de arquitetura que falha se algo em `src/dominio/` ou `src/portas/` importar `pandas`, `fastapi` ou `src.adaptadores`.
+
+### Pronto quando
+
+- `src/dominio/` e `src/portas/` não importam adaptadores, pandas nem FastAPI (teste de arquitetura).
+- Os testes trocam um repositório por um dublê sem tocar nas regras.
+- Nenhum identificador da base aparece em log, exceção ou objeto público.
+- O núcleo (`src/agente.py`, `src/preparar_dados.py`, `src/treinar_modelo.py`) não foi alterado.
+
+**Fora desta Issue:** Rotas da API (Issues seguintes) e Postgres.
+
+## #93 (R4) — feat: cria a tela inicial e o extrato do associado
+
+**Dono:** Pedro Muller · **Trilha:** Site (`web/`) · **Prioridade:** P1 · **Depende de:** #91 · **Branch:** `feature/93-inicio-e-extrato` (a partir de `refatoracao`)
+
+### Objetivo
+
+Criar as telas 2 (Início), 3 (Extrato) e 6 (Detalhe da compra) do protótipo, contra os mocks.
+
+### Arquivos
+
+- `web/app/associado/page.tsx` (substitui a lista de avisos atual)
+- `web/app/associado/extrato/page.tsx` e `web/app/associado/compras/[id]/page.tsx` (novos)
+- `web/components/associado/` (componentes novos: `CartaoSaldo`, `Atalhos`, `ItemCompra`, `ListaCompras`, `EtiquetaSituacao`, `DetalheCompra`)
+- `web/lib/api.ts` (`obterInicio`, `obterExtrato`, `obterCompra`), `web/lib/textos.ts`, `web/lib/formatacao.ts`
+- `web/tests/associado.test.tsx`
+
+### Passo a passo
+
+1. Em `web/lib/api.ts`, crie `obterInicio()`, `obterExtrato(situacao?)` e `obterCompra(id)`, no mesmo padrão das funções atuais (mock quando `NEXT_PUBLIC_USAR_MOCK=1`).
+2. Crie `EtiquetaSituacao`: `APROVADA` verde, `AGUARDANDO` amarela ("Aguardando você"), `BLOQUEADA` e `CONTESTADA` magenta. Os textos ficam em `web/lib/textos.ts`.
+3. Início: cabeçalho verde com o logo branco e "Olá, <nome>"; cartão com saldo e limite disponível (com a barra); quatro atalhos (Simular compra, Extrato, Chat e Investir, este desabilitado); aviso amarelo para cada compra pendente, com o botão "Responder"; e as 3 últimas compras.
+4. Extrato: filtros Todas, Aprovadas, Aguardando e Bloqueadas; lista agrupada por mês; valor riscado nas bloqueadas. Tocar numa compra abre o detalhe.
+5. Detalhe: valor, quando, cartão e situação. Se bloqueada, mostra "Bloqueada por", "Em" e "Motivo". Se houve resposta do associado, mostra a faixa com a resposta e a hora.
+6. Trate os três estados em cada tela com os componentes de `web/components/comuns/`: carregando, erro e vazio.
+7. Testes: o início mostra saldo, limite e o aviso pendente; o filtro "Bloqueadas" mostra só as bloqueadas; o detalhe de uma bloqueada mostra quem bloqueou e o motivo genérico.
+
+### Pronto quando
+
+- As três telas ficam iguais ao protótipo em 375 px de largura.
+- Nenhum texto técnico (sinais, nota, parecer da IA) aparece na área do associado.
+- Navegar pela barra de baixo não recarrega a página.
+
+**Fora desta Issue:** Simular compra, responder ao aviso e contestar (Issue seguinte).
+
+## #94 (R5) — feat: cria as rotas do associado
+
+**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #92 · **Branch:** `feature/94-rotas-do-associado` (a partir de `refatoracao`)
+
+### Objetivo
+
+Implementar a sessão simulada e as rotas do associado da seção 17: início, extrato, detalhe, simular compra e contestação. A compra simulada passa pelo Sentinela.
+
+### Arquivos
+
+- `src/api/sessao.py` e `src/api/rotas_associado.py` (novos)
+- `src/api/esquemas_refatoracao.py` (novo)
+- `src/aplicacao/associado.py` (novo: casos de uso)
+- `src/api/app.py` (só `include_router` e a ligação da resposta do aviso com a compra)
+- `tests/test_rotas_associado.py` (novo) e `tests/test_contrato_refatoracao.py` (tirar as marcas de pulo destas rotas)
+
+### Passo a passo
+
+1. Em `src/api/sessao.py`, crie as rotas `GET /api/sessao/perfis` e `POST /api/sessao` e uma dependência do FastAPI `sessao_com_papel(*papeis)`, que lê `X-Sessao`, devolve o perfil e responde 401 ou 403. O token é um `uuid4` guardado em memória.
+2. Em `src/aplicacao/associado.py`, escreva os casos de uso recebendo os repositórios por parâmetro (nunca importando adaptadores): `ver_inicio`, `ver_extrato`, `ver_compra`, `simular_compra` e `contestar_compra`.
+3. Extrato: junte as compras de março do cliente ligado ao associado (situação calculada uma vez, na subida da API, com `servicos.analisar_transacao`) com as compras simuladas na sessão.
+4. `simular_compra`: monte a transação com os campos de `EntradaAnalise` e chame `servicos.analisar_transacao`; grave a `Compra` com `situacao_inicial(decisao)`; se `APROVADA`, aplique no saldo; se `AGUARDANDO` ou `BLOQUEADA`, chame `notificacoes.criar_notificacao` e guarde o `id_notificacao` na compra. Cartão bloqueado responde 409.
+5. `contestar_compra`: só para `APROVADA`; grava a `Contestacao`, muda a compra para `CONTESTADA`, bloqueia o cartão e devolve o valor ao saldo ou ao limite.
+6. Resposta do aviso: na rota atual `POST /api/notificacoes/{id}/resposta`, depois de `notificacoes.responder`, chame `aplicar_resposta` na compra ligada ("fui eu" aprova e aplica no saldo; "não fui eu" bloqueia). O corpo da resposta da rota não muda.
+7. O detalhe da compra devolve sempre o motivo genérico ("A compra fugiu do seu padrão de uso e foi bloqueada por segurança."). Nada de sinais, nota ou parecer da IA nestas rotas.
+8. Em `src/api/app.py`, acrescente só `app.include_router(...)` para os dois arquivos novos.
+9. Testes: cada rota com sucesso e com cada erro do contrato; saldo antes e depois de uma compra aprovada no débito e no crédito; "fui eu" numa compra aguardando; contestação bloqueando o cartão; e nenhum campo `id_cartao`, `id_cliente` ou `id_estabelecimento` da base em nenhuma resposta.
+10. Tire as marcas de pulo das rotas desta Issue em `tests/test_contrato_refatoracao.py`.
+
+### Pronto quando
+
+- Os testes de contrato destas rotas passam sem pulo.
+- `tests/test_conformidade_*.py` continuam verdes, sem alteração.
+- Uma compra simulada aparece no extrato na mesma hora, com a situação certa.
+
+**Fora desta Issue:** Rotas da filial.
+
+## #95 (R6) — feat: cria o simular compra, o aviso e o "não reconheço" do associado
+
+**Dono:** Pedro Muller · **Trilha:** Site (`web/`) · **Prioridade:** P1 · **Depende de:** #93 · **Branch:** `feature/95-simular-compra-e-aviso` (a partir de `refatoracao`)
+
+### Objetivo
+
+Criar as telas 4 (Simular compra) e 5 (Foi você?) do protótipo e o botão "Não reconheço esta compra".
+
+### Arquivos
+
+- `web/app/associado/comprar/page.tsx` e `web/app/associado/avisos/[id]/page.tsx` (novos)
+- `web/components/associado/` (`FormularioCompra`, `CenariosCompra`, `ResultadoCompra`, `ConfirmarCompra`, `BotaoContestar`)
+- `web/lib/api.ts` (`simularCompra`, `contestarCompra`), `web/lib/simulacao.ts`, `web/lib/textos.ts`
+- `web/app/simulador/` e `web/components/simulador/` (saem no fim)
+- `web/tests/associado.test.tsx`, `web/tests/simulador.test.tsx`
+
+### Passo a passo
+
+1. Em `web/lib/api.ts`, crie `simularCompra(entrada)` e `contestarCompra(id)`.
+2. Formulário: cartão (lista dos cartões do início), valor, hora, estabelecimento, modalidade, país do acesso e compras no último minuto. Reaproveite os campos e os valores padrão de `web/components/simulador/ControlesSimulador.tsx` e de `web/lib/simulacao.ts`.
+3. Cenários prontos em cima do formulário: "Compra comum", "Madrugada no exterior" e "Várias seguidas". Cada um preenche todos os campos de uma vez.
+4. Ao enviar: `APROVADA` mostra a faixa verde e o saldo novo; `AGUARDANDO` mostra a faixa amarela e o botão que leva ao aviso; `BLOQUEADA` mostra a faixa magenta com o motivo genérico. Cartão bloqueado (409) mostra a mensagem "Este cartão está bloqueado".
+5. Tela do aviso: a mensagem do Sicredi, valor, quando e cartão, e os botões "Fui eu" e "Não fui eu". Use as funções atuais `obterNotificacao` e `responderNotificacao`. Depois da resposta, volte ao detalhe da compra.
+6. No detalhe de uma compra `APROVADA` com `pode_contestar`, mostre "Não reconheço esta compra". O clique abre uma confirmação ("O cartão será bloqueado e a sua agência será avisada") e só então chama `contestarCompra`.
+7. Apague `/simulador` e os componentes que ficarem sem uso; mova os testes que ainda valem para `associado.test.tsx`.
+8. Testes: cada cenário preenche o formulário; cada situação mostra a faixa certa; "Não fui eu" leva ao detalhe com a compra bloqueada; a contestação pede confirmação antes de chamar a API.
+
+### Pronto quando
+
+- As telas ficam iguais ao protótipo em 375 px.
+- Dá para fazer o fluxo inteiro só com o teclado.
+- O rodapé do aviso diz que o Sicredi nunca pede senha, código ou link.
+
+**Fora desta Issue:** Chat.
+
+## #96 (R7) — feat: cria as rotas da filial
+
+**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #94 · **Branch:** `feature/96-rotas-da-filial` (a partir de `refatoracao`)
+
+### Objetivo
+
+Implementar a fila e o detalhe da compra para auditor e gerente, só com a carteira da filial e dentro da LGPD.
+
+### Arquivos
+
+- `src/api/rotas_filial.py` (novo)
+- `src/aplicacao/filial.py` (novo: casos de uso)
+- `src/api/esquemas_refatoracao.py`
+- `tests/test_rotas_filial.py` (novo) e `tests/test_contrato_refatoracao.py`
+
+### Passo a passo
+
+1. `GET /api/filial/fila`: junte as linhas da fila de demonstração (`servicos.obter_fila`) cujo cliente é da carteira da filial com as compras simuladas que não foram aprovadas e com as contestadas. Ordene pela nota, da maior para a menor. Aceite o filtro `situacao`.
+2. Cada item leva o nome abreviado do associado ("Ana S." ou "Associado 0421"), o final do cartão, a situação e o veredito da IA quando já houver auditoria.
+3. `GET /api/filial/compras/{id_compra}`: reaproveite `servicos.obter_transacao` para sinais, contribuições, explicação e auditoria. Troque o perfil pelo bloco `associado` do contrato: nome abreviado, final do cartão e histórico agregado (compras em 90 dias, valor mediano e contestações).
+4. Garanta que estas rotas nunca devolvem saldo, limite, extrato, nome completo do associado nem identificador da base.
+5. Compra de outra filial responde 403; compra inexistente, 404. Papel `associado` responde 403.
+6. Inclua `resposta_associado` (resposta e hora) e `bloqueio` (quem, quando e motivo) no detalhe.
+7. Testes: a fila da Agência Centro e a da Agência Norte não têm nenhuma compra em comum e, somadas, dão a fila inteira; 403 para outra filial; ausência dos campos proibidos; uma compra simulada que pediu confirmação aparece na fila da filial certa.
+
+### Pronto quando
+
+- Os testes de contrato destas rotas passam sem pulo.
+- As rotas antigas `/api/fila` e `/api/transacoes/{id}` continuam iguais.
+
+**Fora desta Issue:** Métricas e ações do auditor.
+
+## #97 (R8) — feat: cria a fila do auditor e o painel da compra na filial
+
+**Dono:** Pedro Muller · **Trilha:** Site (`web/`) · **Prioridade:** P1 · **Depende de:** #95 · **Branch:** `feature/97-fila-do-auditor` (a partir de `refatoracao`)
+
+### Objetivo
+
+Criar a tela "Filial: auditor" do protótipo: a fila da agência e o painel da compra com o detalhe técnico.
+
+### Arquivos
+
+- `web/app/filial/page.tsx` e `web/app/filial/fila/page.tsx`
+- `web/components/fila/` e `web/components/painel/` (ajustes de dados e de estilo)
+- `web/lib/api.ts` (`obterFilaFilial`, `obterCompraFilial`), `web/lib/textos.ts`
+- `web/tests/fila.test.tsx`, `web/tests/perfil.test.tsx`
+
+### Passo a passo
+
+1. Em `web/lib/api.ts`, crie `obterFilaFilial(situacao?)` e `obterCompraFilial(id)`.
+2. `/filial` leva o auditor para `/filial/fila` e o gerente para `/filial/painel`.
+3. Tabela: colunas Nota, Associado (nome abreviado e final do cartão), Quando, Valor, Situação e IA. Filtros Todas, Bloqueadas, Aguardando associado e Contestadas. A linha escolhida fica com fundo verde claro.
+4. Painel da compra, nesta ordem: cabeçalho (associado, situação, valor, nota e quando), sinais de alerta, o que pesou na nota, parecer da IA, resposta do associado e histórico agregado. Reaproveite `PainelTransacao`, `GraficoContribuicoes` e `RelatorioAuditoria`.
+5. Troque `PerfilAssociado` e `HistoricoCartao` pelo bloco agregado do contrato (compras em 90 dias, valor mediano e contestações). O auditor não vê saldo nem extrato.
+6. Mantenha a auditoria por IA como está hoje (dispara ao abrir a compra e mostra a fonte "watsonx.ai" ou "modo local").
+7. Leve a página "Respostas dos associados" para `/filial/respostas`, dentro da moldura.
+8. Testes: a tabela mostra o nome abreviado; o filtro funciona; o painel não mostra saldo; a resposta "Não fui eu" aparece como "Fraude provável".
+
+### Pronto quando
+
+- A tela fica igual ao protótipo em 1440 px e continua usável em 1024 px.
+- O botão "Bloquear compra" não aparece nesta Issue (é da prioridade 2).
+
+**Fora desta Issue:** Bloqueio pelo auditor e painel do gerente.
+
+## #98 (R9) — feat: calcula as métricas do gerente
+
+**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #96 · **Branch:** `feature/98-metricas-do-gerente` (a partir de `refatoracao`)
+
+### Objetivo
+
+Implementar `GET /api/filial/metricas` com os números do painel do gerente, por filial.
+
+### Arquivos
+
+- `src/aplicacao/metricas_filial.py` (novo)
+- `src/api/rotas_filial.py`, `src/api/esquemas_refatoracao.py`
+- `tests/test_metricas_filial.py` (novo) e `tests/test_contrato_refatoracao.py`
+
+### Passo a passo
+
+1. `totais`: compras de março da carteira mais as simuladas; quantas aprovadas, com pedido de confirmação e bloqueadas; `valor_protegido` é a soma das bloqueadas.
+2. `por_tipo`: uma linha por combinação de `tipo_transacao` (crédito ou débito) e modalidade (com ou sem cartão presente), com as três contagens.
+3. `acerto_modelo`: entre os avisos enviados, `alertas_certos` são as respostas "não fui eu"; `alertas_desnecessarios`, as "fui eu"; `sem_resposta`, o resto. `taxa` = certos ÷ (certos + desnecessários), ou `null` sem respostas.
+4. `fraudes_aprovadas`: as contestações da carteira, com associado abreviado, final do cartão, quando e valor.
+5. `tempo_resposta_mediano_s`: mediana, em segundos, entre a criação do aviso e a resposta; `null` sem respostas.
+6. Calcule a parte de março uma vez, na subida da API, e some a parte ao vivo a cada chamada. A rota tem de responder em menos de 200 ms.
+7. Só o papel `gerente` acessa; `auditor` e `associado` recebem 403.
+8. Testes: as contagens das duas filiais somadas dão os números da ESPECIFICACAO, seção 11 (13.395 aprovadas, 159 confirmações e 54 bloqueadas); depois de um "não fui eu", `alertas_certos` sobe 1; depois de uma contestação, `fraudes_aprovadas.total` sobe 1.
+
+### Pronto quando
+
+- O teste de contrato da rota passa sem pulo.
+- A soma das duas filiais bate com as invariantes da seção 11.
+
+**Fora desta Issue:** Métricas por auditor (prioridade 2).
+
+## #99 (R10) — feat: cria o painel do gerente
+
+**Dono:** Pedro Muller · **Trilha:** Site (`web/`) · **Prioridade:** P1 · **Depende de:** #97 · **Branch:** `feature/99-painel-do-gerente` (a partir de `refatoracao`)
+
+### Objetivo
+
+Criar a tela "Filial: gerente" do protótipo com as métricas da agência.
+
+### Arquivos
+
+- `web/app/filial/painel/page.tsx` (novo)
+- `web/components/gerente/` (novo: `IndicadoresAgencia`, `DecisoesPorTipo`, `AcertoModelo`, `FraudesAprovadas`)
+- `web/lib/api.ts` (`obterMetricasFilial`), `web/lib/textos.ts`
+- `web/tests/gerente.test.tsx` (novo)
+
+### Passo a passo
+
+1. Em `web/lib/api.ts`, crie `obterMetricasFilial()`.
+2. Quatro indicadores no topo: aprovadas, pedidos de confirmação, bloqueadas (com o valor protegido) e tempo de resposta do associado.
+3. "Decisões por tipo de compra": uma barra empilhada por linha de `por_tipo`, com verde (aprovadas), amarelo (confirmações) e magenta (bloqueadas), o total à direita e a legenda embaixo. Dê a cada barra um texto alternativo com os três números.
+4. "Acerto do modelo": a rosca com a taxa e, ao lado, as três frases (alerta certo, alerta desnecessário e sem resposta). Sem respostas, mostre "Ainda não há respostas" no lugar da rosca.
+5. "Fraudes que o modelo aprovou": o total e a lista das contestações.
+6. O cartão "Bloqueios da equipe" não entra nesta Issue (prioridade 2).
+7. O menu lateral do gerente mostra: Painel da agência, Fila de alertas, Desempenho e Como funciona.
+8. Testes: os indicadores mostram os números do mock; sem respostas aparece o estado vazio; um auditor que abre `/filial/painel` é levado para `/filial/fila`.
+
+### Pronto quando
+
+- A tela fica igual ao protótipo em 1440 px.
+- Os gráficos não dependem só da cor: cada um tem legenda e números.
+
+**Fora desta Issue:** Bloqueios por auditor.
+
+## #100 (R11) — feat: leva "Desempenho" e "Como funciona" para a área da filial
+
+**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #91, #98 · **Branch:** `feature/100-desempenho-na-filial` (a partir de `refatoracao`)
+
+### Objetivo
+
+Mover as duas páginas para dentro da área da filial e revisar o conteúdo para a história nova (associado e filial).
+
+### Arquivos
+
+- `web/app/filial/desempenho/page.tsx` e `web/app/filial/como-funciona/page.tsx` (novos)
+- `web/app/desempenho/` e `web/app/como-funciona/` (saem)
+- `web/components/desempenho/` e `web/components/como-funciona/`
+- `web/lib/textos.ts` (só as chaves destas duas páginas)
+- `web/tests/desempenho.test.tsx`
+
+### Passo a passo
+
+1. Leia `web/AGENTS.md` antes de começar.
+2. Crie as duas rotas novas dentro da `MolduraFilial` e apague as antigas.
+3. "Desempenho": mantenha a comparação com o sistema atual, os detalhes do modelo, os custos e a tabela IA contra modelo. Troque as cores dos gráficos pelas variáveis de `web/styles/sicredi.scss`.
+4. "Como funciona": reescreva em quatro passos, na ordem do produto novo: 1) o associado faz a compra; 2) o Sentinela decide na hora; 3) a IA audita e o associado confirma; 4) a filial acompanha. Frases curtas, sem jargão.
+5. Confira que os links do menu lateral (auditor e gerente) apontam para as rotas novas.
+6. Atualize os testes das duas páginas para os caminhos e os textos novos.
+
+### Pronto quando
+
+- As duas páginas abrem pelo menu da filial e não existem mais em `/desempenho` e `/como-funciona`.
+- Os números mostrados são os mesmos de antes (vêm de `/api/metricas`).
+
+**Fora desta Issue:** Mexer em outras pastas de `web/` (são da trilha Site).
+
+## #101 (R12) — test: integra o site com a API e confere tudo com o watsonx.ai
+
+**Dono:** os dois · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P1 · **Depende de:** #99, #100 · **Branch:** `feature/101-integracao` (a partir de `refatoracao`)
+
+### Objetivo
+
+Rodar o site contra a API real, sem mocks, e conferir o fluxo inteiro antes da linha de corte (domingo, 14h).
+
+### Arquivos
+
+- Correções pequenas nos arquivos das Issues anteriores
+- `README.md` (seção "Como rodar" e descrição das duas áreas)
+- `docs/arquitetura.md` (diagrama com as duas áreas e as portas)
+
+### Passo a passo
+
+1. Suba a API (`uvicorn src.api.app:app --port 8000`) com o `.env` ativo e o site (`cd web && npm run dev`) sem `NEXT_PUBLIC_USAR_MOCK`.
+2. Roteiro 1: entre como Ana Souza; confira saldo e extrato; simule "Compra comum" e veja o saldo cair.
+3. Roteiro 2: simule "Madrugada no exterior"; responda "Não fui eu" no aviso; confira a compra bloqueada no extrato, com o motivo genérico.
+4. Roteiro 3: entre como auditor da Agência Centro; ache a compra do roteiro 2 na fila; confira sinais, parecer da IA com a fonte "watsonx.ai" e "Fraude provável".
+5. Roteiro 4: entre como auditor da Agência Norte e confira que a compra da Ana não aparece.
+6. Roteiro 5: volte como Ana; conteste a compra do roteiro 1; confira o cartão bloqueado e uma nova compra recusada.
+7. Roteiro 6: entre como gerente da Agência Centro; confira que o acerto do modelo e as fraudes aprovadas refletem os roteiros 2 e 5.
+8. Rode os dois portões completos e `python -m src.avaliar_agente`.
+9. Atualize o `README.md` e o `docs/arquitetura.md`.
+10. Às 14h de domingo, mostre o estado ao Pedro Muller. Ele decide se a `refatoracao` entra no `develop`.
+
+### Pronto quando
+
+- Os seis roteiros passam sem erro no console do navegador nem na API.
+- Os dois portões e as invariantes da seção 11 estão verdes.
+
+**Fora desta Issue:** Funcionalidades novas.
+
+## #102 (R13) — feat: auditor bloqueia compra que aguarda confirmação (API)
+
+**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P2 · **Depende de:** #96 · **Branch:** `feature/102-bloqueio-do-auditor-api` (a partir de `refatoracao`)
+
+### Objetivo
+
+Deixar o auditor bloquear uma compra que ainda espera o associado, com nome, data e motivo registrados.
+
+### Arquivos
+
+- `ESPECIFICACAO.md` (seção 17), `src/dominio/`, `src/portas/repositorios.py`, `src/adaptadores/memoria/`
+- `src/aplicacao/filial.py`, `src/api/rotas_filial.py`, `tests/test_rotas_filial.py`
+
+### Passo a passo
+
+1. Acrescente ao contrato `POST /api/filial/compras/{id_compra}/bloqueio`, com `{nota}` (texto opcional, até 300 caracteres), só para o papel `auditor`.
+2. Só vale para compra `AGUARDANDO` da própria filial; nos outros casos, 409 ou 403.
+3. Grave o bloqueio com o auditor, a data e o motivo: a explicação da IA (se já houver auditoria) mais a nota do auditor.
+4. A compra vira `BLOQUEADA`. Para o associado, `bloqueio.por` é "Analista da agência <nome>" e o motivo é o genérico; para a filial, o nome completo e o motivo inteiro.
+5. Se depois o associado responder "fui eu", a compra é liberada sozinha (`APROVADA`, aplica no saldo) e o bloqueio fica marcado como incorreto; "não fui eu" marca como correto.
+6. Testes para cada regra acima.
+
+### Pronto quando
+
+- O associado nunca recebe o nome do auditor.
+- A liberação automática aplica o saldo uma única vez.
+
+**Fora desta Issue:** Tela do bloqueio.
+
+## #103 (R14) — feat: auditor bloqueia compra que aguarda confirmação (site)
+
+**Dono:** Pedro Muller · **Trilha:** Site (`web/`) · **Prioridade:** P2 · **Depende de:** #97, #102 · **Branch:** `feature/103-bloqueio-do-auditor-site` (a partir de `refatoracao`)
+
+### Objetivo
+
+Pôr no painel da compra o botão "Bloquear compra" e mostrar quem bloqueou.
+
+### Arquivos
+
+- `web/components/painel/`
+- `web/components/associado/DetalheCompra.tsx`
+- `web/lib/api.ts`, `web/lib/tipos.ts`, `web/lib/mocks/refatoracao.ts`, `web/lib/textos.ts`
+- `web/tests/fila.test.tsx`
+
+### Passo a passo
+
+1. Em `web/lib/api.ts`, crie `bloquearCompra(id, nota)`.
+2. No painel, o botão "Bloquear compra" aparece só para o auditor e só em compra `AGUARDANDO`.
+3. O clique abre uma janela com o campo de nota (opcional) e a frase "O associado verá que a compra foi bloqueada por um analista da agência".
+4. Depois do bloqueio, o painel mostra "Bloqueada por <nome completo>", a data e o motivo inteiro.
+5. No detalhe do associado, a mesma compra mostra "Analista da agência <nome>" e o motivo genérico.
+6. Testes: o botão some para o gerente e para compra já decidida; a janela exige confirmação.
+
+### Pronto quando
+
+- Fica igual ao protótipo.
+- O nome completo do auditor nunca aparece na área do associado.
+
+**Fora desta Issue:** Métricas por auditor.
+
+## #104 (R15) — feat: mostra os bloqueios por auditor e quantos estavam certos
+
+**Dono:** os dois · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P2 · **Depende de:** #102, #103 · **Branch:** `feature/104-metricas-por-auditor` (a partir de `refatoracao`)
+
+### Objetivo
+
+Acrescentar ao painel do gerente o cartão "Bloqueios da equipe".
+
+### Arquivos
+
+- `ESPECIFICACAO.md` (seção 17)
+- `src/aplicacao/metricas_filial.py`, `tests/test_metricas_filial.py` (trilha API)
+- `web/components/gerente/BloqueiosEquipe.tsx`, `web/tests/gerente.test.tsx` (trilha Site)
+
+### Passo a passo
+
+1. Acrescente a `GET /api/filial/metricas` o bloco `bloqueios_por_auditor: [{auditor, bloqueios, corretos, liberados_depois}]`.
+2. "Correto" é o bloqueio em que o associado respondeu "não fui eu"; "liberado depois" é o que o associado respondeu "fui eu".
+3. No site, crie a tabela do protótipo, com a explicação de "correto" embaixo.
+4. Testes nas duas trilhas.
+
+### Pronto quando
+
+- A tabela bate com os bloqueios feitos no roteiro de teste.
+
+**Fora desta Issue:** Classificação ou comparação entre auditores.
+
+## #105 (R16) — feat: cria o chat do associado com a IA (API)
+
+**Dono:** Pessoa 2 · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P3 · **Depende de:** #94 · **Branch:** `feature/105-chat-api` (a partir de `refatoracao`)
+
+### Objetivo
+
+Criar o chat em que a IA responde sobre os gastos e as compras bloqueadas do próprio associado. A IA só informa; não executa ações.
+
+### Arquivos
+
+- `ESPECIFICACAO.md` (seção 18, nova)
+- `src/associado/chat.py` (novo), `src/api/rotas_associado.py`
+- `tests/test_chat.py` (novo)
+
+### Passo a passo
+
+1. Escreva o contrato: `POST /api/associado/chat` com `{mensagem}` devolve `{resposta, fonte}`; `POST /api/associado/chat/gerente` devolve `{resumo}`.
+2. Monte o contexto só com dados do próprio associado: totais por mês e por tipo, as 20 últimas compras e as bloqueadas com o motivo genérico. Nunca envie identificadores, sinais, nota ou parecer da IA.
+3. Chame `watsonx.redigir_texto` com instruções fixas: responder só sobre os dados enviados, em português, em até 400 caracteres, sem pedir senha ou código e sem prometer liberar ou bloquear nada.
+4. Sem credenciais ou em caso de falha, responda com um texto fixo que resume os gastos do mês (`fonte: "local"`).
+5. `/chat/gerente` devolve um resumo da conversa até ali, para abrir a conversa com o gerente. A conversa com o gerente é simulada e para no resumo.
+6. Testes com o watsonx simulado: o pedido não leva identificadores; pergunta fora do assunto recebe a recusa padrão; o modo local funciona sem credenciais.
+
+### Pronto quando
+
+- Nenhum identificador nem detalhe técnico sai no pedido ou na resposta.
+- Sem `.env`, o chat responde no modo local.
+
+**Fora desta Issue:** Conversa real com o gerente; ações pela IA.
+
+## #106 (R17) — feat: cria o chat do associado e o "conversar com gerente" (site)
+
+**Dono:** Pedro Muller · **Trilha:** Site (`web/`) · **Prioridade:** P3 · **Depende de:** #93, #105 · **Branch:** `feature/106-chat-site` (a partir de `refatoracao`)
+
+### Objetivo
+
+Criar a tela de chat do associado.
+
+### Arquivos
+
+- `docs/prototipo/index.html` (tela do chat)
+- `web/app/associado/chat/page.tsx` (novo), `web/components/associado/Chat.tsx`
+- `web/lib/api.ts`, `web/lib/tipos.ts`, `web/lib/mocks/refatoracao.ts`, `web/lib/textos.ts`
+- `web/tests/chat.test.tsx` (novo)
+
+### Passo a passo
+
+1. Desenhe a tela no protótipo e peça o aceite do Pedro Muller antes de programar.
+2. Tela: lista de mensagens, campo de texto e três sugestões ("Quanto gastei este mês?", "Por que minha compra foi bloqueada?", "Quais compras estão pendentes?").
+3. Mostre "digitando" enquanto a resposta não chega (o watsonx leva alguns segundos) e a fonte da resposta.
+4. Botão "Conversar com gerente": troca o cabeçalho para o nome do gerente da agência, mostra o resumo como primeira mensagem e avisa que a conversa é simulada.
+5. Testes: enviar mensagem, sugestão, erro da API e a troca para o gerente.
+
+### Pronto quando
+
+- A conversa some ao sair (não é gravada).
+- O aviso de conversa simulada aparece.
+
+**Fora desta Issue:** Histórico de conversas.
+
+## #107 (R18) — feat: persiste os dados em Postgres por um adaptador novo
+
+**Dono:** a definir · **Trilha:** API (`src/` e `tests/`) · **Prioridade:** P4 · **Depende de:** #92 · **Branch:** `feature/107-postgres` (a partir de `refatoracao`)
+
+### Objetivo
+
+Trocar o armazenamento em memória por Postgres, sem mudar o domínio nem as rotas.
+
+### Arquivos
+
+- `src/adaptadores/postgres/` (novo)
+- `src/composicao.py`
+- `docker-compose.yml`, `.env.example`
+- `tests/test_adaptador_postgres.py` (novo)
+- `docs/decisoes.md` (ADR novo)
+
+### Passo a passo
+
+1. Registre a decisão num ADR: biblioteca de acesso, migrações e como os testes rodam.
+2. Crie as tabelas de filiais, perfis, associados, cartões, compras, contestações, bloqueios e avisos.
+3. Implemente cada porta de `src/portas/repositorios.py` no adaptador novo.
+4. Em `src/composicao.py`, escolha o adaptador pela variável `SENTINELA_ARMAZENAMENTO` (`memoria` é o padrão).
+5. Rode a mesma bateria de testes dos repositórios contra os dois adaptadores.
+6. Leve as notificações e as respostas do analista para o mesmo padrão de portas.
+
+### Pronto quando
+
+- Com `memoria`, nada muda.
+- Com `postgres`, os dados sobrevivem a reiniciar a API.
+- `src/dominio/` não foi alterado.
+
+**Fora desta Issue:** Autenticação real.
+

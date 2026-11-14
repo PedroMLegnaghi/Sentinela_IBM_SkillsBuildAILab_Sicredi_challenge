@@ -1,5 +1,6 @@
 /**
- * Lógica pura do simulador "e se" (Issue #45) e da exportação de respostas.
+ * Lógica pura do simulador "e se" (Issue #45), dos cenários prontos (Issue #110) e da
+ * exportação de respostas.
  */
 
 import type {
@@ -7,6 +8,7 @@ import type {
   RespostaRespostas,
   Transacao,
 } from "@/lib/tipos";
+import { TEXTOS_CENARIOS } from "@/lib/textos";
 
 /** Hora de corte da madrugada (src/config.py, HORA_FIM_MADRUGADA). */
 export const HORA_FIM_MADRUGADA = 5;
@@ -24,6 +26,69 @@ export interface ValoresSimulador {
   dist_terminal_anterior_km: number;
   risco_estabelecimento: number;
 }
+
+/** Cenário pronto: preenche todos os campos do simulador de uma vez. */
+export interface Cenario {
+  id: string;
+  nome: string;
+  frase: string;
+  valores: ValoresSimulador;
+}
+
+/** Cenários da demonstração. Ajuste os números com a API real (decisão esperada ao lado). */
+export const CENARIOS: Cenario[] = [
+  {
+    // Esperado: APROVAR
+    id: "comum",
+    ...TEXTOS_CENARIOS.comum,
+    valores: {
+      valor: 85.9,
+      hora: 15,
+      credito: false,
+      nao_presente: false,
+      ip_pais_desconhecido: false,
+      qtd_transacoes_cartao_1min: 0,
+      vel_cartao_terminal_1h: 0,
+      qtd_token_carteira_3m: 0,
+      dist_terminal_anterior_km: 0,
+      risco_estabelecimento: 10,
+    },
+  },
+  {
+    // Esperado: PEDIR_CONFIRMACAO ou BLOQUEAR
+    id: "exterior",
+    ...TEXTOS_CENARIOS.exterior,
+    valores: {
+      valor: 450,
+      hora: 3,
+      credito: true,
+      nao_presente: true,
+      ip_pais_desconhecido: true,
+      qtd_transacoes_cartao_1min: 0,
+      vel_cartao_terminal_1h: 0,
+      qtd_token_carteira_3m: 0,
+      dist_terminal_anterior_km: 0,
+      risco_estabelecimento: 50,
+    },
+  },
+  {
+    // Esperado: BLOQUEAR
+    id: "rajada",
+    ...TEXTOS_CENARIOS.rajada,
+    valores: {
+      valor: 900,
+      hora: 2,
+      credito: true,
+      nao_presente: true,
+      ip_pais_desconhecido: true,
+      qtd_transacoes_cartao_1min: 6,
+      vel_cartao_terminal_1h: 8,
+      qtd_token_carteira_3m: 3,
+      dist_terminal_anterior_km: 300,
+      risco_estabelecimento: 70,
+    },
+  },
+];
 
 const numero = (valor: number | null | undefined) => valor ?? 0;
 const ligado = (valor: number | null | undefined) => valor === 1;

@@ -122,7 +122,7 @@ export default function PaginaInicio() {
               {PENDENTE_DETALHE(formatarMoeda(p.valor), formatarDiaHora(p.data_hora))}
               <br />
               <Link
-                href={`/associado/avisos/${p.id_notificacao}`}
+                href={`/associado/avisos/${p.id_notificacao}?compra=${p.id_compra}`}
                 className="sc-botao sc-botao--pequeno"
                 style={{ marginTop: 8 }}
               >

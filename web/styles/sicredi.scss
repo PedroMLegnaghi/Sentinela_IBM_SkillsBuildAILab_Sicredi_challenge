@@ -701,3 +701,67 @@ h3,
     margin: 0;
   }
 }
+
+// --- Simular compra e aviso (Issue #95) ---
+.sc-formulario {
+  display: grid;
+  gap: 12px;
+
+  fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+.sc-campo {
+  display: grid;
+  gap: 4px;
+
+  > span {
+    font-size: 0.78125rem;
+    font-weight: 700;
+    color: var(--sc-texto-apoio);
+  }
+  input,
+  select {
+    width: 100%;
+    background: var(--sc-branco);
+    border: 1.5px solid var(--sc-borda);
+    border-radius: var(--sc-raio-p);
+    padding: 10px 12px;
+    font: inherit;
+    font-weight: 700;
+    color: var(--sc-texto);
+  }
+  input:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--sc-verde-acao);
+    box-shadow: 0 0 0 2px var(--sc-verde-fundo);
+  }
+}
+
+.sc-duas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.sc-detalhes {
+  display: grid;
+  gap: 12px;
+
+  summary {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--sc-verde-acao);
+    margin-bottom: 8px;
+  }
+  &[open] {
+    display: grid;
+  }
+  > .sc-campo + .sc-campo {
+    margin-top: 12px;
+  }
+}

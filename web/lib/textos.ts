@@ -457,3 +457,52 @@ export const RESPOSTA_REGISTRADA = (resposta: string, quando: string) =>
 export const RESPOSTA_SIM = "Fui eu";
 export const RESPOSTA_NAO = "Não fui eu";
 export const VALOR_NAO_COBRADO = "O valor não foi cobrado.";
+
+// --- Issue #95: simular compra, aviso e contestação ---
+export const TITULO_COMPRAR = "Simular compra";
+export const LEGENDA_COMPRAR =
+  "Faça uma compra de mentira para ver o Sentinela agir. Ela entra no seu extrato e na fila da sua agência.";
+export const CENARIO_PRONTO = "Cenário pronto";
+export const CAMPOS_COMPRA = {
+  cartao: "Cartão",
+  valor: "Valor (R$)",
+  hora: "Hora (0 a 23)",
+  estabelecimento: "Estabelecimento",
+  modalidade: "Como pagou",
+  pais: "País do acesso",
+  rajada: "Compras no último minuto",
+  terminais: "Usos do cartão na última hora",
+  token: "Usos da carteira digital em 3 meses",
+  distancia: "Distância da compra anterior (km)",
+};
+export const MODALIDADES = { presente: "Cartão na mão", naoPresente: "Pela internet" };
+export const PAISES = { conhecido: "Brasil", desconhecido: "País desconhecido" };
+export const MAIS_DETALHES = "Mais detalhes da compra";
+export const BOTAO_COMPRAR = "Fazer a compra";
+export const COMPRANDO = "Enviando…";
+export const RESULTADO_COMPRA: Record<string, { titulo: string; texto: string }> = {
+  APROVADA: { titulo: "Compra aprovada.", texto: "O valor já aparece no seu extrato." },
+  AGUARDANDO: {
+    titulo: "Precisamos confirmar com você.",
+    texto: "Enviamos um aviso. A compra fica em espera até a sua resposta.",
+  },
+  BLOQUEADA: {
+    titulo: "Compra bloqueada por segurança.",
+    texto: "A compra fugiu do seu padrão de uso. Enviamos um aviso para você confirmar se foi você.",
+  },
+  CONTESTADA: { titulo: "Compra contestada.", texto: "" },
+};
+export const VER_AVISO = "Responder ao aviso";
+export const VER_COMPRA = "Ver a compra";
+export const SALDO_AGORA = (saldo: string) => `Saldo agora: ${saldo}.`;
+export const ERRO_CARTAO_BLOQUEADO = "Este cartão está bloqueado. Escolha outro cartão.";
+export const TITULO_AVISO = "Confirme esta compra";
+export const MENSAGEM_DO_SICREDI = "Mensagem do Sicredi";
+export const RODAPE_SEGURANCA = "O Sicredi nunca pede senha, código ou link por mensagem.";
+export const AVISO_JA_RESPONDIDO = "Você já respondeu a este aviso.";
+export const DETALHE_VALOR = "Valor";
+export const CONTESTAR = "Não reconheço esta compra";
+export const CONTESTAR_EXPLICACAO = "O cartão será bloqueado e a sua agência será avisada.";
+export const CONTESTAR_CONFIRMAR = "Sim, contestar e bloquear o cartão";
+export const CANCELAR = "Cancelar";
+export const CONTESTADA_OK = "Compra contestada. O cartão foi bloqueado e a sua agência foi avisada.";

@@ -3,15 +3,15 @@
 /**
  * Detalhe de uma compra do associado (Issue #93): valor, quando, cartão, situação, quem
  * bloqueou e por quê (motivo genérico), e a resposta do associado. Tela 6 do protótipo.
- * O botão "Não reconheço esta compra" entra na Issue #95 (prop `acoes`).
+ * Numa compra aprovada, oferece "Não reconheço esta compra" (Issue #95).
  */
 
 import { useCarregar } from "@/lib/useCarregar";
 import Link from "next/link";
 import { ChevronLeft } from "@carbon/react/icons";
 import { obterCompra } from "@/lib/api";
-import type { DetalheCompra as Detalhe } from "@/lib/tipos";
 import EtiquetaSituacao from "@/components/associado/EtiquetaSituacao";
+import BotaoContestar from "@/components/associado/BotaoContestar";
 import EstadoErro from "@/components/comuns/EstadoErro";
 import { formatarDiaHora, formatarMoeda, formatarTipo } from "@/lib/formatacao";
 import {
@@ -30,12 +30,7 @@ import {
   VOLTAR,
 } from "@/lib/textos";
 
-interface PropsDetalhe {
-  idCompra: string;
-  acoes?: (compra: Detalhe, recarregar: () => void) => React.ReactNode;
-}
-
-export default function DetalheCompra({ idCompra, acoes }: PropsDetalhe) {
+export default function DetalheCompra({ idCompra }: { idCompra: string }) {
   const { dados: compra, erro, recarregar: carregar } = useCarregar(
     () => obterCompra(idCompra),
     idCompra,
@@ -106,7 +101,7 @@ export default function DetalheCompra({ idCompra, acoes }: PropsDetalhe) {
             </div>
           )}
 
-          {acoes?.(compra, carregar)}
+          {compra.pode_contestar && <BotaoContestar idCompra={compra.id_compra} aoContestar={carregar} />}
         </>
       )}
     </>

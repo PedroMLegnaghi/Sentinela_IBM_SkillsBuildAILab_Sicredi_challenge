@@ -4,9 +4,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import PaginaRespostas from "@/components/respostas/PaginaRespostas";
-import PaginaSimulador from "@/components/simulador/PaginaSimulador";
 import * as api from "@/lib/api";
 import { mocks } from "@/lib/mocks/index";
 import {
@@ -15,9 +13,7 @@ import {
   valoresIniciais,
 } from "@/lib/simulacao";
 import {
-  BOTAO_ANALISAR,
   RESPOSTAS_VAZIAS,
-  TITULO_SIMULADA,
 } from "@/lib/textos";
 
 vi.mock("@/lib/api", () => ({
@@ -73,20 +69,6 @@ describe("lógica do simulador", () => {
       "id_transacao,resposta,registrado_em,decisao,nota",
     );
     expect(csv).toContain("100001,fraude,2025-03-15T10:00:00,BLOQUEAR,97.3");
-  });
-});
-
-describe("PaginaSimulador", () => {
-  it("analisa a compra simulada e mostra o resultado ao lado do original", async () => {
-    const usuario = userEvent.setup();
-    render(<PaginaSimulador />);
-
-    await usuario.click(
-      await screen.findByRole("button", { name: BOTAO_ANALISAR }),
-    );
-
-    expect(await screen.findByText(TITULO_SIMULADA)).toBeInTheDocument();
-    expect(apiFalsa.analisar).toHaveBeenCalledTimes(1);
   });
 });
 

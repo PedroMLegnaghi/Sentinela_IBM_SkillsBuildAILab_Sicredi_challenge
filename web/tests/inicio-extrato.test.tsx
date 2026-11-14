@@ -39,7 +39,7 @@ describe("PaginaInicio", () => {
     expect(screen.getByText(PENDENTE_TITULO)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Responder" })).toHaveAttribute(
       "href",
-      "/associado/avisos/not-mock-001",
+      "/associado/avisos/not-mock-001?compra=cmp-000004",
     );
     expect(screen.getByRole("button", { name: /Investir/ })).toBeDisabled();
   });

@@ -560,3 +560,43 @@ export const RESUMO_HISTORICO = (compras: string, mediana: string, contestacoes:
   `${compras} compras em 90 dias · mediana ${mediana} · ${contestacoes} contestações.`;
 export const TITULO_BLOQUEIO = "Bloqueio";
 export const BLOQUEIO_POR = (por: string, quando: string) => `Bloqueada por ${por} em ${quando}.`;
+
+// --- Issue #99: painel do gerente ---
+export const TITULO_PAINEL_AGENCIA = "Painel da agência";
+export const LEGENDA_PAINEL_AGENCIA = (periodo: string, compras: string, agencia: string) =>
+  `${periodo} · ${compras} compras na carteira da ${agencia}.`;
+export const PERIODOS: Record<string, string> = { "2025-03": "Março de 2025" };
+export const KPI_APROVADAS = "Aprovadas";
+export const KPI_CONFIRMACOES = "Pedidos de confirmação";
+export const KPI_BLOQUEADAS = "Bloqueadas";
+export const KPI_TEMPO_RESPOSTA = "Tempo de resposta do associado";
+export const DAS_COMPRAS = (pct: string) => `${pct} das compras`;
+export const PROTEGIDOS = (valor: string) => `${valor} protegidos`;
+export const MEDIANA = "mediana";
+export const SEM_RESPOSTAS_AINDA = "Ainda não há respostas";
+export const TITULO_DECISOES_TIPO = "Decisões por tipo de compra";
+export const TIPO_E_MODALIDADE = (tipo: string, modalidade: string) => `${tipo}, ${modalidade}`;
+export const MODALIDADE_CURTA: Record<string, string> = {
+  cartao_presente: "com cartão",
+  cartao_nao_presente: "sem cartão",
+};
+export const DESCRICAO_BARRA_TIPO = (rotulo: string, aprovadas: string, confirmacoes: string, bloqueadas: string) =>
+  `${rotulo}: ${aprovadas} aprovadas, ${confirmacoes} pedidos de confirmação e ${bloqueadas} bloqueadas.`;
+export const LEGENDA_APROVADAS = "Aprovadas";
+export const LEGENDA_CONFIRMACOES = "Pedidos de confirmação";
+export const LEGENDA_BLOQUEADAS = "Bloqueadas";
+export const TITULO_ACERTO_MODELO = "Acerto do modelo";
+export const DOS_ALERTAS_RESPONDIDOS = "dos alertas respondidos";
+export const DESCRICAO_ROSCA = (taxa: string) => `O modelo acertou ${taxa} dos alertas que os associados responderam.`;
+export const ALERTAS_CERTOS = (n: string) => `${n} associados responderam "não fui eu": o alerta estava certo.`;
+export const ALERTAS_DESNECESSARIOS = (n: string) => `${n} responderam "fui eu": alerta desnecessário.`;
+export const ALERTAS_SEM_RESPOSTA = (n: string) => `${n} ainda sem resposta.`;
+export const EXPLICA_ACERTO =
+  "O acerto vem da resposta do associado ao aviso: \"não fui eu\" confirma o alerta; \"fui eu\" mostra que o alerta não era necessário.";
+export const TITULO_FRAUDES_APROVADAS = "Fraudes que o modelo aprovou";
+export const EXPLICA_FRAUDES_APROVADAS =
+  "Compras aprovadas que o associado contestou com \"Não reconheço esta compra\". Os cartões foram bloqueados.";
+export const NENHUMA_FRAUDE_APROVADA = "Nenhuma contestação até agora.";
+export const CARTAO_BLOQUEADO_ETIQUETA = "Cartão bloqueado";
+export const DURACAO_MIN = (min: string) => `${min} min`;
+export const DURACAO_S = (s: string) => `${s} s`;

@@ -160,3 +160,15 @@ export function formatarMesAno(dataHora: string | null | undefined): string {
   if (isNaN(d.getTime())) return "Sem data";
   return `${MESES[d.getMonth()]} de ${d.getFullYear()}`;
 }
+
+/**
+ * Tempo curto em segundos ou minutos (Issue #99).
+ * @param segundos - Duração em segundos, ou null.
+ * @returns "45 s", "4 min" ou "—".
+ */
+export function formatarTempoCurto(segundos: number | null | undefined): string {
+  if (segundos === null || segundos === undefined) return "—";
+  if (segundos < 60) return `${Math.round(segundos)} s`;
+  if (segundos < 3600) return `${Math.round(segundos / 60)} min`;
+  return `${formatarDecimal(segundos / 3600, 1)} h`;
+}

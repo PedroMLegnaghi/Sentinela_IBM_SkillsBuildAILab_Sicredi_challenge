@@ -321,3 +321,34 @@ export const RESPOSTAS_VAZIAS =
 
 // --- Issue #48 ---
 // (textos de acessibilidade e correções serão adicionados aqui)
+
+// --- Issue #63 — App do associado ---
+export const NAV_ASSOCIADO = "App do associado";
+export const TITULO_APP_ASSOCIADO = "App do associado";
+export const LEGENDA_APP_ASSOCIADO =
+  "Simulação do celular do associado. As notificações aparecem mais recentes primeiro.";
+export const SEM_NOTIFICACOES =
+  "Nenhuma notificação. Analise uma transação com decisão BLOQUEAR ou PEDIR_CONFIRMACAO para gerar uma.";
+export const BOTAO_SIM_FUI_EU = "Sim, fui eu";
+export const BOTAO_NAO_FUI_EU = "Não fui eu";
+export const ROTULOS_STATUS_NOTIFICACAO: Record<string, string> = {
+  aguardando: "Aguardando",
+  confirmada: "Confirmou a compra",
+  negada: "Não reconheceu",
+};
+export const ROTULOS_TIPO_NOTIFICACAO: Record<string, string> = {
+  CONFIRMACAO: "Pedido de confirmação",
+  AVISO_BLOQUEIO: "Aviso de bloqueio",
+};
+export const TITULO_BLOCO_ASSOCIADO = "Associado";
+export const BOTAO_AVISAR_ASSOCIADO = "Avisar o associado";
+export const AVISO_ASSOCIADO_ENVIADO = "Notificação enviada ao associado.";
+export const ERRO_NOTIFICACAO_409 =
+  "O associado já foi avisado sobre esta transação.";
+export const ERRO_RESPOSTA_409 =
+  "O associado já respondeu a esta notificação.";
+export const ERRO_NOTIFICACAO_422 =
+  "Não é possível notificar o associado em transações aprovadas.";
+export const LINK_VER_NO_APP = "Ver no app do associado";
+export const RESPONDIDA_EM = (quando: string) => `Respondida em ${quando}`;
+export const CRIADA_EM = (quando: string) => `Enviada em ${quando}`;

@@ -16,6 +16,7 @@ import {
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
+  NAV_ASSOCIADO,
   NAV_FILA,
   NAV_DESEMPENHO,
   NAV_COMO_FUNCIONA,
@@ -30,6 +31,7 @@ const ROTAS = [
   { href: "/como-funciona", rotulo: NAV_COMO_FUNCIONA },
   { href: "/simulador", rotulo: NAV_SIMULADOR },
   { href: "/respostas", rotulo: NAV_RESPOSTAS },
+  { href: "/associado", rotulo: NAV_ASSOCIADO },
 ];
 
 interface PropsShell {

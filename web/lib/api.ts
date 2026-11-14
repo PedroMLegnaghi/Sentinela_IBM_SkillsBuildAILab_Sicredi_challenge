@@ -16,6 +16,9 @@ import type {
   RespostaRespostas,
   RespostaMetricas,
   RespostaSaude,
+  Notificacao,
+  RespostaNotificacoes,
+  EntradaRespostaNotificacao,
 } from "@/lib/tipos";
 
 const URL_BASE =
@@ -192,4 +195,73 @@ export async function obterMetricas(): Promise<RespostaMetricas> {
     return m.metricas;
   }
   return buscar<RespostaMetricas>("/api/metricas");
+}
+
+/**
+ * POST /api/transacoes/{id_transacao}/notificacao
+ */
+export async function notificarAssociado(
+  idTransacao: number,
+): Promise<Notificacao> {
+  if (USAR_MOCK) {
+    const m = await obterMocks();
+    return m.notificacaoAguardando;
+  }
+  return buscar<Notificacao>(`/api/transacoes/${idTransacao}/notificacao`, {
+    method: "POST",
+  });
+}
+
+/**
+ * GET /api/notificacoes
+ */
+export async function obterNotificacoes(): Promise<RespostaNotificacoes> {
+  if (USAR_MOCK) {
+    const m = await obterMocks();
+    return m.notificacoes;
+  }
+  return buscar<RespostaNotificacoes>("/api/notificacoes");
+}
+
+/**
+ * GET /api/notificacoes/{id_notificacao}
+ */
+export async function obterNotificacao(
+  idNotificacao: string,
+): Promise<Notificacao> {
+  if (USAR_MOCK) {
+    const m = await obterMocks();
+    return m.notificacaoAguardando;
+  }
+  return buscar<Notificacao>(`/api/notificacoes/${idNotificacao}`);
+}
+
+/**
+ * POST /api/notificacoes/{id_notificacao}/resposta
+ */
+export async function responderNotificacao(
+  idNotificacao: string,
+  entrada: EntradaRespostaNotificacao,
+): Promise<Notificacao> {
+  if (USAR_MOCK) {
+    const m = await obterMocks();
+    const resultado =
+      entrada.resposta === "nao"
+        ? "Compra bloqueada e cartão protegido. O caso foi para o analista."
+        : "Compra liberada pelo associado.";
+    return {
+      ...m.notificacaoAguardando,
+      status: entrada.resposta === "nao" ? "negada" : "confirmada",
+      respondida_em: new Date().toISOString(),
+      resultado,
+    };
+  }
+  return buscar<Notificacao>(
+    `/api/notificacoes/${idNotificacao}/resposta`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entrada),
+    },
+  );
 }

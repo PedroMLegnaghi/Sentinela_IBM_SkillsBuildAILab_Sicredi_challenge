@@ -88,11 +88,13 @@ export interface RespostaTransacao {
   analise: Analise;
   historico: ItemHistorico[];
   resposta_analista: Resposta | null;
+  notificacao: Notificacao | null;
 }
 
 export interface RespostaAnalisar {
   analise: Analise;
   id_auditoria: string | null;
+  id_notificacao: string | null;
 }
 
 export interface RespostaAuditoriaIniciada {
@@ -241,6 +243,32 @@ export interface EntradaAnalisar {
   tipo_transacao?: string | null;
   modalidade_transacao?: string | null;
   auditar?: boolean;
+}
+
+// --- Seção 15: Canal do associado ---
+
+export type StatusNotificacao = "aguardando" | "confirmada" | "negada";
+export type TipoNotificacao = "CONFIRMACAO" | "AVISO_BLOQUEIO";
+export type FonteMensagem = "watsonx" | "modelo";
+
+export interface Notificacao {
+  id_notificacao: string;
+  id_transacao: number | null;
+  tipo: TipoNotificacao;
+  mensagem: string;
+  fonte_mensagem: FonteMensagem;
+  criada_em: string;
+  status: StatusNotificacao;
+  respondida_em: string | null;
+  resultado: string | null;
+}
+
+export interface RespostaNotificacoes {
+  itens: Notificacao[];
+}
+
+export interface EntradaRespostaNotificacao {
+  resposta: "sim" | "nao";
 }
 
 // --- Corpo de entrada do POST /api/respostas ---

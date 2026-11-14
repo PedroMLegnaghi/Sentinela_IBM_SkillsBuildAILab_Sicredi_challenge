@@ -45,6 +45,8 @@ logger = logging.getLogger(__name__)
 # Número mínimo de sinais para as baselines de regras
 _MIN_SINAIS_BASELINE_3 = 3
 _MIN_SINAIS_BASELINE_4 = 4
+# Faixas de mesma largura em que a calibração divide a nota (0 a 100)
+_QTD_FAIXAS_CALIBRACAO = 10
 
 
 def _treinar_pipeline(treino: pd.DataFrame) -> Pipeline:
@@ -296,24 +298,31 @@ def _ablacao(treino: pd.DataFrame, teste: pd.DataFrame) -> list[dict]:
 def _calibracao(y_true: np.ndarray, y_prob: np.ndarray) -> dict:
     """Calcula Brier score e 10 faixas de calibração.
 
+    A última faixa inclui a nota 100; sem isso, as compras com nota máxima (quase todas
+    fraudes) ficariam fora de todas as faixas.
+
     Args:
         y_true: Rótulos verdadeiros.
         y_prob: Probabilidades (0–100); convertidas para 0–1 internamente.
 
     Returns:
-        Dicionário com ``brier`` e lista ``faixas`` com 10 entradas.
+        Dicionário com ``brier`` e lista ``faixas`` com 10 entradas. Em cada faixa,
+        ``taxa_prevista_pct`` é a média da nota prevista nela (None se vazia).
     """
     prob01 = y_prob / 100.0
     brier = float(brier_score_loss(y_true, prob01))
     faixas = []
-    for i in range(10):
-        low = i / 10
-        high = (i + 1) / 10
-        mascara = (prob01 >= low) & (prob01 < high)
+    for i in range(_QTD_FAIXAS_CALIBRACAO):
+        low = i / _QTD_FAIXAS_CALIBRACAO
+        high = (i + 1) / _QTD_FAIXAS_CALIBRACAO
+        acima_do_inicio = prob01 >= low
+        ultima_faixa = i == _QTD_FAIXAS_CALIBRACAO - 1
+        abaixo_do_fim = prob01 <= high if ultima_faixa else prob01 < high
+        mascara = acima_do_inicio & abaixo_do_fim
         n = int(mascara.sum())
         fraudes = int(y_true[mascara].sum()) if n > 0 else 0
         taxa_real = round(fraudes / n * 100, 2) if n > 0 else None
-        taxa_prevista = round((low + high) / 2 * 100, 1)
+        taxa_prevista = round(float(prob01[mascara].mean()) * 100, 2) if n > 0 else None
         faixas.append(
             {
                 "faixa": f"{int(low * 100)}-{int(high * 100)}",

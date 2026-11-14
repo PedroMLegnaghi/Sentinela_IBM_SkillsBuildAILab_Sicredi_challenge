@@ -93,23 +93,25 @@ Calibração mede se a nota do modelo reflete a probabilidade real de fraude.
 
 **Brier score:** 0,000007 (praticamente zero — calibração excelente)
 
+A taxa prevista é a média da nota das compras de cada faixa; a última faixa inclui a nota 100.
+
 | Faixa de nota | N | Fraudes | Taxa real (%) | Taxa prevista (%) |
 |---|---|---|---|---|
-| 0–10 | 13.554 | 0 | 0,0 | 5,0 |
-| 10–20 | 0 | 0 | — | 15,0 |
-| 20–30 | 0 | 0 | — | 25,0 |
-| 30–40 | 0 | 0 | — | 35,0 |
-| 40–50 | 0 | 0 | — | 45,0 |
-| 50–60 | 0 | 0 | — | 55,0 |
-| 60–70 | 0 | 0 | — | 65,0 |
-| 70–80 | 1 | 1 | 100,0 | 75,0 |
-| 80–90 | 1 | 1 | 100,0 | 85,0 |
-| 90–100 | 35 | 35 | 100,0 | 95,0 |
+| 0–10 | 13.554 | 0 | 0,0 | 0,01 |
+| 10–20 | 0 | 0 | — | — |
+| 20–30 | 0 | 0 | — | — |
+| 30–40 | 0 | 0 | — | — |
+| 40–50 | 0 | 0 | — | — |
+| 50–60 | 0 | 0 | — | — |
+| 60–70 | 0 | 0 | — | — |
+| 70–80 | 1 | 1 | 100,0 | 74,53 |
+| 80–90 | 1 | 1 | 100,0 | 81,62 |
+| 90–100 | 52 | 52 | 100,0 | 100,0 |
 
-> A nota separa perfeitamente legítimas (faixa 0–10) de fraudes (faixas 70+): 13.554
-> compras legítimas têm nota abaixo de 10, e todas as 37 fraudes fora de BLOQUEAR direto
-> ficam em notas acima de 70. O Brier score de 0,000007 confirma que a nota não só
-> classifica corretamente como também reflete a probabilidade real de forma confiável.
+> As 10 faixas somam as 13.608 compras e as 54 fraudes de março. A nota separa perfeitamente
+> as 13.554 compras legítimas (todas abaixo de 10) das 54 fraudes (todas acima de 70; 52 delas
+> acima de 90). Nas faixas com compras, a taxa prevista fica perto da real, e o Brier score de
+> 0,000007 confirma que a nota também funciona como probabilidade.
 
 ---
 
@@ -138,10 +140,13 @@ fraudes interceptadas e o custo operacional dos pedidos de confirmação.
 
 ---
 
-## 7. Curva de custo por nota de corte (seleção)
+## 7. Curva de custo por nota de corte, só o modelo (seleção)
 
-A curva mostra como o valor das fraudes capturadas e o custo de confirmações variam
-com o limiar de nota usado para disparar alertas.
+A curva mostra como o valor das fraudes capturadas e o custo dos alertas variam com o limiar de
+nota. Ela usa **só a nota do modelo**: toda compra com nota maior ou igual ao corte vira um
+alerta, contado na coluna "Confirmações". Os sinais de regra, que também levam o Sentinela a
+pedir confirmação, ficam de fora. Por isso, no corte 30, a curva mostra 54 alertas, enquanto o
+Sentinela completo da seção 6 faz 54 bloqueios e 159 pedidos de confirmação.
 
 | Corte | Fraudes capturadas | Valor capturado (R$) | Confirmações | Custo confirmações (R$) |
 |---|---|---|---|---|
@@ -154,7 +159,8 @@ com o limiar de nota usado para disparar alertas.
 | 85 | 52 | 12.800,35 | 52 | 52,00 |
 | 100 | 51 | 12.638,19 | 51 | 51,00 |
 
-> Corte em 30 (valor de `NOTA_CONFIRMAR`) representa o ponto de operação do Sentinela.
-> As notas ficam em bipartição quase perfeita (< 10 para legítimas, ≥ 70 para fraudes),
-> então qualquer corte entre 10 e 70 captura todas as 54 fraudes com apenas 54 confirmações.
+> As notas do modelo se dividem quase perfeitamente (< 10 para legítimas, ≥ 70 para fraudes),
+> então qualquer corte entre 5 e 70 captura as 54 fraudes com só 54 alertas. O corte do
+> Sentinela é 30 (`NOTA_CONFIRMAR`); as 159 confirmações a mais vêm dos sinais de regra, uma
+> margem de segurança para quando os dados não forem tão separáveis quanto estes.
 > A tabela completa com 21 pontos (0 a 100, de 5 em 5) está em `modelos/custos.json`.

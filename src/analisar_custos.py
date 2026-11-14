@@ -28,7 +28,10 @@ def calcular_custos(teste: pd.DataFrame, custo_confirmacao: float) -> dict:
     """Calcula as métricas de custo para março no Sentinela e no sistema atual.
 
     Valor vazio em ``valor`` conta como 0 e o índice entra em ``valores_vazios``.
-    A curva de custo varre notas de corte de 0 a 100 de 5 em 5.
+    A curva de custo varre notas de corte de 0 a 100 de 5 em 5 e usa só a nota do modelo:
+    em cada corte, toda compra com ``nota >= corte`` conta como um alerta (``confirmacoes``).
+    Ela não inclui os sinais de regra, que também levam o Sentinela a pedir confirmação; por
+    isso, no corte 30, a curva mostra menos alertas que o total de confirmações do Sentinela.
 
     Args:
         teste: DataFrame de março com colunas ``nota``, ``decisao``,

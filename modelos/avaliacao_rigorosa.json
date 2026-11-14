@@ -135,70 +135,70 @@
         "n": 13554,
         "fraudes": 0,
         "taxa_real_pct": 0.0,
-        "taxa_prevista_pct": 5.0
+        "taxa_prevista_pct": 0.01
       },
       {
         "faixa": "10-20",
         "n": 0,
         "fraudes": 0,
         "taxa_real_pct": null,
-        "taxa_prevista_pct": 15.0
+        "taxa_prevista_pct": null
       },
       {
         "faixa": "20-30",
         "n": 0,
         "fraudes": 0,
         "taxa_real_pct": null,
-        "taxa_prevista_pct": 25.0
+        "taxa_prevista_pct": null
       },
       {
         "faixa": "30-40",
         "n": 0,
         "fraudes": 0,
         "taxa_real_pct": null,
-        "taxa_prevista_pct": 35.0
+        "taxa_prevista_pct": null
       },
       {
         "faixa": "40-50",
         "n": 0,
         "fraudes": 0,
         "taxa_real_pct": null,
-        "taxa_prevista_pct": 45.0
+        "taxa_prevista_pct": null
       },
       {
         "faixa": "50-60",
         "n": 0,
         "fraudes": 0,
         "taxa_real_pct": null,
-        "taxa_prevista_pct": 55.0
+        "taxa_prevista_pct": null
       },
       {
         "faixa": "60-70",
         "n": 0,
         "fraudes": 0,
         "taxa_real_pct": null,
-        "taxa_prevista_pct": 65.0
+        "taxa_prevista_pct": null
       },
       {
         "faixa": "70-80",
         "n": 1,
         "fraudes": 1,
         "taxa_real_pct": 100.0,
-        "taxa_prevista_pct": 75.0
+        "taxa_prevista_pct": 74.53
       },
       {
         "faixa": "80-90",
         "n": 1,
         "fraudes": 1,
         "taxa_real_pct": 100.0,
-        "taxa_prevista_pct": 85.0
+        "taxa_prevista_pct": 81.62
       },
       {
         "faixa": "90-100",
-        "n": 35,
-        "fraudes": 35,
+        "n": 52,
+        "fraudes": 52,
         "taxa_real_pct": 100.0,
-        "taxa_prevista_pct": 95.0
+        "taxa_prevista_pct": 100.0
       }
     ]
   }

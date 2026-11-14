@@ -391,10 +391,10 @@ Escrever, antes de qualquer código, o contrato das rotas novas. É ele que deix
 
 1. Crie a seção 17 da `ESPECIFICACAO.md`, "Associado e filial". Para cada rota abaixo, escreva: método, caminho, cabeçalho, corpo de entrada, corpo de saída com o tipo de cada campo, e os códigos de erro.
 2. **Sessão.** `GET /api/sessao/perfis` devolve `{perfis: [{id_perfil, nome, papel, filial: {id_filial, nome}}]}`, com `papel` em `associado`, `auditor` ou `gerente`. `POST /api/sessao` recebe `{id_perfil}` e devolve `{token, perfil}`; perfil desconhecido dá 404. Todas as rotas abaixo exigem o cabeçalho `X-Sessao: <token>`: sem ele, 401; com papel errado, 403.
-3. **Início do associado.** `GET /api/associado/inicio` devolve `{associado: {nome, filial}, saldo, limite_total, limite_disponivel, cartoes: [{id_cartao, tipo, final, bloqueado}], pendentes: [{id_notificacao, id_compra, valor, data_hora}], ultimas_compras: [CompraExtrato]}` (as 3 mais recentes).
+3. **Início do associado.** `GET /api/associado/inicio` devolve `{associado: {nome, filial}, saldo, limite_total, limite_disponivel, cartoes: [{id, tipo, final, bloqueado}], pendentes: [{id_notificacao, id_compra, valor, data_hora}], ultimas_compras: [CompraExtrato]}` (as 3 mais recentes).
 4. **Extrato.** `GET /api/associado/extrato?situacao=` devolve `{total, itens: [CompraExtrato]}`, da mais nova para a mais antiga. `CompraExtrato` = `{id_compra, estabelecimento, data_hora, valor, tipo_transacao, final_cartao, situacao, id_notificacao}`, com `situacao` em `APROVADA`, `AGUARDANDO`, `BLOQUEADA` ou `CONTESTADA`.
 5. **Detalhe da compra.** `GET /api/associado/compras/{id_compra}` devolve `CompraExtrato` mais `{bloqueio: {por, em, motivo} | null, resposta_associado: {resposta, em} | null, pode_contestar}`. `por` é `"Sentinela"` ou `"Analista da agência <nome>"`; `motivo` é sempre o texto genérico. Compra de outro associado dá 404.
-6. **Simular compra.** `POST /api/associado/compras` recebe `{id_cartao}` mais os mesmos campos de `EntradaAnalise` (seção 12) e devolve 201 com `{compra: CompraExtrato, id_notificacao}`. Cartão bloqueado dá 409.
+6. **Simular compra.** `POST /api/associado/compras` recebe `{cartao, estabelecimento, data_hora}` mais os campos de `EntradaAnalise` (seção 12), exceto `credito`, `tipo_transacao` e `auditar` e devolve 201 com `{compra: CompraExtrato, id_notificacao}`. Cartão bloqueado dá 409.
 7. **Contestação.** `POST /api/associado/compras/{id_compra}/contestacao` devolve 201 com `{compra, cartao_bloqueado: true}`. Só vale para compra `APROVADA`; nos outros casos, 409.
 8. **Aviso "Foi você?".** Continua nas rotas atuais `GET /api/notificacoes/{id}` e `POST /api/notificacoes/{id}/resposta` (seção 15). Escreva que a resposta agora também muda a situação da compra: "fui eu" vira `APROVADA`; "não fui eu" vira `BLOQUEADA`.
 9. **Fila da filial.** `GET /api/filial/fila?situacao=` devolve `{filial, total, itens: [{id_compra, nota, decisao, associado, final_cartao, data_hora, valor, situacao, veredito_ia}]}`, só com a carteira da filial da sessão. `associado` é o nome abreviado ("Ana S.").
@@ -403,7 +403,7 @@ Escrever, antes de qualquer código, o contrato das rotas novas. É ele que deix
 12. Escreva na seção 17 as regras de negócio: saldo (débito desconta o saldo, crédito consome o limite, bloqueada ou aguardando não mexe), identificadores públicos opacos (nunca `id_cartao`, `id_cliente` ou `id_estabelecimento` da base) e a divisão da carteira entre as duas filiais.
 13. Em `web/lib/tipos.ts`, crie um tipo para cada corpo de saída, com os mesmos nomes de campo.
 14. Em `web/lib/mocks/refatoracao.ts`, crie um mock para cada rota, com os dados do protótipo (`docs/prototipo/index.html`): Ana Souza, Agência Centro, saldo R$ 4.820,35 e as seis compras do extrato.
-15. Em `tests/test_contrato_refatoracao.py`, crie um teste por rota que chama a rota com o `TestClient` e confere o código e as chaves do corpo. Marque cada um com `pytest.mark.skip(reason="rota da Issue #N")`; quem fizer a rota tira a marca.
+15. Em `tests/test_contrato_refatoracao.py`, crie um teste por rota que chama a rota com o `TestClient` e confere o código e as chaves do corpo. Cada teste se pula sozinho enquanto a rota não existe (confere `app.openapi()`); quem fizer a rota não precisa mexer no arquivo.
 16. Peça a revisão da trilha API no PR antes do merge. Esta é a única Issue com revisão obrigatória.
 
 ### Pronto quando
@@ -542,7 +542,7 @@ Implementar a sessão simulada e as rotas do associado da seção 17: início, e
 - `src/api/esquemas_refatoracao.py` (novo)
 - `src/aplicacao/associado.py` (novo: casos de uso)
 - `src/api/app.py` (só `include_router` e a ligação da resposta do aviso com a compra)
-- `tests/test_rotas_associado.py` (novo) e `tests/test_contrato_refatoracao.py` (tirar as marcas de pulo destas rotas)
+- `tests/test_rotas_associado.py` (novo) e `tests/test_contrato_refatoracao.py` (só leitura: é a régua)
 
 ### Passo a passo
 
@@ -555,7 +555,7 @@ Implementar a sessão simulada e as rotas do associado da seção 17: início, e
 7. O detalhe da compra devolve sempre o motivo genérico ("A compra fugiu do seu padrão de uso e foi bloqueada por segurança."). Nada de sinais, nota ou parecer da IA nestas rotas.
 8. Em `src/api/app.py`, acrescente só `app.include_router(...)` para os dois arquivos novos.
 9. Testes: cada rota com sucesso e com cada erro do contrato; saldo antes e depois de uma compra aprovada no débito e no crédito; "fui eu" numa compra aguardando; contestação bloqueando o cartão; e nenhum campo `id_cartao`, `id_cliente` ou `id_estabelecimento` da base em nenhuma resposta.
-10. Tire as marcas de pulo das rotas desta Issue em `tests/test_contrato_refatoracao.py`.
+10. Confira que os testes destas rotas em `tests/test_contrato_refatoracao.py` deixaram de ser pulados e passam (eles se ativam sozinhos quando a rota existe).
 
 ### Pronto quando
 

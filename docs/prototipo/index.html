@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo Sentinela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --verde:#3FA110; --verde-acao:#33820D; --verde-acao-hover:#26610A; --verde-escuro:#146E37;
+  --verde-fundo:#ECF6E7; --neutro-claro:#D7E6C8;
+  --texto:#323C32; --texto-suave:#5A645A; --borda:#E1E6E1; --fundo:#F5F5F5; --branco:#FFFFFF;
+  --amarelo:#FFCD00; --amarelo-fundo:#FFF7D1; --amarelo-texto:#5A3C1E;
+  --magenta:#E60050; --magenta-fundo:#FDE6EE; --magenta-texto:#AA003C;
+  --raio:16px; --raio-p:10px; --sombra:0 2px 10px rgba(50,60,50,.08);
+  --titulo:"Exo 2",Calibri,Arial,sans-serif; --corpo:"Nunito",Calibri,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+body{font-family:var(--corpo);color:var(--texto);background:var(--fundo);font-size:15px;line-height:1.45}
+h1,h2,h3,.tit{font-family:var(--titulo);font-weight:700;font-style:italic;line-height:1.15}
+button{font:inherit;cursor:pointer;border:0}
+.num{font-variant-numeric:tabular-nums}
+
+/* barra do protótipo */
+.proto{position:sticky;top:0;z-index:5;background:var(--branco);border-bottom:1px solid var(--borda);
+  display:flex;align-items:center;gap:20px;padding:10px 24px;flex-wrap:wrap}
+.proto img{height:30px}
+.proto span{color:var(--texto-suave);font-size:13px}
+.abas{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.abas button{padding:8px 16px;border-radius:999px;background:transparent;color:var(--texto-suave);font-weight:700}
+.abas button[aria-selected=true]{background:var(--verde-acao);color:#fff}
+.secao{display:none;padding:28px 24px 60px}
+.secao.ativa{display:block}
+.legenda{max-width:900px;margin:0 0 22px;color:var(--texto-suave)}
+.legenda h2{color:var(--texto);font-size:24px;margin-bottom:4px}
+
+/* celulares */
+.celulares{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+.cel-bloco{display:flex;flex-direction:column;gap:8px}
+.cel-nome{font-weight:800;font-size:13px;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.04em}
+.cel{width:320px;height:660px;background:var(--fundo);border-radius:34px;border:8px solid #1d241d;overflow:hidden;
+  display:flex;flex-direction:column;position:relative;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+.cel-corpo{flex:1;overflow:auto;padding:0 16px 16px}
+.topo-verde{background:var(--verde);color:#fff;padding:20px 16px 44px;border-radius:0 0 26px 26px;margin:0 -16px}
+.topo-verde img{height:26px;display:block;margin-bottom:16px}
+.topo-verde .ola{font-family:var(--titulo);font-style:italic;font-weight:700;font-size:22px}
+.topo-verde small{opacity:.95;font-weight:600}
+.cartao{background:var(--branco);border-radius:var(--raio);box-shadow:var(--sombra);padding:16px}
+.sobe{margin-top:-30px;position:relative}
+.rotulo{font-size:12px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.04em}
+.saldo{font-family:var(--titulo);font-weight:700;font-size:30px;color:var(--verde-escuro);margin:2px 0 10px}
+.linha{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.barra{height:8px;border-radius:99px;background:var(--neutro-claro);overflow:hidden;margin-top:6px}
+.barra i{display:block;height:100%;background:var(--verde);border-radius:99px}
+.atalhos{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0}
+.atalho{background:var(--branco);border-radius:var(--raio-p);padding:12px 4px;text-align:center;font-size:11.5px;font-weight:700;
+  box-shadow:var(--sombra);color:var(--texto)}
+.atalho b{display:grid;place-items:center;width:36px;height:36px;margin:0 auto 6px;border-radius:50%;background:var(--verde-fundo);color:var(--verde-escuro);font-size:17px}
+.atalho.principal b{background:var(--verde-acao);color:#fff}
+.atalho.mock{opacity:.55}
+.sub{font-family:var(--titulo);font-style:italic;font-weight:700;font-size:17px;margin:18px 0 8px}
+.item{display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--borda)}
+.item:last-child{border-bottom:0}
+.item .ic{width:36px;height:36px;border-radius:50%;background:var(--verde-fundo);color:var(--verde-escuro);display:grid;place-items:center;font-weight:800;flex:none}
+.item .meio{flex:1;min-width:0}
+.item .meio b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .meio small{color:var(--texto-suave)}
+.item .val{text-align:right;font-weight:800;white-space:nowrap}
+.riscado{text-decoration:line-through;color:var(--texto-suave);font-weight:600}
+.etq{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.etq.ok{background:var(--verde-fundo);color:var(--verde-escuro)}
+.etq.esp{background:var(--amarelo-fundo);color:var(--amarelo-texto)}
+.etq.blq{background:var(--magenta-fundo);color:var(--magenta-texto)}
+.etq.neu{background:var(--borda);color:var(--texto-suave)}
+.btn{display:block;width:100%;padding:13px;border-radius:999px;background:var(--verde-acao);color:#fff;font-weight:800;font-size:15px;text-align:center}
+.btn:hover{background:var(--verde-acao-hover)}
+.btn.sec{background:var(--branco);color:var(--verde-acao);border:2px solid var(--verde-acao)}
+.btn.perigo{background:var(--branco);color:var(--magenta-texto);border:2px solid var(--magenta-texto)}
+.btn.p{padding:9px 14px;width:auto;font-size:13.5px;display:inline-block}
+.nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--branco);border-top:1px solid var(--borda);padding:8px 0 10px}
+.nav span{text-align:center;font-size:11px;font-weight:700;color:var(--texto-suave)}
+.nav span b{display:block;font-size:17px}
+.nav .on{color:var(--verde-acao)}
+.cabec{padding:18px 0 10px;display:flex;align-items:center;gap:10px}
+.cabec h3{font-size:20px}
+.campo{margin-bottom:12px}
+.campo label{display:block;font-size:12.5px;font-weight:700;color:var(--texto-suave);margin-bottom:4px}
+.campo .cx{background:var(--branco);border:1.5px solid var(--borda);border-radius:var(--raio-p);padding:10px 12px;font-weight:700;display:flex;justify-content:space-between}
+.campo .cx.foco{border-color:var(--verde)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:6px 12px;border-radius:99px;border:1.5px solid var(--borda);background:var(--branco);font-size:12.5px;font-weight:700}
+.chip.on{border-color:var(--verde-acao);background:var(--verde-fundo);color:var(--verde-escuro)}
+.duas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.aviso{border-radius:var(--raio);padding:14px;font-size:14px}
+.aviso.esp{background:var(--amarelo-fundo);color:var(--amarelo-texto)}
+.aviso.blq{background:var(--magenta-fundo);color:var(--magenta-texto)}
+.aviso.ok{background:var(--verde-fundo);color:var(--verde-escuro)}
+.login{background:var(--verde);height:100%;display:flex;flex-direction:column;justify-content:flex-end}
+.login .marca{flex:1;display:grid;place-items:center;padding:20px}
+.login .marca img{width:200px}
+.login .folha{background:var(--branco);border-radius:26px 26px 0 0;padding:22px 18px 24px}
+.pessoa{display:flex;align-items:center;gap:10px;padding:10px;border:1.5px solid var(--borda);border-radius:var(--raio-p);margin-bottom:8px}
+.pessoa.on{border-color:var(--verde-acao);background:var(--verde-fundo)}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--verde-escuro);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+
+/* desktop */
+.desk{background:var(--fundo);border:1px solid var(--borda);border-radius:14px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.10);
+  display:grid;grid-template-columns:220px 1fr;min-height:760px;max-width:1320px}
+.lado{background:var(--branco);border-right:1px solid var(--borda);padding:20px 14px;display:flex;flex-direction:column;gap:4px}
+.lado img{height:34px;margin:0 6px 4px;align-self:flex-start}
+.lado .ag{font-size:12.5px;color:var(--texto-suave);font-weight:700;margin:0 6px 16px}
+.lado a{padding:10px 12px;border-radius:var(--raio-p);font-weight:700;color:var(--texto-suave);text-decoration:none}
+.lado a.on{background:var(--verde-fundo);color:var(--verde-escuro)}
+.lado .quem{margin-top:auto;display:flex;gap:10px;align-items:center;padding:10px 6px 0;border-top:1px solid var(--borda)}
+.lado .quem small{color:var(--texto-suave);display:block}
+.area{padding:24px 28px;min-width:0}
+.area h1{font-size:28px}
+.area .desc{color:var(--texto-suave);margin:4px 0 20px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.kpi b{font-family:var(--titulo);font-size:30px;font-weight:700;display:block;color:var(--verde-escuro)}
+.kpi small{color:var(--texto-suave)}
+.grade2{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:start}
+.grade-fila{display:grid;grid-template-columns:1fr 420px;gap:16px;align-items:start}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--texto-suave);padding:8px 10px;border-bottom:2px solid var(--borda)}
+td{padding:11px 10px;border-bottom:1px solid var(--borda)}
+tr.sel td{background:var(--verde-fundo)}
+td.d,th.d{text-align:right}
+.nota{display:inline-grid;place-items:center;width:40px;height:26px;border-radius:8px;font-weight:800;font-size:13px}
+.nota.a{background:var(--magenta-fundo);color:var(--magenta-texto)}
+.nota.m{background:var(--amarelo-fundo);color:var(--amarelo-texto)}
+.nota.b{background:var(--verde-fundo);color:var(--verde-escuro)}
+.filtros{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.h3{font-family:var(--titulo);font-style:italic;font-weight:700;font-size:17px;margin-bottom:10px}
+.sinal{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:14px}
+.sinal i{width:8px;height:8px;border-radius:50%;background:var(--magenta);flex:none}
+.sinal.nao i{background:var(--borda)}
+.sinal.nao{color:var(--texto-suave)}
+.peso{display:grid;grid-template-columns:150px 1fr 44px;gap:8px;align-items:center;font-size:13.5px;padding:4px 0}
+.peso .tr{height:10px;background:var(--borda);border-radius:99px;overflow:hidden}
+.peso .tr i{display:block;height:100%;background:var(--verde-escuro);border-radius:99px}
+.ia{border-left:4px solid var(--verde);background:var(--verde-fundo);border-radius:0 var(--raio-p) var(--raio-p) 0;padding:12px 14px;font-size:14px}
+.sep{height:1px;background:var(--borda);margin:14px 0}
+.barras{display:flex;flex-direction:column;gap:12px}
+.bl{display:grid;grid-template-columns:130px 1fr 60px;gap:10px;align-items:center;font-size:13.5px}
+.emp{display:flex;height:18px;border-radius:6px;overflow:hidden;gap:2px;background:var(--branco)}
+.emp i{display:block;height:100%}
+.c-ok{background:var(--verde)} .c-esp{background:var(--amarelo)} .c-blq{background:var(--magenta)}
+.leg{display:flex;gap:14px;font-size:12.5px;color:var(--texto-suave);margin-top:12px;flex-wrap:wrap}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.rosca{width:150px;height:150px;border-radius:50%;background:conic-gradient(var(--verde) 0 87%,var(--magenta) 87% 100%);display:grid;place-items:center;flex:none}
+.rosca div{width:104px;height:104px;border-radius:50%;background:var(--branco);display:grid;place-items:center;text-align:center}
+.rosca b{font-family:var(--titulo);font-size:28px;color:var(--verde-escuro);display:block;line-height:1}
+.cores{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;max-width:1000px}
+.cor{border-radius:var(--raio-p);overflow:hidden;background:var(--branco);box-shadow:var(--sombra);font-size:13px}
+.cor i{display:block;height:64px}
+.cor div{padding:8px 10px}
+@media(max-width:1100px){.desk{grid-template-columns:1fr}.lado{display:none}.grade2,.grade-fila{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div class="proto">
+  <img src="logo-sicredi.png" alt="Sicredi">
+  <span>Protótipo de alta fidelidade do Sentinela · dados fictícios</span>
+  <div class="abas" role="tablist">
+    <button role="tab" aria-selected="true" data-s="associado">Associado</button>
+    <button role="tab" aria-selected="false" data-s="auditor">Filial: auditor</button>
+    <button role="tab" aria-selected="false" data-s="gerente">Filial: gerente</button>
+    <button role="tab" aria-selected="false" data-s="estilo">Guia de estilo</button>
+  </div>
+</div>
+
+<!-- ================= ASSOCIADO ================= -->
+<section class="secao ativa" id="associado">
+  <div class="legenda"><h2>Área do associado</h2>Pensada para celular. Seis telas, na ordem em que o associado passa por elas.</div>
+  <div class="celulares">
+
+    <div class="cel-bloco"><div class="cel-nome">1 · Entrar</div>
+    <div class="cel"><div class="login">
+      <div class="marca"><img src="logo-sicredi-branco.png" alt="Sicredi"></div>
+      <div class="folha">
+        <h3 style="font-size:22px;margin-bottom:4px">Quem está entrando?</h3>
+        <p style="color:var(--texto-suave);margin-bottom:14px;font-size:13.5px">Acesso simulado, sem senha.</p>
+        <div class="pessoa on"><div class="avatar">AS</div><div><b>Ana Souza</b><br><small>Associada · Agência Centro</small></div></div>
+        <div class="pessoa"><div class="avatar">CL</div><div><b>Carlos Lima</b><br><small>Associado · Agência Norte</small></div></div>
+        <div class="pessoa"><div class="avatar" style="background:var(--texto-suave)">RM</div><div><b>Rafael Moura</b><br><small>Auditor · Agência Centro</small></div></div>
+        <button class="btn" style="margin-top:8px">Entrar</button>
+      </div>
+    </div></div></div>
+
+    <div class="cel-bloco"><div class="cel-nome">2 · Início</div>
+    <div class="cel"><div class="cel-corpo">
+      <div class="topo-verde"><img src="logo-sicredi-branco.png" alt="Sicredi"><div class="ola">Olá, Ana</div><small>Agência Centro</small></div>
+      <div class="cartao sobe">
+        <div class="rotulo">Saldo em conta</div>
+        <div class="saldo num">R$ 4.820,35</div>
+        <div class="rotulo">Limite disponível no crédito</div><b class="num">R$ 2.150,00</b> <span style="color:var(--texto-suave)" class="num">de R$ 3.000,00</span>
+        <div class="barra"><i style="width:72%"></i></div>
+      </div>
+      <div class="atalhos">
+        <div class="atalho principal"><b>+</b>Simular compra</div>
+        <div class="atalho"><b>≡</b>Extrato</div>
+        <div class="atalho"><b>✉</b>Chat</div>
+        <div class="atalho mock"><b>↗</b>Investir</div>
+      </div>
+      <div class="aviso esp"><b>Uma compra espera a sua resposta.</b><br>R$ 980,00 em 12/03 às 03:10.<br><button class="btn p" style="margin-top:8px">Responder</button></div>
+      <div class="sub">Últimas compras</div>
+      <div class="cartao" style="padding:4px 14px">
+        <div class="item"><div class="ic">M</div><div class="meio"><b>Mercado Bom Preço</b><small>Hoje, 18:42 · débito</small></div><div class="val num">R$ 86,40</div></div>
+        <div class="item"><div class="ic">L</div><div class="meio"><b>Loja online</b><small>12/03, 03:10 · crédito</small><br><span class="etq esp">Aguardando você</span></div><div class="val num">R$ 980,00</div></div>
+        <div class="item"><div class="ic">P</div><div class="meio"><b>Posto Avenida</b><small>11/03, 08:15 · débito</small></div><div class="val num">R$ 150,00</div></div>
+      </div>
+    </div>
+    <div class="nav"><span class="on"><b>⌂</b>Início</span><span><b>≡</b>Extrato</span><span><b>+</b>Comprar</span><span><b>✉</b>Chat</span></div></div></div>
+
+    <div class="cel-bloco"><div class="cel-nome">3 · Extrato</div>
+    <div class="cel"><div class="cel-corpo">
+      <div class="cabec"><h3>Extrato</h3></div>
+      <div class="chips" style="margin-bottom:12px"><span class="chip on">Todas</span><span class="chip">Aprovadas</span><span class="chip">Aguardando</span><span class="chip">Bloqueadas</span></div>
+      <div class="rotulo">Março de 2025</div>
+      <div class="cartao" style="padding:4px 14px;margin-top:6px">
+        <div class="item"><div class="ic">M</div><div class="meio"><b>Mercado Bom Preço</b><small>14/03, 18:42 · débito</small><br><span class="etq ok">Aprovada</span></div><div class="val num">R$ 86,40</div></div>
+        <div class="item"><div class="ic">E</div><div class="meio"><b>Eletrônicos Web</b><small>13/03, 02:47 · crédito</small><br><span class="etq blq">Bloqueada</span></div><div class="val num riscado">R$ 2.340,00</div></div>
+        <div class="item"><div class="ic">L</div><div class="meio"><b>Loja online</b><small>12/03, 03:10 · crédito</small><br><span class="etq esp">Aguardando você</span></div><div class="val num">R$ 980,00</div></div>
+        <div class="item"><div class="ic">P</div><div class="meio"><b>Posto Avenida</b><small>11/03, 08:15 · débito</small><br><span class="etq ok">Aprovada</span></div><div class="val num">R$ 150,00</div></div>
+        <div class="item"><div class="ic">F</div><div class="meio"><b>Farmácia Vida</b><small>10/03, 19:02 · débito</small><br><span class="etq ok">Aprovada</span></div><div class="val num">R$ 42,90</div></div>
+        <div class="item"><div class="ic">R</div><div class="meio"><b>Restaurante Sabor</b><small>09/03, 12:30 · crédito</small><br><span class="etq ok">Aprovada</span></div><div class="val num">R$ 68,00</div></div>
+      </div>
+    </div>
+    <div class="nav"><span><b>⌂</b>Início</span><span class="on"><b>≡</b>Extrato</span><span><b>+</b>Comprar</span><span><b>✉</b>Chat</span></div></div></div>
+
+    <div class="cel-bloco"><div class="cel-nome">4 · Simular compra</div>
+    <div class="cel"><div class="cel-corpo">
+      <div class="cabec"><h3>Simular compra</h3></div>
+      <div class="rotulo" style="margin-bottom:6px">Cenário pronto</div>
+      <div class="chips" style="margin-bottom:14px"><span class="chip">Compra comum</span><span class="chip on">Madrugada no exterior</span><span class="chip">Várias seguidas</span></div>
+      <div class="campo"><label>Cartão</label><div class="cx">Crédito · final 4821<span>▾</span></div></div>
+      <div class="duas">
+        <div class="campo"><label>Valor</label><div class="cx foco num">R$ 980,00</div></div>
+        <div class="campo"><label>Hora</label><div class="cx num">03:10</div></div>
+      </div>
+      <div class="campo"><label>Estabelecimento</label><div class="cx">Loja online<span>▾</span></div></div>
+      <div class="duas">
+        <div class="campo"><label>Modalidade</label><div class="cx">Sem cartão presente</div></div>
+        <div class="campo"><label>País do acesso</label><div class="cx">Desconhecido</div></div>
+      </div>
+      <div class="campo"><label>Compras no último minuto</label><div class="cx num">3</div></div>
+      <button class="btn">Fazer a compra</button>
+      <div class="aviso esp" style="margin-top:12px"><b>Precisamos confirmar com você.</b><br>Enviamos um aviso. A compra fica em espera até a sua resposta.</div>
+    </div>
+    <div class="nav"><span><b>⌂</b>Início</span><span><b>≡</b>Extrato</span><span class="on"><b>+</b>Comprar</span><span><b>✉</b>Chat</span></div></div></div>
+
+    <div class="cel-bloco"><div class="cel-nome">5 · Foi você?</div>
+    <div class="cel"><div class="cel-corpo">
+      <div class="cabec"><h3>Confirme esta compra</h3></div>
+      <div class="cartao">
+        <div class="rotulo">Mensagem do Sicredi</div>
+        <p style="margin:6px 0 14px;font-weight:700">Sicredi: Identificamos uma compra de R$ 980,00 em 12/03 às 03:10 no seu cartão de crédito. Foi você? Responda no app.</p>
+        <div class="sep"></div>
+        <div class="linha"><span class="rotulo">Valor</span><b class="num">R$ 980,00</b></div>
+        <div class="linha" style="margin-top:6px"><span class="rotulo">Quando</span><b class="num">12/03, 03:10</b></div>
+        <div class="linha" style="margin-top:6px"><span class="rotulo">Cartão</span><b>Crédito · final 4821</b></div>
+      </div>
+      <div style="display:grid;gap:10px;margin-top:16px">
+        <button class="btn">Fui eu</button>
+        <button class="btn perigo">Não fui eu</button>
+      </div>
+      <p style="font-size:12.5px;color:var(--texto-suave);margin-top:14px">O Sicredi nunca pede senha, código ou link por mensagem.</p>
+    </div>
+    <div class="nav"><span><b>⌂</b>Início</span><span><b>≡</b>Extrato</span><span><b>+</b>Comprar</span><span><b>✉</b>Chat</span></div></div></div>
+
+    <div class="cel-bloco"><div class="cel-nome">6 · Detalhe da compra</div>
+    <div class="cel"><div class="cel-corpo">
+      <div class="cabec"><h3>Eletrônicos Web</h3></div>
+      <div class="cartao">
+        <span class="etq blq">Bloqueada</span>
+        <div class="saldo num" style="color:var(--texto);margin-top:8px">R$ 2.340,00</div>
+        <div class="linha"><span class="rotulo">Quando</span><b class="num">13/03, 02:47</b></div>
+        <div class="linha" style="margin-top:6px"><span class="rotulo">Cartão</span><b>Crédito · final 4821</b></div>
+        <div class="sep"></div>
+        <div class="linha"><span class="rotulo">Bloqueada por</span><b>Sentinela</b></div>
+        <div class="linha" style="margin-top:6px"><span class="rotulo">Em</span><b class="num">13/03, 02:47</b></div>
+        <div class="rotulo" style="margin-top:10px">Motivo</div>
+        <p style="margin-top:2px">A compra fugiu do seu padrão de uso e foi bloqueada por segurança.</p>
+      </div>
+      <div class="aviso ok" style="margin-top:12px">Você respondeu <b>"Não fui eu"</b> em 13/03 às 07:20. O valor não foi cobrado.</div>
+      <div class="sub">Em uma compra aprovada</div>
+      <button class="btn perigo">Não reconheço esta compra</button>
+      <p style="font-size:12.5px;color:var(--texto-suave);margin-top:8px">Ao contestar, o cartão é bloqueado e a sua agência é avisada.</p>
+    </div>
+    <div class="nav"><span><b>⌂</b>Início</span><span class="on"><b>≡</b>Extrato</span><span><b>+</b>Comprar</span><span><b>✉</b>Chat</span></div></div></div>
+  </div>
+</section>
+
+<!-- ================= AUDITOR ================= -->
+<section class="secao" id="auditor">
+  <div class="legenda"><h2>Filial: fila do auditor</h2>Só a carteira da agência. O detalhe técnico aparece aqui e nunca para o associado.</div>
+  <div class="desk">
+    <aside class="lado">
+      <img src="logo-sicredi.png" alt="Sicredi"><div class="ag">Agência Centro</div>
+      <a class="on">Fila de alertas</a><a>Respostas dos associados</a><a>Desempenho</a><a>Como funciona</a>
+      <div class="quem"><div class="avatar">RM</div><div><b>Rafael Moura</b><small>Auditor</small></div></div>
+    </aside>
+    <div class="area">
+      <h1>Fila de alertas</h1><p class="desc">1.027 compras sinalizadas na carteira da Agência Centro.</p>
+      <div class="grade-fila">
+        <div class="cartao">
+          <div class="filtros"><span class="chip on">Todas</span><span class="chip">Bloqueadas</span><span class="chip">Aguardando associado</span><span class="chip">Contestadas</span></div>
+          <table>
+            <thead><tr><th>Nota</th><th>Associado</th><th>Quando</th><th class="d">Valor</th><th>Situação</th><th>IA</th></tr></thead>
+            <tbody>
+              <tr class="sel"><td><span class="nota a num">100</span></td><td>Ana S. · final 4821</td><td class="num">13/03, 02:47</td><td class="d num">R$ 2.340,00</td><td><span class="etq blq">Bloqueada</span></td><td><span class="etq ok">Confirma</span></td></tr>
+              <tr><td><span class="nota m num">58</span></td><td>Ana S. · final 4821</td><td class="num">12/03, 03:10</td><td class="d num">R$ 980,00</td><td><span class="etq esp">Aguardando</span></td><td><span class="etq ok">Confirma</span></td></tr>
+              <tr><td><span class="nota a num">97</span></td><td>Bruno T. · final 0934</td><td class="num">12/03, 01:22</td><td class="d num">R$ 1.199,90</td><td><span class="etq blq">Bloqueada</span></td><td><span class="etq ok">Confirma</span></td></tr>
+              <tr><td><span class="nota m num">52</span></td><td>Carla M. · final 7710</td><td class="num">11/03, 23:58</td><td class="d num">R$ 415,00</td><td><span class="etq ok">Confirmada: fui eu</span></td><td><span class="etq neu">Inconclusivo</span></td></tr>
+              <tr><td><span class="nota b num">12</span></td><td>Diego P. · final 2288</td><td class="num">11/03, 14:05</td><td class="d num">R$ 76,30</td><td><span class="etq blq">Contestada</span></td><td><span class="etq esp">Diverge</span></td></tr>
+              <tr><td><span class="nota m num">61</span></td><td>Elisa R. · final 5163</td><td class="num">10/03, 04:31</td><td class="d num">R$ 640,00</td><td><span class="etq esp">Aguardando</span></td><td><span class="etq ok">Confirma</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cartao">
+          <div class="linha"><div><div class="rotulo">Compra em análise</div><div class="h3" style="margin:2px 0 0">Ana S. · crédito final 4821</div></div><span class="etq blq">Bloqueada</span></div>
+          <div class="linha" style="margin-top:12px"><div><div class="rotulo">Valor</div><b class="num" style="font-size:20px">R$ 2.340,00</b></div><div><div class="rotulo">Nota de risco</div><b class="num" style="font-size:20px;color:var(--magenta-texto)">100 de 100</b></div><div><div class="rotulo">Quando</div><b class="num">13/03, 02:47</b></div></div>
+          <div class="sep"></div>
+          <div class="h3">Sinais de alerta</div>
+          <div class="sinal"><i></i>Compra de madrugada</div>
+          <div class="sinal"><i></i>Acesso de país desconhecido</div>
+          <div class="sinal"><i></i>Três compras no último minuto</div>
+          <div class="sinal"><i></i>Sem cartão presente</div>
+          <div class="sinal nao"><i></i>Salto geográfico</div>
+          <div class="sep"></div>
+          <div class="h3">O que pesou na nota</div>
+          <div class="peso"><span>Compras no último minuto</span><div class="tr"><i style="width:92%"></i></div><b class="num">+4,1</b></div>
+          <div class="peso"><span>Terminais na última hora</span><div class="tr"><i style="width:70%"></i></div><b class="num">+3,2</b></div>
+          <div class="peso"><span>Madrugada</span><div class="tr"><i style="width:38%"></i></div><b class="num">+1,7</b></div>
+          <div class="sep"></div>
+          <div class="h3">Parecer da IA <span class="etq ok" style="margin-left:6px">Confirma</span> <span class="etq neu">watsonx.ai</span></div>
+          <div class="ia">Risco alto, confiança alta. A compra reúne madrugada, acesso de país desconhecido e rajada de compras. O histórico do cartão não tem compras parecidas.</div>
+          <div class="sep"></div>
+          <div class="h3">Associado</div>
+          <div class="aviso ok">Respondeu <b>"Não fui eu"</b> em 13/03 às 07:20. Fraude provável.</div>
+          <div class="rotulo" style="margin-top:12px">Histórico (agregado)</div>
+          <p style="font-size:14px;margin-top:2px">38 compras em 90 dias · mediana R$ 72,00 · 0 contestações.</p>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn p">Bloquear compra</button><button class="btn p sec">Adicionar nota</button></div>
+          <p style="font-size:12px;color:var(--texto-suave);margin-top:8px">"Bloquear compra" só vale para compras que aguardam o associado (prioridade 2).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GERENTE ================= -->
+<section class="secao" id="gerente">
+  <div class="legenda"><h2>Filial: painel do gerente</h2>Métricas da carteira da agência. O acerto do modelo vem da resposta dos associados.</div>
+  <div class="desk">
+    <aside class="lado">
+      <img src="logo-sicredi.png" alt="Sicredi"><div class="ag">Agência Centro</div>
+      <a class="on">Painel da agência</a><a>Fila de alertas</a><a>Equipe</a><a>Desempenho</a><a>Como funciona</a>
+      <div class="quem"><div class="avatar">HC</div><div><b>Helena Castro</b><small>Gerente</small></div></div>
+    </aside>
+    <div class="area">
+      <h1>Painel da agência</h1><p class="desc">Março de 2025 · 6.804 compras na carteira da Agência Centro.</p>
+      <div class="kpis">
+        <div class="cartao kpi"><div class="rotulo">Aprovadas</div><b class="num">6.698</b><small>98,4% das compras</small></div>
+        <div class="cartao kpi"><div class="rotulo">Pedidos de confirmação</div><b class="num" style="color:var(--amarelo-texto)">79</b><small>1,2% das compras</small></div>
+        <div class="cartao kpi"><div class="rotulo">Bloqueadas</div><b class="num" style="color:var(--magenta-texto)">27</b><small>R$ 3.248,10 protegidos</small></div>
+        <div class="cartao kpi"><div class="rotulo">Tempo de resposta do associado</div><b class="num">4 min</b><small>mediana</small></div>
+      </div>
+      <div class="grade2">
+        <div class="cartao">
+          <div class="h3">Decisões por tipo de compra</div>
+          <div class="barras">
+            <div class="bl"><span>Crédito, sem cartão</span><div class="emp"><i class="c-ok" style="width:82%"></i><i class="c-esp" style="width:10%"></i><i class="c-blq" style="width:8%"></i></div><b class="num d">1.214</b></div>
+            <div class="bl"><span>Crédito, com cartão</span><div class="emp"><i class="c-ok" style="width:96%"></i><i class="c-esp" style="width:3%"></i><i class="c-blq" style="width:1%"></i></div><b class="num d">1.498</b></div>
+            <div class="bl"><span>Débito, sem cartão</span><div class="emp"><i class="c-ok" style="width:93%"></i><i class="c-esp" style="width:5%"></i><i class="c-blq" style="width:2%"></i></div><b class="num d">902</b></div>
+            <div class="bl"><span>Débito, com cartão</span><div class="emp"><i class="c-ok" style="width:99%"></i><i class="c-esp" style="width:1%"></i></div><b class="num d">3.190</b></div>
+          </div>
+          <div class="leg"><span><i class="c-ok"></i>Aprovadas</span><span><i class="c-esp"></i>Pedidos de confirmação</span><span><i class="c-blq"></i>Bloqueadas</span><span>Proporções ilustrativas</span></div>
+        </div>
+        <div class="cartao">
+          <div class="h3">Acerto do modelo</div>
+          <div style="display:flex;gap:18px;align-items:center">
+            <div class="rosca"><div><span><b class="num">87%</b><small>dos alertas<br>respondidos</small></span></div></div>
+            <div style="font-size:14px">
+              <p><b class="num">61</b> associados responderam <b>"não fui eu"</b>: o alerta estava certo.</p>
+              <p style="margin-top:8px"><b class="num">9</b> responderam <b>"fui eu"</b>: alerta desnecessário.</p>
+              <p style="margin-top:8px;color:var(--texto-suave)"><b class="num">36</b> ainda sem resposta.</p>
+            </div>
+          </div>
+        </div>
+        <div class="cartao">
+          <div class="h3">Bloqueios da equipe</div>
+          <table>
+            <thead><tr><th>Auditor</th><th class="d">Bloqueios</th><th class="d">Corretos</th><th class="d">Liberados depois</th></tr></thead>
+            <tbody>
+              <tr><td>Rafael Moura</td><td class="d num">14</td><td class="d num">12</td><td class="d num">2</td></tr>
+              <tr><td>Júlia Prates</td><td class="d num">9</td><td class="d num">9</td><td class="d num">0</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:12.5px;color:var(--texto-suave);margin-top:10px">"Correto" é quando o associado confirma que não fez a compra. Prioridade 2.</p>
+        </div>
+        <div class="cartao">
+          <div class="h3">Fraudes que o modelo aprovou</div>
+          <b class="num" style="font-family:var(--titulo);font-size:30px;color:var(--magenta-texto)">2</b>
+          <p style="font-size:14px;margin-top:4px">compras aprovadas que o associado contestou com "não reconheço esta compra". Os cartões foram bloqueados.</p>
+          <div class="sep"></div>
+          <div class="item"><div class="meio"><b>Diego P. · final 2288</b><small>11/03, 14:05 · R$ 76,30</small></div><span class="etq blq">Cartão bloqueado</span></div>
+          <div class="item"><div class="meio"><b>Marta V. · final 6402</b><small>08/03, 21:40 · R$ 129,00</small></div><span class="etq blq">Cartão bloqueado</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ESTILO ================= -->
+<section class="secao" id="estilo">
+  <div class="legenda"><h2>Guia de estilo</h2>Tirado de marca.sicredi.com.br. O verde é o protagonista e o branco dá respiro.</div>
+  <div class="cores">
+    <div class="cor"><i style="background:#3FA110"></i><div><b>Verde Sicredi</b><br>#3FA110 · áreas e destaques</div></div>
+    <div class="cor"><i style="background:#33820D"></i><div><b>Verde de ação</b><br>#33820D · botões com texto branco</div></div>
+    <div class="cor"><i style="background:#146E37"></i><div><b>Verde escuro</b><br>#146E37 · valores e títulos</div></div>
+    <div class="cor"><i style="background:#D7E6C8"></i><div><b>Neutro claro</b><br>#D7E6C8</div></div>
+    <div class="cor"><i style="background:#ECF6E7"></i><div><b>Fundo verde</b><br>#ECF6E7 · selecionado</div></div>
+    <div class="cor"><i style="background:#323C32"></i><div><b>Texto</b><br>#323C32</div></div>
+    <div class="cor"><i style="background:#5A645A"></i><div><b>Neutro escuro</b><br>#5A645A · texto de apoio</div></div>
+    <div class="cor"><i style="background:#FFCD00"></i><div><b>Amarelo</b><br>#FFCD00 · aguardando</div></div>
+    <div class="cor"><i style="background:#E60050"></i><div><b>Magenta</b><br>#E60050 · bloqueada</div></div>
+  </div>
+  <div class="cartao" style="max-width:1000px;margin-top:20px">
+    <div class="rotulo">Títulos · Exo 2 itálico</div>
+    <h1 style="font-size:34px;margin:4px 0 14px">Protege mais, incomoda pouco</h1>
+    <div class="rotulo">Texto e interface · Nunito</div>
+    <p style="margin-top:4px">O Sentinela decide cada compra na hora, pede a sua confirmação quando tem dúvida e explica o que fez.</p>
+    <div class="sep"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn p">Ação principal</button><button class="btn p sec">Ação secundária</button><button class="btn p perigo">Ação de risco</button>
+      <span class="etq ok">Aprovada</span><span class="etq esp">Aguardando você</span><span class="etq blq">Bloqueada</span><span class="etq neu">Inconclusivo</span>
+    </div>
+  </div>
+</section>
+
+<script>
+document.querySelectorAll('.abas button').forEach(function (b) {
+  b.addEventListener('click', function () {
+    document.querySelectorAll('.abas button').forEach(function (x) { x.setAttribute('aria-selected', x === b); });
+    document.querySelectorAll('.secao').forEach(function (s) { s.classList.toggle('ativa', s.id === b.dataset.s); });
+    window.scrollTo(0, 0);
+  });
+});
+</script>
+</body>
+</html>

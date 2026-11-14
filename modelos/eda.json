@@ -1,0 +1,482 @@
+{
+  "total_linhas": 160000,
+  "total_fraudes": 146,
+  "percentual_fraude": 0.0912,
+  "por_mes": [
+    {
+      "mes": "2025-01",
+      "linhas": 13658,
+      "fraudes": 52,
+      "percentual_fraude": 0.3807
+    },
+    {
+      "mes": "2025-02",
+      "linhas": 12265,
+      "fraudes": 40,
+      "percentual_fraude": 0.3261
+    },
+    {
+      "mes": "2025-03",
+      "linhas": 13608,
+      "fraudes": 54,
+      "percentual_fraude": 0.3968
+    },
+    {
+      "mes": "2025-04",
+      "linhas": 13125,
+      "fraudes": 0,
+      "percentual_fraude": 0.0
+    },
+    {
+      "mes": "2025-05",
+      "linhas": 13300,
+      "fraudes": 0,
+      "percentual_fraude": 0.0
+    },
+    {
+      "mes": "2025-06",
+      "linhas": 13085,
+      "fraudes": 0,
+      "percentual_fraude": 0.0
+    },
+    {
+      "mes": "2025-07",
+      "linhas": 13639,
+      "fraudes": 0,
+      "percentual_fraude": 0.0
+    },
+    {
+      "mes": "2025-08",
+      "linhas": 13568,
+      "fraudes": 0,
+      "percentual_fraude": 0.0
+    },
+    {
+      "mes": "2025-09",
+      "linhas": 13155,
+      "fraudes": 0,
+      "percentual_fraude": 0.0
+    },
+    {
+      "mes": "2025-10",
+      "linhas": 13581,
+      "fraudes": 0,
+      "percentual_fraude": 0.0
+    },
+    {
+      "mes": "2025-11",
+      "linhas": 13181,
+      "fraudes": 0,
+      "percentual_fraude": 0.0
+    },
+    {
+      "mes": "2025-12",
+      "linhas": 13524,
+      "fraudes": 0,
+      "percentual_fraude": 0.0
+    }
+  ],
+  "por_tipo": [
+    {
+      "tipo_transacao": "credito",
+      "linhas": 63713,
+      "fraudes": 124,
+      "percentual_fraude": 0.1946
+    },
+    {
+      "tipo_transacao": "debito",
+      "linhas": 96287,
+      "fraudes": 22,
+      "percentual_fraude": 0.0228
+    }
+  ],
+  "por_modalidade": [
+    {
+      "modalidade_transacao": "cartao_nao_presente",
+      "linhas": 57805,
+      "fraudes": 135,
+      "percentual_fraude": 0.2335
+    },
+    {
+      "modalidade_transacao": "cartao_presente",
+      "linhas": 102195,
+      "fraudes": 11,
+      "percentual_fraude": 0.0108
+    }
+  ],
+  "variaveis": [
+    {
+      "variavel": "valor",
+      "pct_vazios": 0.3744,
+      "fraudes": {
+        "mediana": 190.345,
+        "p10": 59.645,
+        "p90": 589.32
+      },
+      "legitimas": {
+        "mediana": 34.77,
+        "p10": 9.03,
+        "p90": 132.722
+      }
+    },
+    {
+      "variavel": "hora",
+      "pct_vazios": 0.1944,
+      "fraudes": {
+        "mediana": 2.0,
+        "p10": 0.0,
+        "p90": 4.0
+      },
+      "legitimas": {
+        "mediana": 11.0,
+        "p10": 2.0,
+        "p90": 21.0
+      }
+    },
+    {
+      "variavel": "madrugada",
+      "pct_vazios": 0.0,
+      "fraudes": {
+        "mediana": 1.0,
+        "p10": 1.0,
+        "p90": 1.0
+      },
+      "legitimas": {
+        "mediana": 0.0,
+        "p10": 0.0,
+        "p90": 1.0
+      }
+    },
+    {
+      "variavel": "credito",
+      "pct_vazios": 0.0,
+      "fraudes": {
+        "mediana": 1.0,
+        "p10": 0.0,
+        "p90": 1.0
+      },
+      "legitimas": {
+        "mediana": 0.0,
+        "p10": 0.0,
+        "p90": 1.0
+      }
+    },
+    {
+      "variavel": "nao_presente",
+      "pct_vazios": 0.0,
+      "fraudes": {
+        "mediana": 1.0,
+        "p10": 1.0,
+        "p90": 1.0
+      },
+      "legitimas": {
+        "mediana": 0.0,
+        "p10": 0.0,
+        "p90": 1.0
+      }
+    },
+    {
+      "variavel": "ip_pais_desconhecido",
+      "pct_vazios": 0.0,
+      "fraudes": {
+        "mediana": 0.0,
+        "p10": 0.0,
+        "p90": 1.0
+      },
+      "legitimas": {
+        "mediana": 0.0,
+        "p10": 0.0,
+        "p90": 0.0
+      }
+    },
+    {
+      "variavel": "vel_cartao_terminal_1h",
+      "pct_vazios": 7.9712,
+      "fraudes": {
+        "mediana": 47.0,
+        "p10": 26.0,
+        "p90": 69.0
+      },
+      "legitimas": {
+        "mediana": 2.0,
+        "p10": 1.0,
+        "p90": 3.0
+      }
+    },
+    {
+      "variavel": "qtd_transacoes_cartao_1min",
+      "pct_vazios": 8.0675,
+      "fraudes": {
+        "mediana": 17.0,
+        "p10": 8.0,
+        "p90": 29.0
+      },
+      "legitimas": {
+        "mediana": 1.0,
+        "p10": 1.0,
+        "p90": 2.0
+      }
+    },
+    {
+      "variavel": "qtd_token_carteira_3m",
+      "pct_vazios": 7.9912,
+      "fraudes": {
+        "mediana": 80.0,
+        "p10": 48.4,
+        "p90": 116.0
+      },
+      "legitimas": {
+        "mediana": 7.0,
+        "p10": 4.0,
+        "p90": 11.0
+      }
+    },
+    {
+      "variavel": "dist_terminal_anterior_km",
+      "pct_vazios": 8.04,
+      "fraudes": {
+        "mediana": 277.82,
+        "p10": 59.336,
+        "p90": 744.786
+      },
+      "legitimas": {
+        "mediana": 12.48,
+        "p10": 1.9,
+        "p90": 41.24
+      }
+    },
+    {
+      "variavel": "risco_estabelecimento",
+      "pct_vazios": 7.9169,
+      "fraudes": {
+        "mediana": 41.0,
+        "p10": 30.0,
+        "p90": 64.5
+      },
+      "legitimas": {
+        "mediana": 18.0,
+        "p10": 6.0,
+        "p90": 37.0
+      }
+    }
+  ],
+  "sinais": [
+    {
+      "sinal": "velocidade_terminal",
+      "pct_fraudes_com_sinal": 93.1507,
+      "pct_legitimas_com_sinal": 0.0
+    },
+    {
+      "sinal": "rajada_1min",
+      "pct_fraudes_com_sinal": 91.0959,
+      "pct_legitimas_com_sinal": 0.0006
+    },
+    {
+      "sinal": "token_carteira",
+      "pct_fraudes_com_sinal": 90.411,
+      "pct_legitimas_com_sinal": 0.0
+    },
+    {
+      "sinal": "salto_geografico",
+      "pct_fraudes_com_sinal": 78.0822,
+      "pct_legitimas_com_sinal": 0.3422
+    },
+    {
+      "sinal": "madrugada",
+      "pct_fraudes_com_sinal": 100.0,
+      "pct_legitimas_com_sinal": 20.8409
+    },
+    {
+      "sinal": "valor_alto",
+      "pct_fraudes_com_sinal": 62.3288,
+      "pct_legitimas_com_sinal": 8.0905
+    },
+    {
+      "sinal": "credito_nao_presente",
+      "pct_fraudes_com_sinal": 82.8767,
+      "pct_legitimas_com_sinal": 29.4381
+    },
+    {
+      "sinal": "ip_desconhecido",
+      "pct_fraudes_com_sinal": 26.0274,
+      "pct_legitimas_com_sinal": 0.0
+    },
+    {
+      "sinal": "estabelecimento_risco",
+      "pct_fraudes_com_sinal": 52.7397,
+      "pct_legitimas_com_sinal": 7.0333
+    }
+  ],
+  "por_hora": [
+    {
+      "hora": 0,
+      "fraudes": 37,
+      "legitimas": 6647
+    },
+    {
+      "hora": 1,
+      "fraudes": 32,
+      "legitimas": 6788
+    },
+    {
+      "hora": 2,
+      "fraudes": 28,
+      "legitimas": 6688
+    },
+    {
+      "hora": 3,
+      "fraudes": 27,
+      "legitimas": 6638
+    },
+    {
+      "hora": 4,
+      "fraudes": 22,
+      "legitimas": 6554
+    },
+    {
+      "hora": 5,
+      "fraudes": 0,
+      "legitimas": 6720
+    },
+    {
+      "hora": 6,
+      "fraudes": 0,
+      "legitimas": 6553
+    },
+    {
+      "hora": 7,
+      "fraudes": 0,
+      "legitimas": 6752
+    },
+    {
+      "hora": 8,
+      "fraudes": 0,
+      "legitimas": 6700
+    },
+    {
+      "hora": 9,
+      "fraudes": 0,
+      "legitimas": 6610
+    },
+    {
+      "hora": 10,
+      "fraudes": 0,
+      "legitimas": 6531
+    },
+    {
+      "hora": 11,
+      "fraudes": 0,
+      "legitimas": 6632
+    },
+    {
+      "hora": 12,
+      "fraudes": 0,
+      "legitimas": 6704
+    },
+    {
+      "hora": 13,
+      "fraudes": 0,
+      "legitimas": 6548
+    },
+    {
+      "hora": 14,
+      "fraudes": 0,
+      "legitimas": 6734
+    },
+    {
+      "hora": 15,
+      "fraudes": 0,
+      "legitimas": 6726
+    },
+    {
+      "hora": 16,
+      "fraudes": 0,
+      "legitimas": 6598
+    },
+    {
+      "hora": 17,
+      "fraudes": 0,
+      "legitimas": 6565
+    },
+    {
+      "hora": 18,
+      "fraudes": 0,
+      "legitimas": 6500
+    },
+    {
+      "hora": 19,
+      "fraudes": 0,
+      "legitimas": 6704
+    },
+    {
+      "hora": 20,
+      "fraudes": 0,
+      "legitimas": 6789
+    },
+    {
+      "hora": 21,
+      "fraudes": 0,
+      "legitimas": 6546
+    },
+    {
+      "hora": 22,
+      "fraudes": 0,
+      "legitimas": 6739
+    },
+    {
+      "hora": 23,
+      "fraudes": 0,
+      "legitimas": 6577
+    }
+  ],
+  "auditoria_vazamento": [
+    {
+      "coluna": "fraud",
+      "motivo": "Rótulo incorreto: está errado em quase todas as linhas; o rótulo correto é feedback_label."
+    },
+    {
+      "coluna": "fraud_score",
+      "motivo": "Score de fraude calculado pelo sistema externo após a decisão; vazamento direto do alvo."
+    },
+    {
+      "coluna": "visa_fraud_score",
+      "motivo": "Score de fraude da Visa; disponível apenas após a transação ser processada."
+    },
+    {
+      "coluna": "mc_fraud_score",
+      "motivo": "Score de fraude da Mastercard; disponível apenas após o processamento."
+    },
+    {
+      "coluna": "decision",
+      "motivo": "Decisão do sistema atual (approve/deny); só é carregada para comparação, nunca como entrada do modelo."
+    },
+    {
+      "coluna": "transaction_status",
+      "motivo": "Status final da transação; determinado depois da decisão."
+    },
+    {
+      "coluna": "action_code",
+      "motivo": "Código de ação do sistema; resultado da decisão, não entrada."
+    },
+    {
+      "coluna": "reason_code",
+      "motivo": "Código de motivo; resultado da decisão, não entrada."
+    },
+    {
+      "coluna": "alert_id",
+      "motivo": "Identificador do alerta gerado pelo sistema antifraude; pós-decisão."
+    },
+    {
+      "coluna": "dispute_*",
+      "motivo": "Colunas de disputa (prefixo dispute_); existem somente após contestação, posterior à decisão."
+    },
+    {
+      "coluna": "fdz_*",
+      "motivo": "Colunas do sistema FDZ (prefixo fdz_); scores e marcadores pós-decisão."
+    },
+    {
+      "coluna": "oob_*",
+      "motivo": "Colunas out-of-band (prefixo oob_); dados coletados após a autorização."
+    }
+  ]
+}

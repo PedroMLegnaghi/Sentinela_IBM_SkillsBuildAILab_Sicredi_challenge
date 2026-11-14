@@ -15,6 +15,8 @@ import {
   BOTAO_AVISAR_ASSOCIADO,
   ERRO_NOTIFICACAO_409,
   ERRO_NOTIFICACAO_422,
+  ETIQUETA_MENSAGEM_PADRAO,
+  ETIQUETA_REDIGIDA_GRANITE,
   RESPONDIDA_EM,
   ROTULOS_STATUS_NOTIFICACAO,
   TITULO_BLOCO_ASSOCIADO,
@@ -74,10 +76,17 @@ export default function CartaoAssociado({
       <h3 className="sentinela-subtitulo">{TITULO_BLOCO_ASSOCIADO}</h3>
       {notificacao ? (
         <>
-          <Tag type={corStatus(notificacao.status)}>
-            {ROTULOS_STATUS_NOTIFICACAO[notificacao.status] ??
-              notificacao.status}
-          </Tag>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+            <Tag type={corStatus(notificacao.status)}>
+              {ROTULOS_STATUS_NOTIFICACAO[notificacao.status] ??
+                notificacao.status}
+            </Tag>
+            <Tag size="sm" type="blue">
+              {notificacao.fonte_mensagem === "watsonx"
+                ? ETIQUETA_REDIGIDA_GRANITE
+                : ETIQUETA_MENSAGEM_PADRAO}
+            </Tag>
+          </div>
           {notificacao.resultado && (
             <p style={{ marginTop: "8px" }}>{notificacao.resultado}</p>
           )}

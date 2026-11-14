@@ -1,9 +1,9 @@
 /**
- * Testes do app do associado (Issue #63), com a API simulada.
+ * Testes do app do associado (Issues #63 e #109), com a API simulada.
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ListaNotificacoes from "@/components/associado/ListaNotificacoes";
 import ItemNotificacao from "@/components/associado/ItemNotificacao";
@@ -13,12 +13,15 @@ import {
   BOTAO_NAO_FUI_EU,
   BOTAO_SIM_FUI_EU,
   ERRO_RESPOSTA_409,
+  ETIQUETA_MENSAGEM_PADRAO,
+  ETIQUETA_REDIGIDA_GRANITE,
   SEM_NOTIFICACOES,
 } from "@/lib/textos";
 import type { Notificacao } from "@/lib/tipos";
 
 vi.mock("@/lib/api", () => ({
   obterNotificacoes: vi.fn(),
+  obterNotificacao: vi.fn(),
   responderNotificacao: vi.fn(),
   notificarAssociado: vi.fn(),
 }));
@@ -138,5 +141,58 @@ describe("ItemNotificacao", () => {
     expect(
       await screen.findByText(ERRO_RESPOSTA_409),
     ).toBeInTheDocument();
+  });
+
+  // --- Issue #109: etiqueta de origem da mensagem ---
+
+  it("mostra etiqueta 'Mensagem padrão' quando fonte é modelo", () => {
+    render(
+      <ItemNotificacao
+        notificacao={mocks.notificacaoAguardando}
+        aoResponder={aoResponder}
+      />,
+    );
+
+    expect(screen.getByText(ETIQUETA_MENSAGEM_PADRAO)).toBeInTheDocument();
+    expect(
+      screen.queryByText(ETIQUETA_REDIGIDA_GRANITE),
+    ).not.toBeInTheDocument();
+  });
+
+  it("mostra etiqueta 'Redigida pelo IBM Granite' quando fonte é watsonx", () => {
+    render(
+      <ItemNotificacao
+        notificacao={mocks.notificacaoGranite}
+        aoResponder={aoResponder}
+      />,
+    );
+
+    expect(screen.getByText(ETIQUETA_REDIGIDA_GRANITE)).toBeInTheDocument();
+    expect(
+      screen.queryByText(ETIQUETA_MENSAGEM_PADRAO),
+    ).not.toBeInTheDocument();
+  });
+
+  it("etiqueta muda de 'Mensagem padrão' para 'Redigida pelo IBM Granite' quando o mock retorna watsonx", async () => {
+    vi.useFakeTimers();
+    apiFalsa.obterNotificacao.mockResolvedValue(mocks.notificacaoGranite);
+
+    render(
+      <ItemNotificacao
+        notificacao={mocks.notificacaoAguardando}
+        aoResponder={aoResponder}
+      />,
+    );
+
+    expect(screen.getByText(ETIQUETA_MENSAGEM_PADRAO)).toBeInTheDocument();
+
+    await act(async () => {
+      vi.advanceTimersByTime(5_000);
+      await Promise.resolve();
+    });
+
+    expect(aoResponder).toHaveBeenCalledWith(mocks.notificacaoGranite);
+
+    vi.useRealTimers();
   });
 });

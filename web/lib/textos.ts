@@ -394,3 +394,7 @@ export const TEXTOS_CENARIOS = {
     frase: "Madrugada, várias compras em poucos minutos, sem cartão presente.",
   },
 } as const;
+
+// --- Issue #109 — Selo do IBM Granite ---
+export const ETIQUETA_REDIGIDA_GRANITE = "Redigida pelo IBM Granite";
+export const ETIQUETA_MENSAGEM_PADRAO = "Mensagem padrão";

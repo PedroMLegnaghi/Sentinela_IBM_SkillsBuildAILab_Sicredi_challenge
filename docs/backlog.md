@@ -310,7 +310,7 @@ nos títulos e Nunito no texto):
 
 ## Divisão em duas pessoas
 
-O contrato (R1) é fechado primeiro. Depois, as duas trilhas correm em paralelo e não tocam nos
+O contrato (R1) é fechado primeiro. Depois, as duas trilhas correm em paralelo e sem revisão de código (cada uma integra o próprio PR com o CI verde) e não tocam nos
 mesmos arquivos: o **site** é feito contra os mocks e a **API**, contra os testes do contrato.
 
 | Trilha | Dono | Pastas |
@@ -327,7 +327,7 @@ Issue está no fim deste arquivo e na própria Issue do GitHub.
 | Id | Título | Dono | Depende de |
 | --- | --- | --- | --- |
 | R0 | design: protótipo de alta fidelidade (`docs/prototipo/`) — **feito** | Pedro Muller | — |
-| #90 (R1) | docs: fecha o contrato das rotas novas (ESPECIFICACAO, tipos e mocks) | Pedro Muller, com revisão da Bruno | protótipo |
+| #90 (R1) | docs: fecha o contrato das rotas novas (ESPECIFICACAO, tipos e mocks) | Pedro Muller | protótipo |
 | #91 (R2) | feat: aplica a identidade Sicredi e cria as molduras e o login simulado | Pedro Muller | #90 |
 | #92 (R3) | feat: cria o domínio, as portas e os adaptadores em memória | Bruno | #90 |
 | #93 (R4) | feat: cria a tela inicial e o extrato do associado | Pedro Muller | #91 |
@@ -378,7 +378,7 @@ associado. "Conversar com gerente" abre a mesma conversa com um resumo da sessã
 
 ### Objetivo
 
-Escrever, antes de qualquer código, o contrato das rotas novas. É ele que deixa as duas trilhas trabalharem em paralelo: o site usa os mocks e a API usa os testes de contrato. Depois do merge desta Issue, um campo só muda com o acordo das duas trilhas.
+Escrever, antes de qualquer código, o contrato das rotas novas. É ele que deixa as duas trilhas trabalharem em paralelo: o site usa os mocks e a API usa os testes de contrato. Depois do merge desta Issue, um campo só muda com o acordo das duas trilhas. Não há revisão de código: cada trilha integra o próprio PR depois do CI verde.
 
 ### Arquivos
 
@@ -404,14 +404,12 @@ Escrever, antes de qualquer código, o contrato das rotas novas. É ele que deix
 13. Em `web/lib/tipos.ts`, crie um tipo para cada corpo de saída, com os mesmos nomes de campo.
 14. Em `web/lib/mocks/refatoracao.ts`, crie um mock para cada rota, com os dados do protótipo (`docs/prototipo/index.html`): Ana Souza, Agência Centro, saldo R$ 4.820,35 e as seis compras do extrato.
 15. Em `tests/test_contrato_refatoracao.py`, crie um teste por rota que chama a rota com o `TestClient` e confere o código e as chaves do corpo. Cada teste se pula sozinho enquanto a rota não existe (confere `app.openapi()`); quem fizer a rota não precisa mexer no arquivo.
-16. Peça a revisão da trilha API no PR antes do merge. Esta é a única Issue com revisão obrigatória.
 
 ### Pronto quando
 
 - A seção 17 descreve todas as rotas acima, com tipos e erros.
 - `npm run typecheck` passa com os tipos e os mocks novos.
 - `pytest -q -rs` mostra os testes de contrato como pulados, com o motivo.
-- A outra trilha aprovou o PR.
 
 **Fora desta Issue:** Implementar qualquer rota ou tela.
 

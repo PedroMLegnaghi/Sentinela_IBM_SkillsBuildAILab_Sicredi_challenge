@@ -404,3 +404,56 @@ export const NAV_RESPOSTAS_ASSOCIADOS = "Respostas dos associados";
 export const ROTULO_NAV_ASSOCIADO = "Navegação do app";
 export const ROTULO_NAV_FILIAL = "Navegação da filial";
 export const VERIFICANDO_SESSAO = "Abrindo…";
+
+// --- Issue #93: início e extrato do associado ---
+export const OLA = (nome: string) => `Olá, ${nome.split(" ")[0]}`;
+export const SALDO_EM_CONTA = "Saldo em conta";
+export const LIMITE_DISPONIVEL = "Limite disponível no crédito";
+export const LIMITE_DE = (total: string) => `de ${total}`;
+export const ROTULO_LIMITE = (usado: number) => `${usado}% do limite em uso`;
+export const ATALHO_SIMULAR = "Simular compra";
+export const ATALHO_EXTRATO = "Extrato";
+export const ATALHO_CHAT = "Chat";
+export const ATALHO_INVESTIR = "Investir";
+export const ATALHO_EM_BREVE = "Em breve";
+export const ROTULO_ATALHOS = "Atalhos";
+export const PENDENTE_TITULO = "Uma compra espera a sua resposta.";
+export const PENDENTE_DETALHE = (valor: string, quando: string) => `${valor} em ${quando}.`;
+export const PENDENTE_BOTAO = "Responder";
+export const ULTIMAS_COMPRAS = "Últimas compras";
+export const VER_EXTRATO = "Ver extrato completo";
+export const MEUS_CARTOES = "Meus cartões";
+export const CARTAO_DESCRICAO = (tipo: string, final: string) => `${tipo} · final ${final}`;
+export const CARTAO_BLOQUEADO = "Bloqueado";
+export const TITULO_EXTRATO = "Extrato";
+export const FILTROS_EXTRATO = "Filtrar compras";
+export const FILTRO_TODAS = "Todas";
+export const ROTULOS_SITUACAO: Record<string, string> = {
+  APROVADA: "Aprovada",
+  AGUARDANDO: "Aguardando você",
+  BLOQUEADA: "Bloqueada",
+  CONTESTADA: "Contestada",
+};
+export const ROTULOS_FILTRO_SITUACAO: Record<string, string> = {
+  APROVADA: "Aprovadas",
+  AGUARDANDO: "Aguardando",
+  BLOQUEADA: "Bloqueadas",
+  CONTESTADA: "Contestadas",
+};
+export const EXTRATO_VAZIO = "Nenhuma compra com este filtro.";
+export const COMPRA_SIMULADA = "Simulada";
+export const DESCRICAO_COMPRA = (quando: string, tipo: string) => `${quando} · ${tipo}`;
+export const ABRIR_COMPRA = (estabelecimento: string, valor: string) =>
+  `Abrir a compra em ${estabelecimento}, ${valor}`;
+export const VOLTAR = "Voltar";
+export const DETALHE_QUANDO = "Quando";
+export const DETALHE_CARTAO = "Cartão";
+export const DETALHE_SITUACAO = "Situação";
+export const DETALHE_BLOQUEADA_POR = "Bloqueada por";
+export const DETALHE_EM = "Em";
+export const DETALHE_MOTIVO = "Motivo";
+export const RESPOSTA_REGISTRADA = (resposta: string, quando: string) =>
+  `Você respondeu "${resposta}" em ${quando}.`;
+export const RESPOSTA_SIM = "Fui eu";
+export const RESPOSTA_NAO = "Não fui eu";
+export const VALOR_NAO_COBRADO = "O valor não foi cobrado.";

@@ -1,8 +1,8 @@
 # Backlog
 
 Cada seção é uma Issue do GitHub com o mesmo número. O Bob executa uma Issue com o protocolo do
-`AGENTS.md` (seção 3) e só altera os "Arquivos permitidos". Congelamento do código: **sábado
-14/11, 12h**. Entrega: domingo 15/11, 17h.
+`AGENTS.md` (seção 3) e só altera os "Arquivos permitidos". Congelamento do código: **domingo
+15/11, 12h** (só para as Issues da versão de reserva). Entrega: domingo 15/11, 17h.
 
 ## Regras comuns
 

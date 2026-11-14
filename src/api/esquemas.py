@@ -100,6 +100,17 @@ class ItemHistoricoSchema(BaseModel):
     dist_terminal_anterior_km: float | None
 
 
+class PerfilAssociadoSchema(BaseModel):
+    """Perfil do associado (ESPECIFICACAO, seção 12.1 — Issue #64)."""
+
+    compras_anteriores: int
+    mediana_valor: float | None
+    valor_atual_sobre_mediana: float | None
+    hora_mais_comum: int | None
+    percentual_madrugada: float | None
+    percentual_credito_nao_presente: float | None
+
+
 class RespostaSchema(BaseModel):
     """Resposta do analista (ESPECIFICACAO, seção 12.1)."""
 

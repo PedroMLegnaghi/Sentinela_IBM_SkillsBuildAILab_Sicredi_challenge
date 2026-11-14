@@ -72,3 +72,22 @@ describe("formatarTempoCurto", () => {
     expect(formatarTempoCurto(null)).toBe("—");
   });
 });
+
+describe("Bloqueios da equipe (Issue #104)", () => {
+  it("mostra a tabela por auditor quando a API manda os números", async () => {
+    apiFalsa.obterMetricasFilial.mockResolvedValue(m.metricasFilial);
+    render(<PaginaPainelAgencia />);
+    const linha = (await screen.findByText("Rafael Moura")).closest("tr")!;
+    expect(linha).toHaveTextContent("14");
+    expect(linha).toHaveTextContent("12");
+  });
+
+  it("não mostra o cartão enquanto a API não tem o campo", async () => {
+    const { bloqueios_por_auditor: _ignorado, ...semCampo } = m.metricasFilial;
+    void _ignorado;
+    apiFalsa.obterMetricasFilial.mockResolvedValue(semCampo);
+    render(<PaginaPainelAgencia />);
+    await screen.findByText("6.698");
+    expect(screen.queryByText("Bloqueios da equipe")).not.toBeInTheDocument();
+  });
+});

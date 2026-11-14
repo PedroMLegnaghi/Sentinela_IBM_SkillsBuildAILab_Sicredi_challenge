@@ -377,3 +377,20 @@ export const PRIVACIDADE_COMO = [
   "Quando a decisão é pedir confirmação ou bloquear, o associado recebe uma mensagem validada contra 6 regras de segurança: começa com 'Sicredi:', até 160 caracteres, sem links, sem pedir senha ou código e sem número de cartão.",
   "Em março de 2025 (dados sintéticos): 0 compras legítimas bloqueadas e 159 pedidos de confirmação em 13.608 transações (1,2%).",
 ];
+
+// --- Issue #110 — Cenários prontos do simulador ---
+export const TITULO_CENARIOS = "Cenários prontos";
+export const TEXTOS_CENARIOS = {
+  comum: {
+    nome: "Compra comum",
+    frase: "Tarde, valor baixo, cartão presente e IP conhecido.",
+  },
+  exterior: {
+    nome: "Madrugada no exterior",
+    frase: "3h da manhã, sem cartão presente, IP de país desconhecido.",
+  },
+  rajada: {
+    nome: "Rajada de compras",
+    frase: "Madrugada, várias compras em poucos minutos, sem cartão presente.",
+  },
+} as const;

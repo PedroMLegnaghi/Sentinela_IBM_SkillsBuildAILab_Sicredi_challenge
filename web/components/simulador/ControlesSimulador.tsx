@@ -1,12 +1,23 @@
 "use client";
 
 /**
- * Controles da compra simulada: valores, hora, chaves e contadores.
+ * Controles da compra simulada: cenários prontos, valores, hora, chaves e contadores.
  */
 
-import { NumberInput, Slider, Toggle } from "@carbon/react";
-import { ehMadrugada, type ValoresSimulador } from "@/lib/simulacao";
-import { CAMPOS_SIMULADOR, MADRUGADA_CALCULADA, NAO, SIM } from "@/lib/textos";
+import { Button, NumberInput, Slider, Toggle } from "@carbon/react";
+import {
+  CENARIOS,
+  ehMadrugada,
+  type Cenario,
+  type ValoresSimulador,
+} from "@/lib/simulacao";
+import {
+  CAMPOS_SIMULADOR,
+  MADRUGADA_CALCULADA,
+  NAO,
+  SIM,
+  TITULO_CENARIOS,
+} from "@/lib/textos";
 
 type CampoNumerico =
   | "valor"
@@ -32,17 +43,36 @@ const LIGADOS: Array<[CampoLigado, string]> = [
 interface PropsControlesSimulador {
   valores: ValoresSimulador;
   aoMudar: (valores: ValoresSimulador) => void;
+  aoEscolherCenario: (cenario: Cenario) => void;
 }
 
 export default function ControlesSimulador({
   valores,
   aoMudar,
+  aoEscolherCenario,
 }: PropsControlesSimulador) {
   const mudar = (parcial: Partial<ValoresSimulador>) =>
     aoMudar({ ...valores, ...parcial });
 
   return (
     <div className="sentinela-controles">
+      <div
+        className="sentinela-botoes"
+        role="group"
+        aria-label={TITULO_CENARIOS}
+      >
+        {CENARIOS.map((cenario) => (
+          <Button
+            key={cenario.id}
+            kind="tertiary"
+            size="sm"
+            title={cenario.frase}
+            onClick={() => aoEscolherCenario(cenario)}
+          >
+            {cenario.nome}
+          </Button>
+        ))}
+      </div>
       {NUMERICOS.map(([campo, rotulo, passo]) => (
         <NumberInput
           key={campo}

@@ -1,15 +1,17 @@
 /**
- * Testes do simulador e da página de respostas (Issue #45), com a API simulada.
+ * Testes do simulador e da página de respostas (Issue #45) e dos cenários prontos (Issue #110),
+ * com a API simulada.
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PaginaRespostas from "@/components/respostas/PaginaRespostas";
 import PaginaSimulador from "@/components/simulador/PaginaSimulador";
 import * as api from "@/lib/api";
 import { mocks } from "@/lib/mocks/index";
 import {
+  CENARIOS,
   gerarCsvRespostas,
   montarEntradaSimulada,
   valoresIniciais,
@@ -88,6 +90,26 @@ describe("PaginaSimulador", () => {
     expect(await screen.findByText(TITULO_SIMULADA)).toBeInTheDocument();
     expect(apiFalsa.analisar).toHaveBeenCalledTimes(1);
   });
+});
+
+describe("cenários prontos", () => {
+  it.each(CENARIOS)(
+    "o botão $nome preenche os campos e analisa",
+    async (cenario) => {
+      const usuario = userEvent.setup();
+      render(<PaginaSimulador />);
+
+      await usuario.click(
+        await screen.findByRole("button", { name: cenario.nome }),
+      );
+
+      await waitFor(() =>
+        expect(apiFalsa.analisar).toHaveBeenCalledWith(
+          montarEntradaSimulada(mocks.transacao.transacao, cenario.valores),
+        ),
+      );
+    },
+  );
 });
 
 describe("PaginaRespostas", () => {

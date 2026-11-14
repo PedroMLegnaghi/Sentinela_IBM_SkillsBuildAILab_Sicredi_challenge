@@ -17,6 +17,7 @@ import { analisar, obterTransacao } from "@/lib/api";
 import {
   montarEntradaSimulada,
   valoresIniciais,
+  type Cenario,
   type ValoresSimulador,
 } from "@/lib/simulacao";
 import {
@@ -59,12 +60,13 @@ export default function SimuladorTransacao({
   if (erro) return <EstadoErro mensagem={erro} />;
   if (!original || !valores) return <EstadoCarregando />;
 
-  async function simular() {
-    if (!original || !valores) return;
+  async function simular(alvo?: ValoresSimulador) {
+    const usados = alvo ?? valores;
+    if (!original || !usados) return;
     setAnalisando(true);
     try {
       setSimulada(
-        await analisar(montarEntradaSimulada(original.transacao, valores)),
+        await analisar(montarEntradaSimulada(original.transacao, usados)),
       );
     } catch (e) {
       setErro((e as Error).message);
@@ -73,12 +75,21 @@ export default function SimuladorTransacao({
     }
   }
 
+  function escolherCenario(cenario: Cenario) {
+    setValores(cenario.valores);
+    void simular(cenario.valores);
+  }
+
   return (
     <div className="sentinela-simulador">
       <div>
-        <ControlesSimulador valores={valores} aoMudar={setValores} />
+        <ControlesSimulador
+          valores={valores}
+          aoMudar={setValores}
+          aoEscolherCenario={escolherCenario}
+        />
         <div className="sentinela-botoes">
-          <Button onClick={simular} disabled={analisando}>
+          <Button onClick={() => simular()} disabled={analisando}>
             {BOTAO_ANALISAR}
           </Button>
           <Button

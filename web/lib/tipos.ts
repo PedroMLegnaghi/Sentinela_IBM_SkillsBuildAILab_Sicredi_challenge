@@ -472,4 +472,41 @@ export interface RespostaMetricasFilial {
     }[];
   };
   tempo_resposta_mediano_s: number | null;
+  /** Issue #104: um item por auditor da filial (ausente até a API implementar). */
+  bloqueios_por_auditor?: BloqueiosDoAuditor[];
+}
+
+// --- Seção 17.5: o auditor bloqueia (Issues #102 a #104) ---
+
+export interface EntradaBloqueio {
+  nota: string | null;
+}
+
+export interface BloqueiosDoAuditor {
+  auditor: string;
+  bloqueios: number;
+  corretos: number;
+  liberados_depois: number;
+}
+
+// --- Seção 17.6: chat do associado (Issues #105 e #106) ---
+
+export interface MensagemChat {
+  autor: "associado" | "ia";
+  texto: string;
+}
+
+export interface EntradaChat {
+  mensagem: string;
+  historico: MensagemChat[];
+}
+
+export interface RespostaChat {
+  resposta: string;
+  fonte: "watsonx" | "local";
+}
+
+export interface RespostaChatGerente {
+  gerente: { nome: string };
+  resumo: string;
 }

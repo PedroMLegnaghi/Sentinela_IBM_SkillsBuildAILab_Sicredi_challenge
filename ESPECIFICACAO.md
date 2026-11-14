@@ -700,8 +700,37 @@ Notas sobre as rotas:
 - `tempo_resposta_mediano_s` é a mediana, em segundos, entre `criada_em` e `respondida_em` dos
   avisos respondidos da carteira; `null` sem respostas.
 
-### 17.5 Prioridade 2 e 3 (contrato a fechar nas Issues)
+### 17.5 Prioridade 2: o auditor bloqueia (Issues #102, #103 e #104)
 
-- `POST /api/filial/compras/{id_compra}/bloqueio` (auditor bloqueia compra `AGUARDANDO`, Issue
-  #102) e `bloqueios_por_auditor` nas métricas (Issue #104).
-- `POST /api/associado/chat` e `POST /api/associado/chat/gerente` (Issue #105).
+| Método e caminho | Papel | Entrada | Saída |
+| --- | --- | --- | --- |
+| `POST /api/filial/compras/{id_compra}/bloqueio` | auditor | `{"nota": str\|null}` (até 300 caracteres; maior → 422) | 201 com o mesmo corpo de `GET /api/filial/compras/{id_compra}`, já com `compra.situacao` `BLOQUEADA` e `bloqueio` preenchido; situação diferente de `AGUARDANDO` → 409; de outra filial → 403; papel gerente ou associado → 403 |
+
+- O bloqueio grava o auditor (nome completo), a data e o motivo: a explicação da IA, se a
+  auditoria já terminou (senão, a explicação do modelo), seguida de "Nota do analista: <nota>"
+  quando houver nota.
+- Para o associado, a compra aparece `BLOQUEADA` com `bloqueio.por` "Analista da agência <nome
+  da agência>" e o motivo genérico (17.3). O aviso da compra continua valendo: se o associado
+  responder "sim", a compra volta a `APROVADA` sozinha (e aplica no saldo uma única vez) e o
+  bloqueio conta como incorreto; "nao" mantém `BLOQUEADA` e conta como correto.
+- Métricas (Issue #104): `GET /api/filial/metricas` ganha `"bloqueios_por_auditor": [{"auditor":
+  str, "bloqueios": int, "corretos": int, "liberados_depois": int}]`, um item por auditor da
+  filial (zeros quando ele ainda não bloqueou).
+
+### 17.6 Prioridade 3: chat do associado (Issues #105 e #106)
+
+A conversa não é guardada na API: o site manda o histórico a cada pergunta e a apaga ao sair.
+
+| Método e caminho | Papel | Entrada | Saída |
+| --- | --- | --- | --- |
+| `POST /api/associado/chat` | associado | `{"mensagem": str (1 a 500), "historico": [{"autor": "associado"\|"ia", "texto": str}]}` (até 20 itens) | `{"resposta": str, "fonte": "watsonx"\|"local"}` |
+| `POST /api/associado/chat/gerente` | associado | `{"historico": [...]}` (o mesmo formato) | `{"gerente": {"nome": str}, "resumo": str}`: o gerente da agência do associado e um resumo da conversa até ali |
+
+- A IA só informa: responde sobre os gastos e as compras do próprio associado e explica as
+  bloqueadas com o motivo genérico. Nunca recebe identificadores, sinais, nota ou parecer da IA;
+  nunca pede senha ou código; nunca promete liberar ou bloquear nada. Fora desses assuntos,
+  responde que só pode ajudar com as compras do associado.
+- Sem credenciais ou em caso de falha, a resposta vem do modo local (`fonte` "local"): um resumo
+  fixo dos gastos do mês e das compras pendentes ou bloqueadas.
+- "Conversar com gerente" é simulado: a conversa continua na mesma tela, com o nome do gerente e
+  o resumo como primeira mensagem dele, e para aí.

@@ -3,7 +3,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PaginaFilaFilial, { filtrarFila } from "@/components/filial/PaginaFilaFilial";
 import PainelCompraFilial from "@/components/filial/PainelCompraFilial";
@@ -37,8 +37,8 @@ describe("PaginaFilaFilial", () => {
     render(<PaginaFilaFilial />);
     const tabela = await screen.findByRole("table", { name: ROTULO_TABELA_FILA_FILIAL });
     expect(within(tabela).getAllByText("Ana S. · final 4821")).toHaveLength(2);
-    expect(screen.getByText(/carteira da Agência Centro/)).toBeInTheDocument();
-    expect(apiFalsa.obterCompraFilial).toHaveBeenCalledWith("cmp-000005");
+    expect(await screen.findByText(/carteira da Agência Centro/)).toBeInTheDocument();
+    await waitFor(() => expect(apiFalsa.obterCompraFilial).toHaveBeenCalledWith("cmp-000005"));
   });
 
   it("filtra as contestadas e troca a compra do painel ao clicar", async () => {
@@ -51,7 +51,7 @@ describe("PaginaFilaFilial", () => {
     expect(within(linhas[1]).getByText("Diego P. · final 2288")).toBeInTheDocument();
 
     await userEvent.click(linhas[1]);
-    expect(apiFalsa.obterCompraFilial).toHaveBeenLastCalledWith("cmp-000103");
+    await waitFor(() => expect(apiFalsa.obterCompraFilial).toHaveBeenLastCalledWith("cmp-000103"));
   });
 
   it("filtrarFila sem filtro devolve tudo", () => {

@@ -31,6 +31,10 @@ import type {
   RespostaFilaFilial,
   RespostaCompraFilial,
   RespostaMetricasFilial,
+  EntradaChat,
+  MensagemChat,
+  RespostaChat,
+  RespostaChatGerente,
 } from "@/lib/tipos";
 import { obterSessao } from "@/lib/sessao";
 
@@ -390,4 +394,31 @@ export async function obterCompraFilial(idCompra: string): Promise<RespostaCompr
 export async function obterMetricasFilial(): Promise<RespostaMetricasFilial> {
   if (USAR_MOCK) return (await obterMocksRefatoracao()).metricasFilial;
   return buscar<RespostaMetricasFilial>("/api/filial/metricas", comSessao());
+}
+
+/** POST /api/filial/compras/{id_compra}/bloqueio (Issue #103) */
+export async function bloquearCompra(
+  idCompra: string,
+  nota: string | null,
+): Promise<RespostaCompraFilial> {
+  if (USAR_MOCK) return (await obterMocksRefatoracao()).compraBloqueadaPeloAuditor;
+  return buscar<RespostaCompraFilial>(
+    `/api/filial/compras/${idCompra}/bloqueio`,
+    comSessao(comoJson({ nota })),
+  );
+}
+
+/** POST /api/associado/chat (Issue #106) */
+export async function perguntarAoChat(entrada: EntradaChat): Promise<RespostaChat> {
+  if (USAR_MOCK) return (await obterMocksRefatoracao()).respostaChat;
+  return buscar<RespostaChat>("/api/associado/chat", comSessao(comoJson(entrada)));
+}
+
+/** POST /api/associado/chat/gerente (Issue #106) */
+export async function chamarGerente(historico: MensagemChat[]): Promise<RespostaChatGerente> {
+  if (USAR_MOCK) return (await obterMocksRefatoracao()).resumoGerente;
+  return buscar<RespostaChatGerente>(
+    "/api/associado/chat/gerente",
+    comSessao(comoJson({ historico })),
+  );
 }

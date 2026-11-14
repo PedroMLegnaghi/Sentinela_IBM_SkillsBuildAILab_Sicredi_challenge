@@ -600,3 +600,17 @@ export const NENHUMA_FRAUDE_APROVADA = "Nenhuma contestação até agora.";
 export const CARTAO_BLOQUEADO_ETIQUETA = "Cartão bloqueado";
 export const DURACAO_MIN = (min: string) => `${min} min`;
 export const DURACAO_S = (s: string) => `${s} s`;
+
+// --- Issue #103: o auditor bloqueia ---
+export const BLOQUEAR_COMPRA = "Bloquear compra";
+export const BLOQUEAR_EXPLICACAO =
+  "A compra ainda espera o associado. Ao bloquear, ela não é cobrada e o seu nome fica registrado no bloqueio.";
+export const BLOQUEAR_AVISO_ASSOCIADO =
+  "O associado verá que a compra foi bloqueada por um analista da agência, sem o seu nome.";
+export const NOTA_DO_AUDITOR = "Nota para o registro (opcional, até 300 caracteres)";
+export const CONFIRMAR_BLOQUEIO = "Confirmar bloqueio";
+export const BLOQUEANDO = "Bloqueando…";
+export const ERRO_BLOQUEIO_409 = "Esta compra já não espera o associado e não pode mais ser bloqueada.";
+export const BLOQUEIO_FEITO = "Compra bloqueada. O associado já vê o bloqueio no app.";
+export const LIBERACAO_AUTOMATICA =
+  "Se o associado responder \"fui eu\", a compra é liberada sozinha.";

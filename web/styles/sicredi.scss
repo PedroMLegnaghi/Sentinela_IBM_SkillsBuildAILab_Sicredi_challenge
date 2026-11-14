@@ -1089,3 +1089,20 @@ h3,
   display: grid;
   gap: 10px;
 }
+
+// --- Bloqueio pelo auditor (Issue #103) ---
+.sc-acao-auditor {
+  margin-top: 14px;
+  display: grid;
+  gap: 6px;
+
+  textarea {
+    width: 100%;
+    border: 1.5px solid var(--sc-borda);
+    border-radius: var(--sc-raio-p);
+    padding: 8px 10px;
+    font: inherit;
+    resize: vertical;
+    background: var(--sc-branco);
+  }
+}

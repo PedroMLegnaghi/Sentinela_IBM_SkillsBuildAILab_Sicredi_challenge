@@ -108,13 +108,19 @@ def _obter_token(prazo: float) -> str:
     return _token["valor"]
 
 
-def _chamar_chat(mensagens: list[dict[str, Any]], ferramentas: list[dict], prazo: float) -> dict:
+def _chamar_chat(
+    mensagens: list[dict[str, Any]],
+    ferramentas: list[dict],
+    prazo: float,
+    max_tokens: int = MAX_TOKENS_RESPOSTA,
+) -> dict:
     """Uma chamada ao endpoint de chat do watsonx.ai.
 
     Args:
         mensagens: Conversa até aqui.
-        ferramentas: Definições das ferramentas.
-        prazo: Instante (``time.monotonic``) limite da auditoria.
+        ferramentas: Definições das ferramentas; lista vazia faz uma chamada sem ferramentas.
+        prazo: Instante (``time.monotonic``) limite da chamada.
+        max_tokens: Limite de tokens da resposta.
 
     Returns:
         A mensagem do assistente (com ``content`` e/ou ``tool_calls``).
@@ -130,11 +136,12 @@ def _chamar_chat(mensagens: list[dict[str, Any]], ferramentas: list[dict], prazo
         "model_id": os.environ.get("WATSONX_MODELO") or AUDITORIA_MODELO_PADRAO,
         "project_id": os.environ["WATSONX_PROJECT_ID"],
         "messages": mensagens,
-        "tools": ferramentas,
-        "tool_choice_option": "auto",
-        "max_tokens": MAX_TOKENS_RESPOSTA,
+        "max_tokens": max_tokens,
         "temperature": 0,
     }
+    if ferramentas:
+        corpo["tools"] = ferramentas
+        corpo["tool_choice_option"] = "auto"
     try:
         resposta = requests.post(
             f"{url}/ml/v1/text/chat?version={WATSONX_VERSAO_API}",
@@ -146,6 +153,29 @@ def _chamar_chat(mensagens: list[dict[str, Any]], ferramentas: list[dict], prazo
         return resposta.json()["choices"][0]["message"]
     except (requests.RequestException, ValueError, KeyError, IndexError) as erro:
         raise FalhaWatsonx(f"Chat indisponível ({type(erro).__name__}).") from erro
+
+
+def redigir_texto(instrucoes: str, pedido: str, max_tokens: int, timeout_s: float) -> str:
+    """Pede ao watsonx.ai um texto curto, numa chamada sem ferramentas.
+
+    Args:
+        instrucoes: Mensagem de sistema com as regras do texto.
+        pedido: Mensagem do usuário com os dados (nunca identificadores).
+        max_tokens: Limite de tokens da resposta.
+        timeout_s: Tempo máximo da chamada, incluindo o token IAM.
+
+    Returns:
+        O texto do modelo, sem espaços nas pontas.
+
+    Raises:
+        FalhaWatsonx: Sem resposta, com erro ou com texto vazio.
+    """
+    prazo = time.monotonic() + timeout_s
+    mensagens = [{"role": "system", "content": instrucoes}, {"role": "user", "content": pedido}]
+    texto = str(_chamar_chat(mensagens, [], prazo, max_tokens).get("content") or "").strip()
+    if not texto:
+        raise FalhaWatsonx("Resposta vazia.")
+    return texto
 
 
 def _extrair_json(texto: str) -> dict[str, Any]:

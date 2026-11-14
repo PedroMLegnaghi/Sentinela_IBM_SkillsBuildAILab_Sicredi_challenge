@@ -553,6 +553,12 @@ verdade; o "App do associado" do site faz o papel do celular.
   "Sicredi:"; até 160 caracteres; sem link ("http", "www", ".com"); sem pedir senha, código,
   token ou dados do cartão; sem sequência de 4 dígitos ou mais fora do valor; nenhum
   identificador. Mensagem do Granite que quebra uma regra é trocada pelo modelo fixo.
+- **Mensagem pelo Granite (Issue #65):** o Granite recebe só valor, data, hora, tipo do cartão e a
+  situação (nunca identificadores). Além das regras contra golpe, o texto dele só é aceito se
+  todo valor, data e hora citados forem os da compra e, num AVISO_BLOQUEIO, se disser que a compra
+  foi bloqueada. Para não atrasar a decisão, a notificação nasce com o modelo fixo e o texto do
+  Granite a substitui em segundo plano (`fonte_mensagem` passa a "watsonx") enquanto o status
+  ainda é "aguardando".
 - **Endpoints:**
 
 | Método e caminho | Entrada | Saída |

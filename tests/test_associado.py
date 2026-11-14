@@ -27,6 +27,9 @@ MENSAGEM_BLOQUEIO = (
 @pytest.fixture(autouse=True)
 def memoria_limpa(monkeypatch):
     monkeypatch.setattr(notificacoes, "_notificacoes", {})
+    # Sem credenciais por padrão: nenhum teste chama o watsonx.ai de verdade
+    for nome in ("WATSONX_APIKEY", "WATSONX_PROJECT_ID"):
+        monkeypatch.delenv(nome, raising=False)
 
 
 # --- Mensagem ---------------------------------------------------------------------------------
@@ -315,3 +318,172 @@ def test_analisar_avisa_o_associado_so_quando_a_decisao_pede(
     assert (corpo["id_notificacao"] is not None) == tem_notificacao
     if tem_notificacao:
         assert cliente.get(f"/api/notificacoes/{corpo['id_notificacao']}").status_code == 200
+
+
+# --- Mensagem redigida pelo watsonx.ai (Issue #65), com o serviço simulado --------------------
+
+
+@pytest.fixture
+def com_credenciais(monkeypatch):
+    monkeypatch.setenv("WATSONX_APIKEY", "chave-inventada")
+    monkeypatch.setenv("WATSONX_PROJECT_ID", "projeto-inventado")
+
+
+@pytest.fixture
+def ia_simulada(monkeypatch, com_credenciais):
+    """Troca a chamada ao watsonx.ai por uma resposta fixa e guarda os pedidos feitos."""
+    chamadas = []
+
+    def responder(texto):
+        def falso(instrucoes, pedido, max_tokens, timeout_s):
+            chamadas.append(pedido)
+            return texto
+
+        monkeypatch.setattr(mensagem.watsonx, "redigir_texto", falso)
+
+    return responder, chamadas
+
+
+def test_com_credenciais_a_mensagem_valida_do_granite_e_usada(ia_simulada):
+    responder, _ = ia_simulada
+    responder(
+        "Sicredi: vimos uma compra de R$ 341,79 em 03/03 às 00:17. Foi você? Responda no app."
+    )
+
+    texto, fonte = mensagem.redigir_mensagem(TRANSACAO, CONFIRMAR)
+
+    assert fonte == "watsonx"
+    assert texto.startswith("Sicredi: vimos uma compra")
+
+
+def test_pedido_ao_granite_leva_valor_data_hora_e_tipo_sem_identificadores(ia_simulada):
+    responder, chamadas = ia_simulada
+    responder("Sicredi: foi você? Responda no app.")
+    transacao = {**TRANSACAO, "id_cartao": "cartao-x", "id_cliente": "cliente-x"}
+
+    mensagem.redigir_mensagem(transacao, BLOQUEAR)
+
+    pedido = chamadas[0]
+    assert "R$ 341,79" in pedido and "03/03" in pedido and "00:17" in pedido
+    assert "crédito" in pedido and "bloqueada" in pedido
+    assert "cartao-x" not in pedido and "cliente-x" not in pedido and "id_" not in pedido
+
+
+def test_resposta_do_granite_em_varias_linhas_e_com_aspas_vira_uma_linha(ia_simulada):
+    responder, _ = ia_simulada
+    responder('"Sicredi: compra de R$ 341,79.\nFoi você? Responda no app."')
+
+    texto, fonte = mensagem.redigir_mensagem(TRANSACAO, CONFIRMAR)
+
+    assert texto == "Sicredi: compra de R$ 341,79. Foi você? Responda no app."
+    assert fonte == "watsonx"
+
+
+def test_granite_que_pede_codigo_e_trocado_pelo_modelo_fixo(ia_simulada):
+    responder, _ = ia_simulada
+    responder("Sicredi: informe o código recebido para liberar a compra.")
+
+    texto, fonte = mensagem.redigir_mensagem(TRANSACAO, CONFIRMAR)
+
+    assert (texto, fonte) == (MENSAGEM_CONFIRMACAO, "modelo")
+
+
+def test_falha_do_watsonx_cai_no_modelo_fixo(monkeypatch, com_credenciais):
+    def falhar(*_):
+        raise mensagem.watsonx.FalhaWatsonx("Chat indisponível (Timeout).")
+
+    monkeypatch.setattr(mensagem.watsonx, "redigir_texto", falhar)
+
+    texto, fonte = mensagem.redigir_mensagem(TRANSACAO, BLOQUEAR)
+
+    assert (texto, fonte) == (MENSAGEM_BLOQUEIO, "modelo")
+
+
+def test_sem_credenciais_o_watsonx_nao_e_chamado(monkeypatch):
+    def nao_chamar(*_):
+        raise AssertionError("o watsonx.ai não deveria ser chamado")
+
+    monkeypatch.setattr(mensagem.watsonx, "redigir_texto", nao_chamar)
+
+    assert mensagem.redigir_mensagem(TRANSACAO, CONFIRMAR)[1] == "modelo"
+
+
+class _ThreadImediata:
+    """Executa o alvo na hora, para o teste ver o efeito da thread de segundo plano."""
+
+    def __init__(self, target, args, daemon):
+        self.target, self.args = target, args
+
+    def start(self):
+        self.target(*self.args)
+
+
+class _ThreadParada(_ThreadImediata):
+    """Não executa o alvo: a notificação fica com o modelo fixo até o teste agir."""
+
+    def start(self):
+        pass
+
+
+def test_notificacao_nasce_com_o_modelo_fixo_e_recebe_o_texto_do_granite(monkeypatch, ia_simulada):
+    responder, _ = ia_simulada
+    responder(
+        "Sicredi: bloqueamos uma compra de R$ 341,79 por segurança. Foi você? Responda no app."
+    )
+    monkeypatch.setattr(notificacoes.threading, "Thread", _ThreadImediata)
+
+    criada = notificacoes.criar_notificacao(TRANSACAO, BLOQUEAR)
+
+    guardada = notificacoes.obter(criada["id_notificacao"])
+    assert guardada["fonte_mensagem"] == "watsonx"
+    assert guardada["mensagem"].startswith("Sicredi: bloqueamos")
+
+
+def test_texto_do_granite_nao_troca_notificacao_ja_respondida(monkeypatch, ia_simulada):
+    responder, _ = ia_simulada
+    responder("Sicredi: compra de R$ 341,79. Foi você? Responda no app.")
+    monkeypatch.setattr(notificacoes.threading, "Thread", _ThreadParada)
+    criada = notificacoes.criar_notificacao(TRANSACAO, CONFIRMAR)
+    notificacoes.responder(criada["id_notificacao"], "sim")
+
+    aplicada = notificacoes.aprimorar_mensagem(criada["id_notificacao"], TRANSACAO, CONFIRMAR)
+
+    assert aplicada is False
+    assert notificacoes.obter(criada["id_notificacao"])["mensagem"] == MENSAGEM_CONFIRMACAO
+
+
+def test_sem_credenciais_a_notificacao_nao_dispara_a_ia(monkeypatch):
+    def nao_criar_thread(*_, **__):
+        raise AssertionError("sem credenciais não deveria haver thread")
+
+    monkeypatch.setattr(notificacoes.threading, "Thread", nao_criar_thread)
+
+    criada = notificacoes.criar_notificacao(TRANSACAO, CONFIRMAR)
+
+    assert criada["fonte_mensagem"] == "modelo"
+
+
+def test_granite_que_inventa_data_e_trocado_pelo_modelo_fixo(ia_simulada):
+    responder, _ = ia_simulada
+    responder("Sicredi: compra de R$ 341,79 em 25/04 às 14:30. Foi você? Responda no app.")
+    sem_data = {**TRANSACAO, "data_hora": None}
+
+    texto, fonte = mensagem.redigir_mensagem(sem_data, CONFIRMAR)
+
+    assert fonte == "modelo"
+    assert "25/04" not in texto
+
+
+def test_granite_com_valor_diferente_do_da_compra_e_trocado(ia_simulada):
+    responder, _ = ia_simulada
+    responder("Sicredi: compra de R$ 999,00 em 03/03 às 00:17. Foi você? Responda no app.")
+
+    assert mensagem.redigir_mensagem(TRANSACAO, CONFIRMAR)[1] == "modelo"
+
+
+def test_aviso_de_bloqueio_do_granite_precisa_dizer_que_bloqueou(ia_simulada):
+    responder, _ = ia_simulada
+    responder("Sicredi: compra de R$ 341,79 em 03/03 às 00:17. Foi você? Responda no app.")
+
+    assert mensagem.redigir_mensagem(TRANSACAO, BLOQUEAR) == (MENSAGEM_BLOQUEIO, "modelo")
+    assert mensagem.redigir_mensagem(TRANSACAO, CONFIRMAR)[1] == "watsonx"

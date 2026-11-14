@@ -1,5 +1,6 @@
 # O Bob não lê estes arquivos. Scripts Python e o terminal continuam podendo usá-los.
 # Dados da Sicredi e arquivos gerados: grandes, binários ou com dados da base.
+.env
 data/
 *.csv
 *.parquet

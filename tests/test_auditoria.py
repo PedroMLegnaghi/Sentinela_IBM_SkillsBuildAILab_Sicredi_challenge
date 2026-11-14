@@ -149,10 +149,31 @@ def test_relatorio_com_risco_invalido_e_recusado():
         validar_parcial({"risco_ia": "ENORME", "confianca": "ALTA", "explicacao": "x"})
 
 
-def test_explicacao_longa_e_cortada_em_600_caracteres():
-    parcial = validar_parcial({"risco_ia": None, "confianca": "BAIXA", "explicacao": "a" * 900})
+def test_explicacao_longa_e_cortada_no_fim_de_uma_frase():
+    frase = "A compra foi feita de madrugada com nota 97.3 e IP desconhecido. "
+    texto = (frase * 20).strip()
 
-    assert len(parcial["explicacao"]) == 600
+    parcial = validar_parcial({"risco_ia": None, "confianca": "BAIXA", "explicacao": texto})
+
+    assert len(parcial["explicacao"]) <= 600
+    assert parcial["explicacao"].endswith("desconhecido.")
+
+
+def test_explicacao_longa_sem_pontuacao_termina_em_reticencias_sem_quebrar_palavra():
+    texto = "palavra " * 120
+
+    parcial = validar_parcial({"risco_ia": None, "confianca": "BAIXA", "explicacao": texto})
+
+    assert len(parcial["explicacao"]) <= 600
+    assert parcial["explicacao"].endswith("palavra…")
+
+
+def test_explicacao_curta_fica_igual():
+    texto = "Sinais fortes de fraude. Nota 100.0 de 100."
+
+    parcial = validar_parcial({"risco_ia": "ALTO", "confianca": "ALTA", "explicacao": texto})
+
+    assert parcial["explicacao"] == texto
 
 
 def test_historico_do_cartao_usa_so_compras_anteriores():

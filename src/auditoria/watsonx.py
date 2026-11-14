@@ -42,8 +42,9 @@ INSTRUCOES = (
     "e liste o que faltou. Se a evidência for insuficiente ou contraditória, use risco_ia "
     "null ou confianca BAIXA. Nunca recomende bloquear ou liberar por conta própria.\n"
     'Responda no fim SOMENTE com um JSON com as chaves: risco_ia ("BAIXO", "SUSPEITO", '
-    '"ALTO" ou null), confianca ("BAIXA", "MEDIA" ou "ALTA"), explicacao (até 600 '
-    "caracteres), evidencias_a_favor, evidencias_contra e dados_ausentes (listas de frases)."
+    '"ALTO" ou null), confianca ("BAIXA", "MEDIA" ou "ALTA"), explicacao (até 500 '
+    "caracteres e no máximo 4 frases), evidencias_a_favor, evidencias_contra e dados_ausentes "
+    "(listas de frases)."
 )
 
 

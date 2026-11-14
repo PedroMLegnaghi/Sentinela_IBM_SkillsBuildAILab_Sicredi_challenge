@@ -1,0 +1,205 @@
+{
+  "janelas_temporais": [
+    {
+      "janela": "jan→fev",
+      "treino_linhas": 13658,
+      "treino_fraudes": 52,
+      "teste_linhas": 12265,
+      "teste_fraudes": 40,
+      "pr_auc": 1.0,
+      "roc_auc": 1.0,
+      "no_corte": {
+        "alertas": 40,
+        "fraudes_detectadas": 40,
+        "recall": 1.0,
+        "precisao": 1.0
+      }
+    },
+    {
+      "janela": "jan+fev→mar",
+      "treino_linhas": 25923,
+      "treino_fraudes": 92,
+      "teste_linhas": 13608,
+      "teste_fraudes": 54,
+      "pr_auc": 1.0,
+      "roc_auc": 1.0,
+      "no_corte": {
+        "alertas": 54,
+        "fraudes_detectadas": 54,
+        "recall": 1.0,
+        "precisao": 1.0
+      }
+    }
+  ],
+  "bootstrap_ic95": {
+    "recall_ic95": [
+      1.0,
+      1.0
+    ],
+    "precisao_ic95": [
+      1.0,
+      1.0
+    ]
+  },
+  "baselines": {
+    "so_regras_3_sinais": {
+      "alertas": 213,
+      "fraudes_detectadas": 54,
+      "recall": 1.0,
+      "precisao": 0.2535
+    },
+    "so_regras_4_sinais": {
+      "alertas": 57,
+      "fraudes_detectadas": 54,
+      "recall": 1.0,
+      "precisao": 0.9474
+    },
+    "so_modelo": {
+      "pr_auc": 1.0,
+      "roc_auc": 1.0,
+      "alertas": 54,
+      "fraudes_detectadas": 54,
+      "recall": 1.0,
+      "precisao": 1.0
+    },
+    "sentinela": {
+      "alertas": 213,
+      "fraudes_detectadas": 54,
+      "recall": 1.0,
+      "precisao": 0.2535
+    },
+    "hgb": {
+      "pr_auc": 1.0,
+      "roc_auc": 1.0,
+      "alertas": 54,
+      "fraudes_detectadas": 54,
+      "recall": 1.0,
+      "precisao": 1.0
+    }
+  },
+  "ablacao": [
+    {
+      "variavel_removida": "valor",
+      "pr_auc": 1.0
+    },
+    {
+      "variavel_removida": "hora",
+      "pr_auc": 1.0
+    },
+    {
+      "variavel_removida": "madrugada",
+      "pr_auc": 1.0
+    },
+    {
+      "variavel_removida": "credito",
+      "pr_auc": 1.0
+    },
+    {
+      "variavel_removida": "nao_presente",
+      "pr_auc": 1.0
+    },
+    {
+      "variavel_removida": "ip_pais_desconhecido",
+      "pr_auc": 1.0
+    },
+    {
+      "variavel_removida": "vel_cartao_terminal_1h",
+      "pr_auc": 1.0
+    },
+    {
+      "variavel_removida": "qtd_transacoes_cartao_1min",
+      "pr_auc": 1.0
+    },
+    {
+      "variavel_removida": "qtd_token_carteira_3m",
+      "pr_auc": 1.0
+    },
+    {
+      "variavel_removida": "dist_terminal_anterior_km",
+      "pr_auc": 1.0
+    },
+    {
+      "variavel_removida": "risco_estabelecimento",
+      "pr_auc": 1.0
+    },
+    {
+      "variavel_removida": "COLUNAS_VELOCIDADE (3 juntas)",
+      "pr_auc": 0.861
+    }
+  ],
+  "calibracao": {
+    "brier": 7e-06,
+    "faixas": [
+      {
+        "faixa": "0-10",
+        "n": 13554,
+        "fraudes": 0,
+        "taxa_real_pct": 0.0,
+        "taxa_prevista_pct": 5.0
+      },
+      {
+        "faixa": "10-20",
+        "n": 0,
+        "fraudes": 0,
+        "taxa_real_pct": null,
+        "taxa_prevista_pct": 15.0
+      },
+      {
+        "faixa": "20-30",
+        "n": 0,
+        "fraudes": 0,
+        "taxa_real_pct": null,
+        "taxa_prevista_pct": 25.0
+      },
+      {
+        "faixa": "30-40",
+        "n": 0,
+        "fraudes": 0,
+        "taxa_real_pct": null,
+        "taxa_prevista_pct": 35.0
+      },
+      {
+        "faixa": "40-50",
+        "n": 0,
+        "fraudes": 0,
+        "taxa_real_pct": null,
+        "taxa_prevista_pct": 45.0
+      },
+      {
+        "faixa": "50-60",
+        "n": 0,
+        "fraudes": 0,
+        "taxa_real_pct": null,
+        "taxa_prevista_pct": 55.0
+      },
+      {
+        "faixa": "60-70",
+        "n": 0,
+        "fraudes": 0,
+        "taxa_real_pct": null,
+        "taxa_prevista_pct": 65.0
+      },
+      {
+        "faixa": "70-80",
+        "n": 1,
+        "fraudes": 1,
+        "taxa_real_pct": 100.0,
+        "taxa_prevista_pct": 75.0
+      },
+      {
+        "faixa": "80-90",
+        "n": 1,
+        "fraudes": 1,
+        "taxa_real_pct": 100.0,
+        "taxa_prevista_pct": 85.0
+      },
+      {
+        "faixa": "90-100",
+        "n": 35,
+        "fraudes": 35,
+        "taxa_real_pct": 100.0,
+        "taxa_prevista_pct": 95.0
+      }
+    ]
+  }
+}

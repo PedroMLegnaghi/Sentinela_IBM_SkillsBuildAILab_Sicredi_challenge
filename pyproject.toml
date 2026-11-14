@@ -53,6 +53,8 @@ max-statements = 50
 "src/avaliar_agente.py" = ["T201"]
 "src/avaliar_ia.py" = ["T201"]
 "src/analisar_dados.py" = ["T201"]
+"src/avaliar_rigor.py" = ["T201"]
+"src/analisar_custos.py" = ["T201"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

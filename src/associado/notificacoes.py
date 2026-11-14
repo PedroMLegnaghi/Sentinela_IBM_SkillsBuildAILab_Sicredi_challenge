@@ -7,12 +7,18 @@ protótipo.
 
 from __future__ import annotations
 
+import logging
 import threading
 from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-from src.associado.mensagem import TIPO_POR_DECISAO, redigir_mensagem
+from src.associado.mensagem import (
+    TIPO_POR_DECISAO,
+    redigir_com_ia_validada,
+    redigir_mensagem,
+)
+from src.auditoria import watsonx
 
 RESPOSTAS_VALIDAS = ("sim", "nao")
 # (tipo, resposta) → (status, resultado): as regras de negócio da seção 15
@@ -31,6 +37,7 @@ RESULTADO_POR_RESPOSTA: dict[tuple[str, str], tuple[str, str]] = {
 
 _notificacoes: dict[str, dict[str, Any]] = {}
 _lock = threading.Lock()
+logger = logging.getLogger(__name__)
 
 
 class NotificacaoJaRespondida(Exception):  # noqa: N818 (nome em português, ADR-001)
@@ -52,13 +59,17 @@ def criar_notificacao(
         analise: Analise do modelo, com ``decisao``.
         id_transacao: Id da transação da fila, ou None para uma análise avulsa.
 
+    A notificação nasce na hora com o modelo fixo, para não atrasar a decisão. Com
+    credenciais do watsonx.ai, o Granite redige a versão final em segundo plano
+    (``aprimorar_mensagem``).
+
     Returns:
         Notificacao criada, com ``status`` "aguardando".
 
     Raises:
         ValueError: Se a decisão não gera notificação (APROVAR).
     """
-    mensagem, fonte = redigir_mensagem(transacao, analise)
+    mensagem, fonte = redigir_mensagem(transacao, analise, usar_ia=False)
     notificacao = {
         "id_notificacao": uuid4().hex,
         "id_transacao": id_transacao,
@@ -72,7 +83,42 @@ def criar_notificacao(
     }
     with _lock:
         _notificacoes[notificacao["id_notificacao"]] = notificacao
+    if watsonx.credenciais_disponiveis():
+        threading.Thread(
+            target=aprimorar_mensagem,
+            args=(notificacao["id_notificacao"], transacao, analise),
+            daemon=True,
+        ).start()
     return dict(notificacao)
+
+
+def aprimorar_mensagem(
+    id_notificacao: str, transacao: dict[str, Any], analise: dict[str, Any]
+) -> bool:
+    """Troca o modelo fixo pela mensagem redigida pelo Granite, se ela for aprovada.
+
+    Só troca enquanto a notificação ainda está "aguardando": o associado nunca vê o texto
+    mudar depois de responder.
+
+    Args:
+        id_notificacao: Notificação criada por ``criar_notificacao``.
+        transacao: Campos públicos da transação, sem identificadores.
+        analise: Analise do modelo, com ``decisao``.
+
+    Returns:
+        True se a mensagem da IA foi aplicada.
+    """
+    texto = redigir_com_ia_validada(transacao, analise)
+    if texto is None:
+        return False
+    with _lock:
+        notificacao = _notificacoes.get(id_notificacao)
+        if notificacao is None or notificacao["status"] != "aguardando":
+            return False
+        notificacao["mensagem"] = texto
+        notificacao["fonte_mensagem"] = "watsonx"
+    logger.info("Mensagem ao associado redigida pelo watsonx.ai (%d caracteres).", len(texto))
+    return True
 
 
 def obter(id_notificacao: str) -> dict[str, Any] | None:

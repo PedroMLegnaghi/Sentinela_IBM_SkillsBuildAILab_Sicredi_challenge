@@ -28,7 +28,9 @@ import {
   DESCRICAO_BARRA_TIPO,
   DESCRICAO_ROSCA,
   DOS_ALERTAS_RESPONDIDOS,
+  COLUNAS_BLOQUEIOS,
   EXPLICA_ACERTO,
+  EXPLICA_BLOQUEIOS,
   EXPLICA_FRAUDES_APROVADAS,
   KPI_APROVADAS,
   KPI_BLOQUEADAS,
@@ -43,9 +45,11 @@ import {
   NENHUMA_FRAUDE_APROVADA,
   PERIODOS,
   PROTEGIDOS,
+  SEM_BLOQUEIOS_EQUIPE,
   SEM_RESPOSTAS_AINDA,
   TIPO_E_MODALIDADE,
   TITULO_ACERTO_MODELO,
+  TITULO_BLOQUEIOS_EQUIPE,
   TITULO_DECISOES_TIPO,
   TITULO_FRAUDES_APROVADAS,
   TITULO_PAINEL_AGENCIA,
@@ -196,6 +200,48 @@ function FraudesAprovadas({ m }: { m: RespostaMetricasFilial }) {
   );
 }
 
+function BloqueiosEquipe({ m }: { m: RespostaMetricasFilial }) {
+  const linhas = m.bloqueios_por_auditor;
+  if (!linhas) return null;
+  const algum = linhas.some((l) => l.bloqueios > 0);
+  return (
+    <section className="sc-cartao" aria-labelledby="titulo-bloqueios-equipe">
+      <h2 id="titulo-bloqueios-equipe" className="sc-painel__subtitulo">
+        {TITULO_BLOQUEIOS_EQUIPE}
+      </h2>
+      {!algum ? (
+        <p className="sc-apoio">{SEM_BLOQUEIOS_EQUIPE}</p>
+      ) : (
+        <div className="sc-tabela-rolagem">
+          <table className="sc-tabela sc-tabela--estatica">
+            <thead>
+              <tr>
+                <th scope="col">{COLUNAS_BLOQUEIOS.auditor}</th>
+                <th scope="col" className="sc-direita">{COLUNAS_BLOQUEIOS.bloqueios}</th>
+                <th scope="col" className="sc-direita">{COLUNAS_BLOQUEIOS.corretos}</th>
+                <th scope="col" className="sc-direita">{COLUNAS_BLOQUEIOS.liberados}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {linhas.map((l) => (
+                <tr key={l.auditor}>
+                  <td>{l.auditor}</td>
+                  <td className="sc-direita sc-num">{formatarInteiro(l.bloqueios)}</td>
+                  <td className="sc-direita sc-num">{formatarInteiro(l.corretos)}</td>
+                  <td className="sc-direita sc-num">{formatarInteiro(l.liberados_depois)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="sc-apoio" style={{ marginTop: 10 }}>
+        {EXPLICA_BLOQUEIOS}
+      </p>
+    </section>
+  );
+}
+
 export default function PaginaPainelAgencia() {
   const { dados, erro, recarregar } = useCarregar(obterMetricasFilial);
 
@@ -220,6 +266,7 @@ export default function PaginaPainelAgencia() {
             <DecisoesPorTipo m={dados} />
             <AcertoModelo m={dados} />
             <FraudesAprovadas m={dados} />
+            <BloqueiosEquipe m={dados} />
           </div>
         </>
       )}

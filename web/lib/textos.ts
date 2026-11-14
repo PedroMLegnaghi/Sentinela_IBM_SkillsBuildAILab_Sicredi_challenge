@@ -614,3 +614,15 @@ export const ERRO_BLOQUEIO_409 = "Esta compra já não espera o associado e não
 export const BLOQUEIO_FEITO = "Compra bloqueada. O associado já vê o bloqueio no app.";
 export const LIBERACAO_AUTOMATICA =
   "Se o associado responder \"fui eu\", a compra é liberada sozinha.";
+
+// --- Issue #104: bloqueios da equipe ---
+export const TITULO_BLOQUEIOS_EQUIPE = "Bloqueios da equipe";
+export const COLUNAS_BLOQUEIOS = {
+  auditor: "Auditor",
+  bloqueios: "Bloqueios",
+  corretos: "Corretos",
+  liberados: "Liberados depois",
+};
+export const EXPLICA_BLOQUEIOS =
+  "\"Correto\" é quando o associado confirma que não fez a compra; \"liberado depois\" é quando ele responde \"fui eu\" e a compra é liberada sozinha.";
+export const SEM_BLOQUEIOS_EQUIPE = "Nenhum bloqueio feito pela equipe até agora.";

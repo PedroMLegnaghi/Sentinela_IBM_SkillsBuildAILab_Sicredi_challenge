@@ -1106,3 +1106,7 @@ h3,
     background: var(--sc-branco);
   }
 }
+
+.sc-tabela--estatica tbody tr {
+  cursor: default;
+}

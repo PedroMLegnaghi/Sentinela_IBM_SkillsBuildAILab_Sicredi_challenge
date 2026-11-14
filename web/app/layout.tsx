@@ -1,17 +1,28 @@
 /**
- * Layout raiz do site Sentinela.
- * Aplica o tema Carbon g10 e o shell de navegação.
+ * Layout raiz do site Sentinela: fontes da Sicredi (Exo 2 e Nunito) e tema Carbon.
+ * Cada área (associado e filial) tem a própria moldura no seu layout.
  */
 
 import type { Metadata } from "next";
+import { Exo_2, Nunito } from "next/font/google";
 import { GlobalTheme } from "@carbon/react";
-import Shell from "@/components/layout/Shell";
 import "@/app/globals.scss";
 
+const fonteTitulo = Exo_2({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  variable: "--fonte-titulo",
+});
+
+const fonteTexto = Nunito({
+  subsets: ["latin"],
+  variable: "--fonte-texto",
+});
+
 export const metadata: Metadata = {
-  title: "Sentinela · Agente antifraude",
+  title: "Sentinela · Sicredi",
   description:
-    "Agente antifraude para análise de transações de cartão. Protótipo do IBM SkillsBuild AI Lab, Desafio Sicredi.",
+    "Sentinela: agente antifraude para compras com cartão. Protótipo do IBM SkillsBuild AI Lab, Desafio Sicredi.",
 };
 
 export default function RootLayout({
@@ -20,11 +31,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={`${fonteTitulo.variable} ${fonteTexto.variable}`}>
       <body>
-        <GlobalTheme theme="g10">
-          <Shell>{children}</Shell>
-        </GlobalTheme>
+        <GlobalTheme theme="white">{children}</GlobalTheme>
       </body>
     </html>
   );

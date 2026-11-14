@@ -377,3 +377,30 @@ export const PRIVACIDADE_COMO = [
   "Quando a decisão é pedir confirmação ou bloquear, o associado recebe uma mensagem validada contra 6 regras de segurança: começa com 'Sicredi:', até 160 caracteres, sem links, sem pedir senha ou código e sem número de cartão.",
   "Em março de 2025 (dados sintéticos): 0 compras legítimas bloqueadas e 159 pedidos de confirmação em 13.608 transações (1,2%).",
 ];
+
+// --- Issue #91: identidade, molduras e entrada ---
+export const ALT_LOGO = "Sicredi";
+export const ENTRAR_TITULO = "Quem está entrando?";
+export const ENTRAR_LEGENDA = "Acesso simulado, sem senha. Escolha uma pessoa para ver o Sentinela pelo lado dela.";
+export const ENTRAR_BOTAO = "Entrar";
+export const ENTRANDO = "Entrando…";
+export const ROTULOS_PAPEL: Record<string, string> = {
+  associado: "Associado",
+  auditor: "Auditor",
+  gerente: "Gerente",
+};
+export const GRUPOS_PAPEL: Record<string, string> = {
+  associado: "Associados",
+  auditor: "Auditores da filial",
+  gerente: "Gerentes da filial",
+};
+export const SAIR = "Sair";
+export const NAV_INICIO = "Início";
+export const NAV_EXTRATO = "Extrato";
+export const NAV_COMPRAR = "Comprar";
+export const NAV_CHAT = "Chat";
+export const NAV_PAINEL_AGENCIA = "Painel da agência";
+export const NAV_RESPOSTAS_ASSOCIADOS = "Respostas dos associados";
+export const ROTULO_NAV_ASSOCIADO = "Navegação do app";
+export const ROTULO_NAV_FILIAL = "Navegação da filial";
+export const VERIFICANDO_SESSAO = "Abrindo…";

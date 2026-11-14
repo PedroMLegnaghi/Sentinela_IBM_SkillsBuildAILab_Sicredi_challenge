@@ -1,0 +1,526 @@
+// Identidade visual da Sicredi (marca.sicredi.com.br) e telas da refatoração (Issues #91 a #99).
+// Referência visual: docs/prototipo/index.html.
+
+// --- Tokens ---
+:root,
+.cds--white,
+.cds--g10 {
+  --sc-verde: #3fa110;
+  --sc-verde-acao: #33820d;
+  --sc-verde-acao-hover: #26610a;
+  --sc-verde-escuro: #146e37;
+  --sc-verde-fundo: #ecf6e7;
+  --sc-neutro-claro: #d7e6c8;
+  --sc-texto: #323c32;
+  --sc-texto-apoio: #5a645a;
+  --sc-borda: #e1e6e1;
+  --sc-fundo: #f5f5f5;
+  --sc-branco: #ffffff;
+  --sc-amarelo: #ffcd00;
+  --sc-amarelo-fundo: #fff7d1;
+  --sc-amarelo-texto: #5a3c1e;
+  --sc-magenta: #e60050;
+  --sc-magenta-fundo: #fde6ee;
+  --sc-magenta-texto: #aa003c;
+  --sc-raio: 16px;
+  --sc-raio-p: 10px;
+  --sc-sombra: 0 2px 10px rgba(50, 60, 50, 0.08);
+
+  // Carbon com as cores da Sicredi (o verde #3FA110 com texto branco não tem contraste:
+  // botões e links usam o verde de ação).
+  --cds-interactive: var(--sc-verde-acao);
+  --cds-button-primary: var(--sc-verde-acao);
+  --cds-button-primary-hover: var(--sc-verde-acao-hover);
+  --cds-button-primary-active: var(--sc-verde-escuro);
+  --cds-button-tertiary: var(--sc-verde-acao);
+  --cds-button-tertiary-hover: var(--sc-verde-acao-hover);
+  --cds-link-primary: var(--sc-verde-acao);
+  --cds-link-primary-hover: var(--sc-verde-acao-hover);
+  --cds-focus: var(--sc-verde-acao);
+  --cds-border-interactive: var(--sc-verde-acao);
+  --cds-background-brand: var(--sc-verde-acao);
+  --cds-text-primary: var(--sc-texto);
+  --cds-text-secondary: var(--sc-texto-apoio);
+  --cds-layer-selected-01: var(--sc-verde-fundo);
+}
+
+body {
+  font-family: var(--fonte-texto), Calibri, Arial, sans-serif;
+  color: var(--sc-texto);
+  background: var(--sc-fundo);
+}
+
+.cds--content,
+.cds--data-table,
+.cds--btn,
+.cds--label,
+.cds--tag,
+.cds--text-input,
+.cds--select-input,
+.cds--number input[type="number"],
+.cds--form-requirement,
+.cds--toggle__text,
+.cds--checkbox-label-text,
+.cds--slider-text-input,
+p,
+li,
+td,
+th {
+  font-family: var(--fonte-texto), Calibri, Arial, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.sc-titulo {
+  font-family: var(--fonte-titulo), Calibri, Arial, sans-serif;
+  font-style: italic;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--sc-texto);
+}
+
+.sc-num {
+  font-variant-numeric: tabular-nums;
+}
+
+// --- Elementos comuns ---
+.sc-cartao {
+  background: var(--sc-branco);
+  border-radius: var(--sc-raio);
+  box-shadow: var(--sc-sombra);
+  padding: 16px;
+}
+
+.sc-rotulo {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--sc-texto-apoio);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sc-apoio {
+  color: var(--sc-texto-apoio);
+  font-size: 0.875rem;
+}
+
+.sc-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.sc-separador {
+  height: 1px;
+  background: var(--sc-borda);
+  margin: 14px 0;
+  border: 0;
+}
+
+.sc-etiqueta {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+
+  &--ok {
+    background: var(--sc-verde-fundo);
+    color: var(--sc-verde-escuro);
+  }
+  &--espera {
+    background: var(--sc-amarelo-fundo);
+    color: var(--sc-amarelo-texto);
+  }
+  &--bloqueio {
+    background: var(--sc-magenta-fundo);
+    color: var(--sc-magenta-texto);
+  }
+  &--neutra {
+    background: var(--sc-borda);
+    color: var(--sc-texto-apoio);
+  }
+}
+
+.sc-botao {
+  display: block;
+  width: 100%;
+  padding: 13px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sc-verde-acao);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.9375rem;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--sc-verde-acao-hover);
+  }
+  &:focus-visible {
+    outline: 3px solid var(--sc-verde-escuro);
+    outline-offset: 2px;
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  &--secundario {
+    background: var(--sc-branco);
+    color: var(--sc-verde-acao);
+    border: 2px solid var(--sc-verde-acao);
+    &:hover {
+      background: var(--sc-verde-fundo);
+    }
+  }
+  &--perigo {
+    background: var(--sc-branco);
+    color: var(--sc-magenta-texto);
+    border: 2px solid var(--sc-magenta-texto);
+    &:hover {
+      background: var(--sc-magenta-fundo);
+    }
+  }
+  &--pequeno {
+    display: inline-block;
+    width: auto;
+    padding: 8px 14px;
+    font-size: 0.84375rem;
+  }
+}
+
+.sc-aviso {
+  border-radius: var(--sc-raio);
+  padding: 14px;
+  font-size: 0.875rem;
+
+  &--espera {
+    background: var(--sc-amarelo-fundo);
+    color: var(--sc-amarelo-texto);
+  }
+  &--bloqueio {
+    background: var(--sc-magenta-fundo);
+    color: var(--sc-magenta-texto);
+  }
+  &--ok {
+    background: var(--sc-verde-fundo);
+    color: var(--sc-verde-escuro);
+  }
+}
+
+.sc-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sc-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--sc-borda);
+  background: var(--sc-branco);
+  font: inherit;
+  font-size: 0.78125rem;
+  font-weight: 700;
+  color: var(--sc-texto);
+  cursor: pointer;
+
+  &[aria-pressed="true"] {
+    border-color: var(--sc-verde-acao);
+    background: var(--sc-verde-fundo);
+    color: var(--sc-verde-escuro);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--sc-verde-acao);
+    outline-offset: 2px;
+  }
+}
+
+.sc-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--sc-verde-escuro);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.8125rem;
+  flex: none;
+}
+
+.sc-carregando {
+  padding: 24px 0;
+  color: var(--sc-texto-apoio);
+}
+
+// --- Entrar (Issue #91) ---
+.sc-entrar {
+  min-height: 100vh;
+  background: var(--sc-verde);
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+
+  &__caixa {
+    width: 100%;
+    max-width: 440px;
+  }
+  &__logo {
+    display: block;
+    width: 200px;
+    height: auto;
+    margin: 0 auto 28px;
+  }
+  &__folha {
+    background: var(--sc-branco);
+    border-radius: 26px;
+    padding: 24px 20px;
+  }
+  &__grupo {
+    margin-top: 14px;
+  }
+  &__pessoa {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    margin-top: 8px;
+    border: 1.5px solid var(--sc-borda);
+    border-radius: var(--sc-raio-p);
+    background: var(--sc-branco);
+    font: inherit;
+    text-align: left;
+    color: var(--sc-texto);
+    cursor: pointer;
+
+    &[aria-pressed="true"] {
+      border-color: var(--sc-verde-acao);
+      background: var(--sc-verde-fundo);
+    }
+    &:focus-visible {
+      outline: 2px solid var(--sc-verde-acao);
+      outline-offset: 2px;
+    }
+    small {
+      display: block;
+      color: var(--sc-texto-apoio);
+    }
+  }
+}
+
+// --- Moldura do associado (Issue #91) ---
+.sc-associado {
+  min-height: 100vh;
+  background: var(--sc-neutro-claro);
+
+  &__coluna {
+    max-width: 420px;
+    min-height: 100vh;
+    margin: 0 auto;
+    background: var(--sc-fundo);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.08);
+  }
+  &__corpo {
+    flex: 1;
+    padding: 0 16px 96px;
+  }
+  &__nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 420px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--sc-branco);
+    border-top: 1px solid var(--sc-borda);
+    padding: 8px 0 10px;
+    z-index: 10;
+  }
+  &__nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--sc-texto-apoio);
+    text-decoration: none;
+
+    &[aria-current="page"] {
+      color: var(--sc-verde-acao);
+    }
+    &:focus-visible {
+      outline: 2px solid var(--sc-verde-acao);
+    }
+  }
+}
+
+.sc-topo-verde {
+  background: var(--sc-verde);
+  color: #fff;
+  padding: 20px 16px 44px;
+  border-radius: 0 0 26px 26px;
+  margin: 0 -16px;
+
+  img {
+    display: block;
+    height: 26px;
+    width: auto;
+  }
+  &__ola {
+    font-family: var(--fonte-titulo), Calibri, Arial, sans-serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 1.375rem;
+    margin-top: 16px;
+  }
+  &__sair {
+    background: transparent;
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+    color: #fff;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
+.sc-cabecalho-tela {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 0 12px;
+
+  h1 {
+    font-size: 1.25rem;
+  }
+  a {
+    color: var(--sc-texto);
+    display: inline-flex;
+  }
+}
+
+// --- Moldura da filial (Issue #91) ---
+.sc-filial {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  min-height: 100vh;
+
+  &__lado {
+    background: var(--sc-branco);
+    border-right: 1px solid var(--sc-borda);
+    padding: 20px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  &__logo {
+    height: 34px;
+    width: auto;
+    margin: 0 6px 4px;
+    align-self: flex-start;
+  }
+  &__agencia {
+    font-size: 0.8125rem;
+    color: var(--sc-texto-apoio);
+    font-weight: 700;
+    margin: 0 6px 16px;
+  }
+  &__link {
+    padding: 10px 12px;
+    border-radius: var(--sc-raio-p);
+    font-weight: 700;
+    color: var(--sc-texto-apoio);
+    text-decoration: none;
+
+    &[aria-current="page"] {
+      background: var(--sc-verde-fundo);
+      color: var(--sc-verde-escuro);
+    }
+    &:hover {
+      color: var(--sc-verde-escuro);
+    }
+    &:focus-visible {
+      outline: 2px solid var(--sc-verde-acao);
+    }
+  }
+  &__quem {
+    margin-top: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 6px 0;
+    border-top: 1px solid var(--sc-borda);
+
+    small {
+      display: block;
+      color: var(--sc-texto-apoio);
+    }
+  }
+  &__sair {
+    margin-top: 10px;
+    background: transparent;
+    border: 0;
+    color: var(--sc-verde-acao);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    padding: 4px 6px;
+  }
+  &__area {
+    padding: 28px 32px 48px;
+    min-width: 0;
+
+    h1 {
+      font-size: 1.75rem;
+    }
+  }
+  &__descricao {
+    color: var(--sc-texto-apoio);
+    margin: 4px 0 20px;
+  }
+}
+
+@media (max-width: 1056px) {
+  .sc-filial {
+    grid-template-columns: 1fr;
+
+    &__lado {
+      position: static;
+      height: auto;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    &__agencia {
+      margin-bottom: 0;
+    }
+    &__quem {
+      margin-top: 0;
+      margin-left: auto;
+      border-top: 0;
+      padding-top: 0;
+    }
+    &__area {
+      padding: 20px 16px 40px;
+    }
+  }
+}

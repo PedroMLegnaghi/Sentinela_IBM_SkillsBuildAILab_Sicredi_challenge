@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@carbon/react";
+import Link from "next/link";
 import EstadoCarregando from "@/components/comuns/EstadoCarregando";
 import EstadoErro from "@/components/comuns/EstadoErro";
 import CartaoAuditoria from "@/components/painel/CartaoAuditoria";
@@ -21,6 +22,7 @@ import {
 import {
   BOTAO_ANALISAR,
   BOTAO_VOLTAR_ORIGINAL,
+  LINK_VER_NO_APP,
   SIMULADA_VAZIA,
   TITULO_ORIGINAL,
   TITULO_SIMULADA,
@@ -110,6 +112,11 @@ export default function SimuladorTransacao({
             key={simulada.id_auditoria}
             idAuditoria={simulada.id_auditoria}
           />
+        )}
+        {simulada?.id_notificacao && (
+          <p style={{ marginTop: "12px" }}>
+            <Link href="/associado">{LINK_VER_NO_APP}</Link>
+          </p>
         )}
       </div>
     </div>

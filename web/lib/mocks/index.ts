@@ -1,5 +1,5 @@
 /**
- * Dados inventados para todas as rotas da API (ESPECIFICACAO, seção 12).
+ * Dados inventados para todas as rotas da API (ESPECIFICACAO, seções 12 e 15).
  * Usados quando NEXT_PUBLIC_USAR_MOCK=1. Nunca contêm linhas de data/.
  */
 
@@ -12,6 +12,8 @@ import type {
   Auditoria,
   RespostaRespostas,
   RespostaMetricas,
+  Notificacao,
+  RespostaNotificacoes,
 } from "@/lib/tipos";
 
 const saude: RespostaSaude = {
@@ -113,6 +115,7 @@ const transacao: RespostaTransacao = {
     },
   ],
   resposta_analista: null,
+  notificacao: null,
 };
 
 const analisar: RespostaAnalisar = {
@@ -130,6 +133,37 @@ const analisar: RespostaAnalisar = {
     latencia_ms: 8.1,
   },
   id_auditoria: "aud-mock-001",
+  id_notificacao: "not-mock-001",
+};
+
+const notificacaoAguardando: Notificacao = {
+  id_notificacao: "not-mock-001",
+  id_transacao: null,
+  tipo: "AVISO_BLOQUEIO",
+  mensagem:
+    "Sicredi: bloqueamos uma compra de R$ 4.520,00 em 15/03 às 03:12 por segurança. Seu cartão está protegido. Foi você? Responda no app.",
+  fonte_mensagem: "modelo",
+  criada_em: "2025-03-15T03:12:05",
+  status: "aguardando",
+  respondida_em: null,
+  resultado: null,
+};
+
+const notificacaoNegada: Notificacao = {
+  ...notificacaoAguardando,
+  id_notificacao: "not-mock-002",
+  id_transacao: 100002,
+  tipo: "CONFIRMACAO",
+  mensagem:
+    "Sicredi: compra de R$ 890,50 em 15/03 às 14:33 no seu cartão de crédito. Foi você? Responda no app.",
+  status: "negada",
+  respondida_em: "2025-03-15T14:40:00",
+  resultado:
+    "Compra bloqueada e cartão protegido. O caso foi para o analista.",
+};
+
+const notificacoes: RespostaNotificacoes = {
+  itens: [notificacaoAguardando, notificacaoNegada],
 };
 
 const auditoriaIniciada: RespostaAuditoriaIniciada = {
@@ -260,4 +294,7 @@ export const mocks = {
   auditoriaConcluida,
   respostas,
   metricas,
+  notificacaoAguardando,
+  notificacaoNegada,
+  notificacoes,
 };

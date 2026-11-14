@@ -506,3 +506,57 @@ export const CONTESTAR_EXPLICACAO = "O cartão será bloqueado e a sua agência 
 export const CONTESTAR_CONFIRMAR = "Sim, contestar e bloquear o cartão";
 export const CANCELAR = "Cancelar";
 export const CONTESTADA_OK = "Compra contestada. O cartão foi bloqueado e a sua agência foi avisada.";
+
+// --- Issue #97: fila do auditor e painel da compra na filial ---
+export const TITULO_FILA_FILIAL = "Fila de alertas";
+export const LEGENDA_FILA_FILIAL = (total: string, agencia: string) =>
+  `${total} compras sinalizadas na carteira da ${agencia}, da mais arriscada para a menos arriscada.`;
+export const FILTROS_FILA = "Filtrar a fila";
+export const ROTULOS_FILTRO_FILA: Record<string, string> = {
+  BLOQUEADA: "Bloqueadas",
+  AGUARDANDO: "Aguardando associado",
+  CONTESTADA: "Contestadas",
+};
+export const ROTULOS_SITUACAO_FILIAL: Record<string, string> = {
+  APROVADA: "Aprovada",
+  AGUARDANDO: "Aguardando",
+  BLOQUEADA: "Bloqueada",
+  CONTESTADA: "Contestada",
+};
+export const COLUNAS_FILA_FILIAL = {
+  nota: "Nota",
+  associado: "Associado",
+  quando: "Quando",
+  valor: "Valor",
+  situacao: "Situação",
+  ia: "IA",
+};
+export const ROTULO_TABELA_FILA_FILIAL = "Compras da agência: escolha uma para ver o detalhe";
+export const ASSOCIADO_E_CARTAO = (nome: string, final: string) => `${nome} · final ${final}`;
+export const ROTULOS_VEREDITO: Record<string, string> = {
+  CONFIRMA: "Confirma",
+  DIVERGE: "Diverge",
+  INCONCLUSIVO: "Inconclusivo",
+};
+export const SEM_VEREDITO = "—";
+export const FILA_FILIAL_VAZIA = "Nenhuma compra com este filtro.";
+export const ESCOLHA_UMA_COMPRA = "Escolha uma compra na fila para ver o detalhe.";
+export const COMPRA_EM_ANALISE = "Compra em análise";
+export const ROTULO_NOTA = "Nota de risco";
+export const NOTA_DE_100 = (nota: string) => `${nota} de 100`;
+export const DECISAO_DO_MODELO = "Decisão do modelo";
+export const TITULO_SINAIS_FILIAL = (n: number) => `Sinais de alerta (${n})`;
+export const EXPLICACAO_DO_MODELO = "Explicação do modelo";
+export const TITULO_ASSOCIADO_FILIAL = "Associado";
+export const SEM_RESPOSTA_ASSOCIADO = "O associado ainda não respondeu ao aviso.";
+export const RESPOSTA_DO_ASSOCIADO = (resposta: string, quando: string) =>
+  `Respondeu "${resposta}" em ${quando}.`;
+export const LEITURA_RESPOSTA = {
+  nao: "Fraude provável.",
+  sim: "O associado reconhece a compra.",
+};
+export const HISTORICO_AGREGADO = "Histórico (agregado)";
+export const RESUMO_HISTORICO = (compras: string, mediana: string, contestacoes: string) =>
+  `${compras} compras em 90 dias · mediana ${mediana} · ${contestacoes} contestações.`;
+export const TITULO_BLOQUEIO = "Bloqueio";
+export const BLOQUEIO_POR = (por: string, quando: string) => `Bloqueada por ${por} em ${quando}.`;

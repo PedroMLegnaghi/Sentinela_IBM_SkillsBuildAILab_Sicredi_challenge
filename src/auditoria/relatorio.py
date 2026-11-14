@@ -6,6 +6,7 @@ decisão do modelo; o modelo de linguagem nunca decide o parecer (ADR-012).
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 RISCOS = ("BAIXO", "SUSPEITO", "ALTO")
@@ -13,6 +14,33 @@ CONFIANCAS = ("BAIXA", "MEDIA", "ALTA")
 RISCO_PARA_DECISAO = {"ALTO": "BLOQUEAR", "SUSPEITO": "PEDIR_CONFIRMACAO", "BAIXO": "APROVAR"}
 MAX_CARACTERES_EXPLICACAO = 600
 CAMPOS_LISTA = ("evidencias_a_favor", "evidencias_contra", "dados_ausentes")
+RETICENCIAS = "…"
+# Fim de frase: pontuação seguida de espaço ou do fim do texto (o ponto de "100.0" não conta)
+_FIM_DE_FRASE = re.compile(r"[.!?](?=\s|$)")
+
+
+def encurtar_explicacao(texto: str, limite: int = MAX_CARACTERES_EXPLICACAO) -> str:
+    """Corta a explicação no fim de uma frase, sem quebrar palavras.
+
+    Args:
+        texto: Explicação já sem espaços nas pontas.
+        limite: Tamanho máximo em caracteres.
+
+    Returns:
+        O próprio texto, se couber; senão, o trecho até a última frase completa dentro do
+        limite; sem frase completa, o trecho até o último espaço, terminado em "…".
+    """
+    if len(texto) <= limite:
+        return texto
+    trecho = texto[:limite]
+    fins = list(_FIM_DE_FRASE.finditer(trecho))
+    if fins:
+        return trecho[: fins[-1].end()]
+    trecho = texto[: limite - len(RETICENCIAS)]
+    espaco = trecho.rfind(" ")
+    if espaco > 0:
+        trecho = trecho[:espaco]
+    return trecho.rstrip(" ,;:") + RETICENCIAS
 
 
 def calcular_parecer(risco_ia: str | None, confianca: str, decisao_modelo: str) -> str:
@@ -59,7 +87,8 @@ def validar_parcial(dados: dict[str, Any]) -> dict[str, Any]:
         dados: Dicionário com risco_ia, confianca, explicacao e as três listas.
 
     Returns:
-        Cópia normalizada, com a explicação cortada em 600 caracteres.
+        Cópia normalizada, com a explicação de até 600 caracteres terminando numa frase
+        completa (``encurtar_explicacao``).
 
     Raises:
         ValueError: Se faltar campo ou algum valor estiver fora do permitido.
@@ -76,7 +105,7 @@ def validar_parcial(dados: dict[str, Any]) -> dict[str, Any]:
     parcial = {
         "risco_ia": risco,
         "confianca": confianca,
-        "explicacao": explicacao[:MAX_CARACTERES_EXPLICACAO],
+        "explicacao": encurtar_explicacao(explicacao),
     }
     for campo in CAMPOS_LISTA:
         parcial[campo] = _validar_lista(dados.get(campo, []), campo)

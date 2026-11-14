@@ -765,3 +765,151 @@ h3,
     margin-top: 12px;
   }
 }
+
+// --- Fila do auditor e painel da compra (Issue #97) ---
+.sc-grade-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 440px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .sc-grade-fila {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sc-tabela-rolagem {
+  overflow-x: auto;
+}
+
+.sc-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  th {
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sc-texto-apoio);
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--sc-borda);
+    white-space: nowrap;
+  }
+  td {
+    padding: 11px 10px;
+    border-bottom: 1px solid var(--sc-borda);
+  }
+  tbody tr {
+    cursor: pointer;
+
+    &:hover td {
+      background: #fafcf9;
+    }
+    &[aria-selected="true"] td {
+      background: var(--sc-verde-fundo);
+    }
+    &:focus-visible {
+      outline: 2px solid var(--sc-verde-acao);
+      outline-offset: -2px;
+    }
+  }
+  .sc-direita {
+    text-align: right;
+    white-space: nowrap;
+  }
+}
+
+.sc-nota {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.8125rem;
+
+  &--alta {
+    background: var(--sc-magenta-fundo);
+    color: var(--sc-magenta-texto);
+  }
+  &--media {
+    background: var(--sc-amarelo-fundo);
+    color: var(--sc-amarelo-texto);
+  }
+  &--baixa {
+    background: var(--sc-verde-fundo);
+    color: var(--sc-verde-escuro);
+  }
+}
+
+.sc-painel {
+  &__titulo {
+    font-size: 1.0625rem;
+    margin-top: 2px;
+  }
+  &__subtitulo {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+  &__numeros {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+
+    dd {
+      margin: 2px 0 0;
+      font-weight: 800;
+      font-size: 1.125rem;
+    }
+  }
+  .sentinela-subtitulo {
+    font-family: var(--fonte-titulo), Calibri, Arial, sans-serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-top: 0;
+  }
+  .sentinela-cartao-auditoria {
+    background: var(--sc-verde-fundo);
+    border-left: 4px solid var(--sc-verde);
+    border-radius: 0 var(--sc-raio-p) var(--sc-raio-p) 0;
+  }
+}
+
+.sc-sinais {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 0.875rem;
+
+  li {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+
+    &::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--sc-magenta);
+      flex: none;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.sentinela-barra-risco {
+  background: var(--sc-magenta) !important;
+}
+
+.sentinela-barra-alivio {
+  background: var(--sc-verde) !important;
+}

@@ -16,7 +16,6 @@ import {
   NAV_DESEMPENHO,
   NAV_FILA,
   NAV_PAINEL_AGENCIA,
-  NAV_RESPOSTAS_ASSOCIADOS,
   ROTULO_NAV_FILIAL,
   ROTULOS_PAPEL,
   SAIR,
@@ -25,7 +24,6 @@ import {
 const LINKS: Record<Exclude<Papel, "associado">, { href: string; rotulo: string }[]> = {
   auditor: [
     { href: "/filial/fila", rotulo: NAV_FILA },
-    { href: "/filial/respostas", rotulo: NAV_RESPOSTAS_ASSOCIADOS },
     { href: "/filial/desempenho", rotulo: NAV_DESEMPENHO },
     { href: "/filial/como-funciona", rotulo: NAV_COMO_FUNCIONA },
   ],

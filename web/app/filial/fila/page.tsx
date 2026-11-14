@@ -1,11 +1,11 @@
 /**
- * Página /filial/fila: fila de alertas da agência (Issues #91 e #97).
+ * Página /filial/fila: fila de alertas da agência (Issue #97).
  */
 
-import PaginaFila from "@/components/fila/PaginaFila";
+import PaginaFilaFilial from "@/components/filial/PaginaFilaFilial";
 
 export const metadata = { title: "Fila de alertas · Sentinela" };
 
 export default function Pagina() {
-  return <PaginaFila />;
+  return <PaginaFilaFilial />;
 }

@@ -368,3 +368,12 @@ export const PERFIL_PERCENTUAL_MADRUGADA = (pct: string) =>
   `Compras na madrugada: ${pct}%`;
 export const PERFIL_CREDITO_NAO_PRESENTE = (pct: string) =>
   `Crédito não presente: ${pct}%`;
+
+// --- Issue #67 — Privacidade e o associado (Como funciona) ---
+export const TITULO_PRIVACIDADE_COMO = "Privacidade e o associado";
+export const PRIVACIDADE_COMO = [
+  "O modelo usa 11 variáveis comportamentais e operacionais: valor, hora, tipo de cartão, distâncias e contagens. Nenhum dado pessoal identificável entra no cálculo.",
+  "Identificadores de cartão, cliente e estabelecimento nunca aparecem nas respostas da API, nos logs nem nas mensagens enviadas ao IBM watsonx.ai.",
+  "Quando a decisão é pedir confirmação ou bloquear, o associado recebe uma mensagem validada contra 6 regras de segurança: começa com 'Sicredi:', até 160 caracteres, sem links, sem pedir senha ou código e sem número de cartão.",
+  "Em março de 2025 (dados sintéticos): 0 compras legítimas bloqueadas e 159 pedidos de confirmação em 13.608 transações (1,2%).",
+];

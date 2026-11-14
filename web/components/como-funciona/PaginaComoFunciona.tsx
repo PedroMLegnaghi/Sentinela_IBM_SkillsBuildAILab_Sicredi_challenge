@@ -10,6 +10,7 @@ import {
   LEAD_COMO,
   LIMITACOES,
   PASSOS_CAMINHO,
+  PRIVACIDADE_COMO,
   REGRAS_DECISAO,
   SINAIS_EXPLICADOS,
   SOBRE_DADOS,
@@ -19,6 +20,7 @@ import {
   TITULO_DECISAO_COMO,
   TITULO_IA_COMO,
   TITULO_LIMITACOES,
+  TITULO_PRIVACIDADE_COMO,
   TITULO_SINAIS_COMO,
 } from "@/lib/textos";
 
@@ -74,6 +76,9 @@ export default function PaginaComoFunciona() {
 
       <h2 className="sentinela-secao">{TITULO_DADOS_COMO}</h2>
       <p>{SOBRE_DADOS}</p>
+
+      <h2 className="sentinela-secao">{TITULO_PRIVACIDADE_COMO}</h2>
+      <Lista itens={PRIVACIDADE_COMO} />
 
       <h2 className="sentinela-secao">{TITULO_LIMITACOES}</h2>
       <Lista itens={LIMITACOES} />

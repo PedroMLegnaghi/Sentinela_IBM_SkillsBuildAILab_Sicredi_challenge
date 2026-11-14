@@ -108,3 +108,27 @@ CAMINHO_ENV = RAIZ / ".env"
 # março com 57 alertas).
 AUDITORIA_SINAIS_RISCO_ALTO = 4
 AUDITORIA_SINAIS_SUSPEITO = 2
+
+# --- Canal do associado (ESPECIFICACAO, seção 15; ADR-015) ---
+
+# Regras contra golpe aplicadas a toda mensagem ao associado, inclusive a do modelo fixo
+MENSAGEM_PREFIXO = "Sicredi:"
+MENSAGEM_MAX_CARACTERES = 160
+# Trechos que denunciam link ou pedido de dado sigiloso (comparados em minúsculas)
+MENSAGEM_TERMOS_PROIBIDOS = (
+    "http",
+    "www",
+    ".com",
+    "senha",
+    "código",
+    "codigo",
+    "token",
+    "cvv",
+    "validade",
+    "número do cartão",
+    "numero do cartao",
+    "dados do cartão",
+    "dados do cartao",
+)
+# Mais dígitos seguidos do que isso, fora do valor, parece número de cartão ou documento
+MENSAGEM_MAX_DIGITOS_SEGUIDOS = 3

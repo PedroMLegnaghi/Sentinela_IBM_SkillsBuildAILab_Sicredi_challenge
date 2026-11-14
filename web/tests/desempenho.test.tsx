@@ -11,7 +11,12 @@ import PaginaDesempenho from "@/components/desempenho/PaginaDesempenho";
 import SecaoCustos from "@/components/desempenho/SecaoCustos";
 import * as api from "@/lib/api";
 import { mocks } from "@/lib/mocks/index";
-import { SINAIS_EXPLICADOS, TITULO_IA_CONTRA_MODELO } from "@/lib/textos";
+import {
+  PRIVACIDADE_COMO,
+  SINAIS_EXPLICADOS,
+  TITULO_IA_CONTRA_MODELO,
+  TITULO_PRIVACIDADE_COMO,
+} from "@/lib/textos";
 
 vi.mock("@/lib/api", () => ({ obterMetricas: vi.fn() }));
 
@@ -93,6 +98,17 @@ describe("PaginaComoFunciona", () => {
 
     expect(SINAIS_EXPLICADOS).toHaveLength(9);
     expect(screen.getByText("Salto geográfico")).toBeInTheDocument();
+  });
+
+  it("mostra a seção de privacidade com os números de experiência", () => {
+    render(<PaginaComoFunciona />);
+
+    expect(screen.getByText(TITULO_PRIVACIDADE_COMO)).toBeInTheDocument();
+    expect(PRIVACIDADE_COMO.length).toBeGreaterThanOrEqual(3);
+    const textoCompleto = PRIVACIDADE_COMO.join(" ");
+    expect(textoCompleto).toContain("159");
+    expect(textoCompleto).toContain("13.608");
+    expect(textoCompleto).toContain("0");
   });
 
   it("usa os mesmos limiares de src/config.py", () => {

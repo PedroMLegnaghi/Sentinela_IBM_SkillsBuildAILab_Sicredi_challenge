@@ -15,6 +15,7 @@ from typing import Any
 import pandas as pd
 
 from src.agente import AgenteSentinela, calcular_sinais, decidir
+from src.associado import notificacoes
 from src.auditoria import configurar_base
 from src.auditoria.watsonx import carregar_env
 from src.config import (
@@ -287,7 +288,8 @@ def obter_transacao(id_transacao: int) -> dict[str, Any]:
         id_transacao: Identificador da transação.
 
     Returns:
-        Dicionário com ``transacao``, ``analise``, ``historico`` e ``resposta_analista``.
+        Dicionário com ``transacao``, ``analise``, ``historico``, ``resposta_analista`` e
+        ``notificacao`` (None se o associado não foi avisado).
 
     Raises:
         KeyError: Se o id_transacao não estiver na fila.
@@ -318,6 +320,7 @@ def obter_transacao(id_transacao: int) -> dict[str, Any]:
         "analise": analise,
         "historico": _montar_historico(historico_df),
         "resposta_analista": _ler_resposta(id_transacao),
+        "notificacao": notificacoes.obter_por_transacao(id_transacao),
     }
 
 

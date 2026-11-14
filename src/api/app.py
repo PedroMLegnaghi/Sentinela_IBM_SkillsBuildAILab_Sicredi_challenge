@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import auditorias as auditoria_mem
@@ -19,7 +19,11 @@ from src.api import servicos
 from src.api.esquemas import (
     EntradaAnalise,
     EntradaResposta,
+    EntradaRespostaAssociado,
+    NotificacaoSchema,
 )
+from src.associado import notificacoes as notificacao_mem
+from src.associado.mensagem import tipo_por_decisao
 from src.config import API_ORIGENS_PERMITIDAS
 
 DECISOES_VALIDAS = {"APROVAR", "PEDIR_CONFIRMACAO", "BLOQUEAR"}
@@ -145,7 +149,7 @@ def analisar(entrada: EntradaAnalise) -> dict[str, Any]:
         entrada: Campos da transação (todos opcionais) e flag ``auditar``.
 
     Returns:
-        analise (Analise) e id_auditoria (str ou null).
+        analise (Analise), id_auditoria (str ou null) e id_notificacao (str ou null).
     """
     if not servicos.modelo_carregado():
         raise HTTPException(
@@ -171,7 +175,18 @@ def analisar(entrada: EntradaAnalise) -> dict[str, Any]:
         )
         auditoria_mem.disparar_auditoria_em_segundo_plano(id_auditoria, transacao_dict, analise)
 
-    return {"analise": analise, "id_auditoria": id_auditoria}
+    return {
+        "analise": analise,
+        "id_auditoria": id_auditoria,
+        "id_notificacao": _avisar_associado(transacao_dict, analise),
+    }
+
+
+def _avisar_associado(transacao: dict[str, Any], analise: dict[str, Any]) -> str | None:
+    """Cria a notificação de uma análise avulsa quando a decisão pede; devolve o id ou None."""
+    if tipo_por_decisao(analise["decisao"]) is None:
+        return None
+    return notificacao_mem.criar_notificacao(transacao, analise)["id_notificacao"]
 
 
 # --- POST /api/transacoes/{id_transacao}/auditoria --------------------------------------------
@@ -300,3 +315,95 @@ def metricas() -> dict[str, Any]:
         return resp_mod.obter_metricas()
     except RuntimeError as erro:
         raise HTTPException(status_code=503, detail=str(erro)) from erro
+
+
+# --- Canal do associado (ESPECIFICACAO, seção 15) ---------------------------------------------
+
+
+@app.post(
+    "/api/transacoes/{id_transacao}/notificacao",
+    status_code=201,
+    response_model=NotificacaoSchema,
+)
+def notificar_associado(id_transacao: int, response: Response) -> dict[str, Any]:
+    """Avisa o associado sobre uma transação da fila (idempotente).
+
+    Args:
+        id_transacao: Identificador da transação.
+        response: Resposta HTTP, para devolver 200 quando a notificação já existia.
+
+    Returns:
+        201 com a Notificacao criada, ou 200 com a que já existia.
+    """
+    if not servicos.dados_carregados():
+        raise HTTPException(status_code=503, detail=MENSAGEM_503)
+    existente = notificacao_mem.obter_por_transacao(id_transacao)
+    if existente is not None:
+        response.status_code = 200
+        return existente
+    try:
+        dados = servicos.obter_transacao(id_transacao)
+    except KeyError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+    except RuntimeError as erro:
+        raise HTTPException(status_code=503, detail=str(erro)) from erro
+    try:
+        return notificacao_mem.criar_notificacao(dados["transacao"], dados["analise"], id_transacao)
+    except ValueError as erro:
+        raise HTTPException(status_code=422, detail=str(erro)) from erro
+
+
+@app.get("/api/notificacoes")
+def listar_notificacoes() -> dict[str, Any]:
+    """Lista as notificações ao associado, da mais recente para a mais antiga.
+
+    Returns:
+        itens com as Notificacoes.
+    """
+    return {"itens": notificacao_mem.listar()}
+
+
+@app.get("/api/notificacoes/{id_notificacao}", response_model=NotificacaoSchema)
+def obter_notificacao(id_notificacao: str) -> dict[str, Any]:
+    """Devolve uma notificação ao associado.
+
+    Args:
+        id_notificacao: Identificador da notificação.
+
+    Returns:
+        Notificacao; desconhecida → 404.
+    """
+    notificacao = notificacao_mem.obter(id_notificacao)
+    if notificacao is None:
+        raise HTTPException(
+            status_code=404, detail=_mensagem_notificacao_desconhecida(id_notificacao)
+        )
+    return notificacao
+
+
+@app.post("/api/notificacoes/{id_notificacao}/resposta", response_model=NotificacaoSchema)
+def responder_notificacao(id_notificacao: str, entrada: EntradaRespostaAssociado) -> dict[str, Any]:
+    """Registra a resposta do associado ("sim" ou "nao") a uma notificação.
+
+    Args:
+        id_notificacao: Identificador da notificação.
+        entrada: Corpo com ``resposta``.
+
+    Returns:
+        Notificacao atualizada; já respondida → 409; desconhecida → 404; inválida → 422.
+    """
+    try:
+        return notificacao_mem.responder(id_notificacao, entrada.resposta)
+    except KeyError as erro:
+        raise HTTPException(
+            status_code=404, detail=_mensagem_notificacao_desconhecida(id_notificacao)
+        ) from erro
+    except notificacao_mem.NotificacaoJaRespondida as erro:
+        raise HTTPException(status_code=409, detail=str(erro)) from erro
+    except ValueError as erro:
+        raise HTTPException(status_code=422, detail=str(erro)) from erro
+
+
+def _mensagem_notificacao_desconhecida(id_notificacao: str) -> str:
+    """Texto do 404 das rotas de notificação."""
+    return f"Notificação '{id_notificacao}' não encontrada. Confira o id em GET /api/notificacoes."

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, field_validator
 
+from src.associado.notificacoes import RESPOSTAS_VALIDAS
+
 
 class EntradaAnalise(BaseModel):
     """Entrada do endpoint POST /api/analisar.
@@ -118,4 +120,32 @@ class EntradaResposta(BaseModel):
         """Valida que a resposta é 'fraude' ou 'legitima'."""
         if v not in ("fraude", "legitima"):
             raise ValueError("Resposta deve ser 'fraude' ou 'legitima'.")
+        return v
+
+
+class NotificacaoSchema(BaseModel):
+    """Notificação ao associado (ESPECIFICACAO, seção 15)."""
+
+    id_notificacao: str
+    id_transacao: int | None
+    tipo: str
+    mensagem: str
+    fonte_mensagem: str
+    criada_em: str
+    status: str
+    respondida_em: str | None
+    resultado: str | None
+
+
+class EntradaRespostaAssociado(BaseModel):
+    """Entrada do endpoint POST /api/notificacoes/{id_notificacao}/resposta."""
+
+    resposta: str
+
+    @field_validator("resposta")
+    @classmethod
+    def validar_resposta(cls, v: str) -> str:
+        """Valida que a resposta do associado é 'sim' ou 'nao'."""
+        if v not in RESPOSTAS_VALIDAS:
+            raise ValueError("Resposta deve ser 'sim' ou 'nao'.")
         return v

@@ -605,6 +605,9 @@ existir.
 - **Carteiras.** Os clientes com compra em março, ordenados pelo identificador, são divididos por
   posição: posição par vai para a Agência Centro, ímpar para a Agência Norte. Cliente sem login
   aparece na filial como "Associado NNNN" (posição com 4 dígitos).
+  As 76 compras de março sem cliente (todas aprovadas) não têm carteira: para as métricas das
+  duas filiais somarem os números da seção 11, entram na filial pela paridade do `id_transacao`
+  (par → Centro, ímpar → Norte). Elas não aparecem em extrato nem na fila.
 - **Situação de uma compra.** `APROVADA`, `AGUARDANDO`, `BLOQUEADA` ou `CONTESTADA`. Ao nascer:
   APROVAR → `APROVADA`; PEDIR_CONFIRMACAO → `AGUARDANDO`; BLOQUEAR → `BLOQUEADA`. A resposta do
   associado ao aviso (seção 15) muda a situação: numa `AGUARDANDO`, "sim" → `APROVADA` e "nao" →

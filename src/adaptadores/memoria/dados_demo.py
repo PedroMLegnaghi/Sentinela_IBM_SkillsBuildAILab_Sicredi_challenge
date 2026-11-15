@@ -16,7 +16,7 @@ import pandas as pd
 from src.adaptadores.memoria.repositorios import criar_repositorios_vazios
 from src.config import FIM_TESTE, INICIO_TESTE, VARIAVEIS_MODELO
 from src.dominio.entidades import Associado, Cartao, Compra, Filial, Funcionario
-from src.dominio.regras import distribuir_carteira, filial_da_posicao, situacao_inicial
+from src.dominio.regras import MATRIZ, distribuir_carteira, filial_da_posicao, situacao_inicial
 from src.portas.repositorios import Repositorios
 
 FILIAIS = (Filial("fil-centro", "Agência Centro"), Filial("fil-norte", "Agência Norte"))
@@ -27,6 +27,7 @@ FUNCIONARIOS = (
     Funcionario("ger-02", "Marcos Viana", "gerente", "fil-norte"),
     Funcionario("aud-03", "Tiago Nunes", "auditor", "fil-norte"),
     Funcionario("aud-04", "Paula Reis", "auditor", "fil-norte"),
+    Funcionario("mat-01", "Sofia Andrade", "matriz", MATRIZ.id_filial),
 )
 NOMES_COM_LOGIN = (
     "Ana Souza",

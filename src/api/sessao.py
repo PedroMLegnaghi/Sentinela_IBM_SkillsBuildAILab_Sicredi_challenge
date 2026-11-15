@@ -24,6 +24,7 @@ from src.api.esquemas_refatoracao import EntradaSessao, PerfisSchema, SessaoSche
 from src.aplicacao import associado as associado_app
 from src.config import FIM_TESTE, INICIO_TESTE
 from src.dominio.entidades import Perfil
+from src.dominio.regras import MATRIZ
 from src.portas.repositorios import Repositorios
 
 logger = logging.getLogger(__name__)
@@ -73,6 +74,8 @@ def obter_repositorios() -> Repositorios:
 def perfil_para_dict(repos: Repositorios, perfil: Perfil) -> dict[str, Any]:
     """Perfil do contrato (seção 17.3), com a filial resumida."""
     filial = repos.filiais.obter(perfil.id_filial)
+    if filial is None and perfil.id_filial == MATRIZ.id_filial:
+        filial = MATRIZ
     return {
         "id_perfil": perfil.id_perfil,
         "nome": perfil.nome,
@@ -85,7 +88,7 @@ def sessao_com_papel(*papeis: str) -> Callable[..., Perfil]:
     """Dependência do FastAPI: lê ``X-Sessao`` e devolve o perfil; 401 sem sessão, 403 sem papel.
 
     Args:
-        papeis: Papéis aceitos na rota ("associado", "auditor", "gerente").
+        papeis: Papéis aceitos na rota ("associado", "auditor", "gerente", "matriz").
 
     Returns:
         Função a passar em ``Depends``.
@@ -112,7 +115,7 @@ def sessao_com_papel(*papeis: str) -> Callable[..., Perfil]:
 
 @router.get("/api/sessao/perfis", response_model=PerfisSchema)
 def listar_perfis() -> dict[str, Any]:
-    """Perfis disponíveis para o login simulado: 2 gerentes, 4 auditores e 10 associados."""
+    """Perfis do login simulado: 1 matriz, 2 gerentes, 4 auditores e 10 associados."""
     repos = obter_repositorios()
     return {"perfis": [perfil_para_dict(repos, p) for p in repos.perfis.listar()]}
 

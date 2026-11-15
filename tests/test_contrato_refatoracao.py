@@ -146,7 +146,8 @@ def test_perfis_e_sessao(cliente):
     assert papeis.count("gerente") == 2
     assert papeis.count("auditor") == 4
     assert papeis.count("associado") == 10
-    assert {p["filial"]["id_filial"] for p in lista} == {"fil-centro", "fil-norte"}
+    assert papeis.count("matriz") == 1  # seção 17.8
+    assert {p["filial"]["id_filial"] for p in lista} == {"fil-centro", "fil-norte", "matriz"}
 
     sessao = cliente.post("/api/sessao", json={"id_perfil": lista[0]["id_perfil"]})
     assert sessao.status_code == 200
@@ -386,4 +387,29 @@ def test_metricas_da_filial(cliente):
         "sem_resposta",
         "taxa",
     }
+    _sem_proibidas(corpo)
+
+
+# --- Matriz (seção 17.8) ------------------------------------------------------------------------
+
+
+def test_metricas_da_matriz(cliente):
+    _exige_rota(cliente, "/api/matriz/metricas")
+    for papel in ("gerente", "auditor", "associado"):
+        assert (
+            cliente.get("/api/matriz/metricas", headers=_cabecalho(cliente, papel)).status_code
+            == 403
+        )
+
+    resposta = cliente.get("/api/matriz/metricas", headers=_cabecalho(cliente, "matriz", "matriz"))
+    assert resposta.status_code == 200
+    corpo = resposta.json()
+    assert set(corpo) == {"periodo", "consolidado", "por_filial", "modelo"}
+    assert {p["filial"]["id_filial"] for p in corpo["por_filial"]} == {"fil-centro", "fil-norte"}
+    totais = corpo["consolidado"]["totais"]
+    for campo in ("compras", "aprovadas", "confirmacoes", "bloqueadas"):
+        assert totais[campo] == sum(p["totais"][campo] for p in corpo["por_filial"])
+    assert corpo["modelo"]["transacoes"] == 13608
+    assert corpo["modelo"]["sentinela"]["fraudes_bloqueadas"] == 54
+    assert corpo["modelo"]["sistema_atual"]["fraudes_bloqueadas"] == 26
     _sem_proibidas(corpo)

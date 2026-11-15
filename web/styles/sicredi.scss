@@ -1193,3 +1193,17 @@ h3,
     font-style: italic;
   }
 }
+
+// --- Painel da matriz (seção 17.8) ---
+.sc-linha-total th,
+.sc-linha-total td {
+  font-weight: 800;
+  border-top: 2px solid var(--sc-borda);
+  background: var(--sc-verde-fundo);
+}
+.sc-tabela tbody th {
+  text-align: left;
+  font-weight: 700;
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--sc-borda);
+}

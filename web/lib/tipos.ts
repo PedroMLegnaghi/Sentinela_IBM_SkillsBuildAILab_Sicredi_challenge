@@ -292,8 +292,9 @@ export interface EntradaResposta {
 
 // --- Seção 17: Associado e filial (refatoração) ---
 
-export type Papel = "associado" | "auditor" | "gerente";
-export type SituacaoCompra = "APROVADA" | "AGUARDANDO" | "BLOQUEADA" | "CONTESTADA";
+export type Papel = "associado" | "auditor" | "gerente" | "matriz";
+export type SituacaoCompra =
+  "APROVADA" | "AGUARDANDO" | "BLOQUEADA" | "CONTESTADA";
 export type TipoCartao = "debito" | "credito";
 
 export interface Filial {
@@ -381,8 +382,10 @@ export interface DetalheCompra extends CompraExtrato {
 }
 
 /** Corpo de POST /api/associado/compras: cartão, estabelecimento e as variáveis da análise. */
-export interface EntradaCompra
-  extends Omit<EntradaAnalisar, "credito" | "auditar" | "tipo_transacao"> {
+export interface EntradaCompra extends Omit<
+  EntradaAnalisar,
+  "credito" | "auditar" | "tipo_transacao"
+> {
   cartao: string;
   estabelecimento: string;
   data_hora: string;
@@ -509,4 +512,45 @@ export interface RespostaChat {
 export interface RespostaChatGerente {
   gerente: { nome: string };
   resumo: string;
+}
+
+// --- Seção 17.8: painel da matriz ---
+
+export interface ModeloNaBaseDeTeste {
+  periodo: string | null;
+  transacoes: number | null;
+  fraudes: number | null;
+  sentinela: {
+    fraudes_bloqueadas: number | null;
+    bloqueadas: number | null;
+    confirmacoes: number | null;
+    fraudes_aprovadas: number | null;
+  };
+  sistema_atual: {
+    fraudes_bloqueadas: number | null;
+    bloqueadas: number | null;
+    fraudes_nao_bloqueadas: number | null;
+  };
+  pr_auc: number | null;
+  roc_auc: number | null;
+}
+
+export type ConsolidadoMatriz = Omit<
+  RespostaMetricasFilial,
+  "filial" | "periodo" | "fraudes_aprovadas" | "bloqueios_por_auditor"
+> & {
+  fraudes_aprovadas: {
+    total: number;
+    itens: (RespostaMetricasFilial["fraudes_aprovadas"]["itens"][number] & {
+      filial: string;
+    })[];
+  };
+  bloqueios_por_auditor: (BloqueiosDoAuditor & { filial: string })[];
+};
+
+export interface RespostaMetricasMatriz {
+  periodo: string;
+  consolidado: ConsolidadoMatriz;
+  por_filial: RespostaMetricasFilial[];
+  modelo: ModeloNaBaseDeTeste | null;
 }

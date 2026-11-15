@@ -389,11 +389,13 @@ export const ROTULOS_PAPEL: Record<string, string> = {
   associado: "Associado",
   auditor: "Auditor",
   gerente: "Gerente",
+  matriz: "Diretoria",
 };
 export const GRUPOS_PAPEL: Record<string, string> = {
   associado: "Associados",
   auditor: "Auditores da filial",
   gerente: "Gerentes da filial",
+  matriz: "Matriz",
 };
 export const SAIR = "Sair";
 export const NAV_INICIO = "Início";
@@ -704,3 +706,35 @@ export const ERRO_CHAT =
   "Não consegui responder agora. Tente de novo em instantes.";
 export const VOCE = "Você";
 export const ASSISTENTE = "Assistente";
+
+// --- Seção 17.8: painel da matriz ---
+export const NAV_PAINEL_MATRIZ = "Painel da matriz";
+export const TITULO_PAINEL_MATRIZ = "Painel da matriz";
+export const LEGENDA_PAINEL_MATRIZ = (periodo: string, compras: string, agencias: number) =>
+  `${periodo} · ${compras} compras em ${agencias} agências.`;
+export const TITULO_MODELO_BASE = "O modelo em toda a base de teste";
+export const LEGENDA_MODELO_BASE = (transacoes: string) =>
+  `${transacoes} compras de março, que o modelo não viu no treino. Janeiro e fevereiro ficam de fora porque foram usados para treinar o modelo.`;
+export const FRAUDES_BLOQUEADAS_SENTINELA = "Fraudes bloqueadas pelo Sentinela";
+export const FRAUDES_BLOQUEADAS_ATUAL = "Fraudes bloqueadas pelo sistema atual";
+export const LEGITIMAS_BLOQUEADAS = "Compras legítimas bloqueadas";
+export const PEDIDOS_CONFIRMACAO = "Pedidos de confirmação";
+export const DE_N = (parte: string, total: string) => `${parte} de ${total}`;
+export const FRAUDES_QUE_PASSARAM = (n: string) => `${n} fraudes passaram`;
+export const SEPARACAO_MODELO = (pr: string, roc: string) => `PR-AUC ${pr} · ROC-AUC ${roc}`;
+export const TITULO_COMPARACAO_AGENCIAS = "Comparação entre agências";
+export const ROTULO_TABELA_AGENCIAS = "Indicadores de cada agência e o total da cooperativa";
+export const COLUNAS_AGENCIAS = {
+  agencia: "Agência",
+  compras: "Compras",
+  aprovadas: "Aprovadas",
+  confirmacoes: "Confirmações",
+  bloqueadas: "Bloqueadas",
+  protegido: "Valor protegido",
+  acerto: "Acerto do modelo",
+  fraudesAprovadas: "Fraudes aprovadas",
+  tempo: "Resposta do associado",
+};
+export const TOTAL_COOPERATIVA = "Total da cooperativa";
+export const TITULO_CONSOLIDADO = "Todas as agências";
+export const COLUNA_AGENCIA = "Agência";

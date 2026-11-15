@@ -15,6 +15,7 @@ import type {
   RespostaFilaFilial,
   RespostaInicio,
   RespostaMetricasFilial,
+  RespostaMetricasMatriz,
   RespostaPerfis,
   RespostaChat,
   RespostaChatGerente,
@@ -24,15 +25,52 @@ import { mocks } from "@/lib/mocks/index";
 
 const CENTRO = { id_filial: "fil-centro", nome: "Agência Centro" };
 const NORTE = { id_filial: "fil-norte", nome: "Agência Norte" };
+const MATRIZ = { id_filial: "matriz", nome: "Matriz Sicredi" };
 
 const perfis: RespostaPerfis = {
   perfis: [
-    { id_perfil: "asc-01", nome: "Ana Souza", papel: "associado", filial: CENTRO },
-    { id_perfil: "asc-02", nome: "Carlos Lima", papel: "associado", filial: NORTE },
-    { id_perfil: "aud-01", nome: "Rafael Moura", papel: "auditor", filial: CENTRO },
-    { id_perfil: "aud-03", nome: "Tiago Nunes", papel: "auditor", filial: NORTE },
-    { id_perfil: "ger-01", nome: "Helena Castro", papel: "gerente", filial: CENTRO },
-    { id_perfil: "ger-02", nome: "Marcos Viana", papel: "gerente", filial: NORTE },
+    {
+      id_perfil: "asc-01",
+      nome: "Ana Souza",
+      papel: "associado",
+      filial: CENTRO,
+    },
+    {
+      id_perfil: "asc-02",
+      nome: "Carlos Lima",
+      papel: "associado",
+      filial: NORTE,
+    },
+    {
+      id_perfil: "aud-01",
+      nome: "Rafael Moura",
+      papel: "auditor",
+      filial: CENTRO,
+    },
+    {
+      id_perfil: "aud-03",
+      nome: "Tiago Nunes",
+      papel: "auditor",
+      filial: NORTE,
+    },
+    {
+      id_perfil: "ger-01",
+      nome: "Helena Castro",
+      papel: "gerente",
+      filial: CENTRO,
+    },
+    {
+      id_perfil: "ger-02",
+      nome: "Marcos Viana",
+      papel: "gerente",
+      filial: NORTE,
+    },
+    {
+      id_perfil: "mat-01",
+      nome: "Sofia Andrade",
+      papel: "matriz",
+      filial: MATRIZ,
+    },
   ],
 };
 
@@ -117,7 +155,10 @@ const extratoItens: CompraExtrato[] = [
   },
 ];
 
-const extrato: RespostaExtrato = { total: extratoItens.length, itens: extratoItens };
+const extrato: RespostaExtrato = {
+  total: extratoItens.length,
+  itens: extratoItens,
+};
 
 const inicio: RespostaInicio = {
   associado: { nome: "Ana Souza", filial: "Agência Centro" },
@@ -144,7 +185,8 @@ const compraBloqueada: DetalheCompra = {
   bloqueio: {
     por: "Sentinela",
     em: "2025-03-13T02:47:00",
-    motivo: "A compra fugiu do seu padrão de uso e foi bloqueada por segurança.",
+    motivo:
+      "A compra fugiu do seu padrão de uso e foi bloqueada por segurança.",
   },
   resposta_associado: { resposta: "nao", em: "2025-03-13T07:20:00" },
   pode_contestar: false,
@@ -345,7 +387,12 @@ const metricasFilial: RespostaMetricasFilial = {
   },
   tempo_resposta_mediano_s: 240.0,
   bloqueios_por_auditor: [
-    { auditor: "Rafael Moura", bloqueios: 14, corretos: 12, liberados_depois: 2 },
+    {
+      auditor: "Rafael Moura",
+      bloqueios: 14,
+      corretos: 12,
+      liberados_depois: 2,
+    },
     { auditor: "Júlia Prates", bloqueios: 9, corretos: 9, liberados_depois: 0 },
   ],
 };
@@ -375,6 +422,93 @@ const resumoGerente: RespostaChatGerente = {
     "Olá, Ana! Sou a Helena, gerente da Agência Centro. Vi que você conversou com o assistente sobre os gastos de março e a compra bloqueada em Eletrônicos Web. Como posso ajudar?",
 };
 
+/** GET /api/matriz/metricas: a Agência Norte espelha a Centro com outros números. */
+const metricasNorte: RespostaMetricasFilial = {
+  ...metricasFilial,
+  filial: NORTE,
+  totais: {
+    compras: 6804,
+    aprovadas: 6697,
+    confirmacoes: 80,
+    bloqueadas: 27,
+    valor_protegido: 10242.6,
+  },
+  acerto_modelo: {
+    alertas_certos: 48,
+    alertas_desnecessarios: 12,
+    sem_resposta: 47,
+    taxa: 80.0,
+  },
+  fraudes_aprovadas: { total: 0, itens: [] },
+  tempo_resposta_mediano_s: 420.0,
+  bloqueios_por_auditor: [
+    { auditor: "Tiago Nunes", bloqueios: 5, corretos: 4, liberados_depois: 1 },
+    { auditor: "Paula Reis", bloqueios: 0, corretos: 0, liberados_depois: 0 },
+  ],
+};
+
+const metricasMatriz: RespostaMetricasMatriz = {
+  periodo: "2025-03",
+  consolidado: {
+    totais: {
+      compras: 13608,
+      aprovadas: 13395,
+      confirmacoes: 159,
+      bloqueadas: 54,
+      valor_protegido: 13490.7,
+    },
+    por_tipo: metricasFilial.por_tipo.map((linha) => ({
+      ...linha,
+      aprovadas: linha.aprovadas * 2,
+      confirmacoes: linha.confirmacoes * 2,
+      bloqueadas: linha.bloqueadas * 2,
+    })),
+    acerto_modelo: {
+      alertas_certos: 109,
+      alertas_desnecessarios: 21,
+      sem_resposta: 83,
+      taxa: 83.8,
+    },
+    fraudes_aprovadas: {
+      total: 2,
+      itens: metricasFilial.fraudes_aprovadas.itens.map((item) => ({
+        ...item,
+        filial: CENTRO.nome,
+      })),
+    },
+    tempo_resposta_mediano_s: 300.0,
+    bloqueios_por_auditor: [
+      ...(metricasFilial.bloqueios_por_auditor ?? []).map((b) => ({
+        ...b,
+        filial: CENTRO.nome,
+      })),
+      ...(metricasNorte.bloqueios_por_auditor ?? []).map((b) => ({
+        ...b,
+        filial: NORTE.nome,
+      })),
+    ],
+  },
+  por_filial: [metricasFilial, metricasNorte],
+  modelo: {
+    periodo: "2025-03",
+    transacoes: 13608,
+    fraudes: 54,
+    sentinela: {
+      fraudes_bloqueadas: 54,
+      bloqueadas: 54,
+      confirmacoes: 159,
+      fraudes_aprovadas: 0,
+    },
+    sistema_atual: {
+      fraudes_bloqueadas: 26,
+      bloqueadas: 26,
+      fraudes_nao_bloqueadas: 28,
+    },
+    pr_auc: 1.0,
+    roc_auc: 1.0,
+  },
+};
+
 export const mocksRefatoracao = {
   perfis,
   sessaoDe,
@@ -390,4 +524,5 @@ export const mocksRefatoracao = {
   compraBloqueadaPeloAuditor,
   respostaChat,
   resumoGerente,
+  metricasMatriz,
 };

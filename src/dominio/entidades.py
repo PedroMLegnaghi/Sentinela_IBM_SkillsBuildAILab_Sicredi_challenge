@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-PAPEIS = ("associado", "auditor", "gerente")
+PAPEIS = ("associado", "auditor", "gerente", "matriz")
 TIPOS_CARTAO = ("debito", "credito")
 SITUACOES = ("APROVADA", "AGUARDANDO", "BLOQUEADA", "CONTESTADA")
 RESPOSTAS_ASSOCIADO = ("sim", "nao")
@@ -40,13 +40,13 @@ class Perfil:
 
 @dataclass(frozen=True)
 class Funcionario(Perfil):
-    """Auditor ou gerente de uma filial."""
+    """Auditor ou gerente de uma filial, ou diretor da matriz (papel "matriz")."""
 
     def __post_init__(self) -> None:
         """Garante que o papel é auditor ou gerente."""
         super().__post_init__()
         if self.papel == "associado":
-            raise ValueError("Funcionário é auditor ou gerente, nunca associado.")
+            raise ValueError("Funcionário é auditor, gerente ou matriz, nunca associado.")
 
 
 @dataclass

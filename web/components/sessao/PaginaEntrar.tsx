@@ -21,7 +21,7 @@ import {
   ROTULOS_PAPEL,
 } from "@/lib/textos";
 
-const ORDEM_PAPEIS: Papel[] = ["associado", "auditor", "gerente"];
+const ORDEM_PAPEIS: Papel[] = ["associado", "auditor", "gerente", "matriz"];
 
 export default function PaginaEntrar() {
   const router = useRouter();

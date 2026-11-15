@@ -72,15 +72,18 @@ export default function ComparacaoSistemas({
       </h2>
       <ul className="sentinela-barras">
         {barras.map((barra) => (
-          <li key={barra.rotulo}>
-            <span>{barra.rotulo}</span>
+          <li
+            key={barra.rotulo}
+            aria-label={`${barra.rotulo}: ${DE_TOTAL(formatarInteiro(barra.valor), formatarInteiro(total))}`}
+          >
+            <span aria-hidden="true">{barra.rotulo}</span>
             <span className="sentinela-barras-trilho" aria-hidden="true">
               <span
                 className={barra.classe}
                 style={{ width: `${(barra.valor / total) * 100}%` }}
               />
             </span>
-            <strong>
+            <strong aria-hidden="true">
               {DE_TOTAL(formatarInteiro(barra.valor), formatarInteiro(total))}
             </strong>
           </li>

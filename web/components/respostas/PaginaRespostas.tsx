@@ -91,6 +91,7 @@ export default function PaginaRespostas() {
           <Button kind="tertiary" onClick={() => exportar(dados.itens)}>
             {BOTAO_EXPORTAR}
           </Button>
+          <div className="sentinela-tabela-rolagem">
           <table className="cds--data-table cds--data-table--sm">
             <thead>
               <tr>
@@ -113,6 +114,7 @@ export default function PaginaRespostas() {
               ))}
             </tbody>
           </table>
+          </div>
         </>
       )}
     </div>

@@ -162,7 +162,6 @@ data/               dados sintéticos da Sicredi (CSV comprimido, dicionário, p
 | [docs/analise-exploratoria.md](docs/analise-exploratoria.md) | O que os dados mostram |
 | [docs/avaliacao.md](docs/avaliacao.md) | Janelas temporais, bootstrap, comparação, ablação, calibração e custo |
 | [docs/privacidade.md](docs/privacidade.md) | O que o Sentinela lê, o que vai para a IA e as regras contra golpe |
-| [docs/uso-do-bob.md](docs/uso-do-bob.md) | Como o time usou o IBM Bob, com números do GitHub |
 | [docs/backlog.md](docs/backlog.md) | Issues, donos e critérios de aceite |
 
 ## Como usamos o IBM Bob
@@ -170,5 +169,4 @@ data/               dados sintéticos da Sicredi (CSV comprimido, dicionário, p
 O time trabalha com o Bob a partir de Issues com escopo fechado. O `AGENTS.md` define o protocolo
 (branch, arquivos permitidos, portão de qualidade, quando parar); a `ESPECIFICACAO.md` fixa o
 contrato e os números; os testes de conformidade, escritos pelo líder, dizem quando uma Issue
-está pronta, e o Bob não pode alterá-los. O relato completo, com o que a régua pegou e os números
-do processo, está em [docs/uso-do-bob.md](docs/uso-do-bob.md).
+está pronta, e o Bob não pode alterá-los.

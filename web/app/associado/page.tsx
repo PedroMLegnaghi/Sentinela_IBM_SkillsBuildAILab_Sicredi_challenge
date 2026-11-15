@@ -15,18 +15,9 @@ export default function PaginaAssociado() {
   return (
     <div className="sentinela-pagina">
       <Heading>{TITULO_APP_ASSOCIADO}</Heading>
-      {/* Moldura de celular */}
+      {/* Moldura de celular — desaparece abaixo de 480 px (classe CSS) */}
       <div
-        style={{
-          maxWidth: "390px",
-          margin: "24px auto 0",
-          border: "12px solid #161616",
-          borderRadius: "36px",
-          padding: "24px 16px",
-          backgroundColor: "#f4f4f4",
-          minHeight: "600px",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.18)",
-        }}
+        className="sentinela-moldura-celular"
         aria-label="Simulação de celular do associado"
       >
         {/* Barra de status simulada */}

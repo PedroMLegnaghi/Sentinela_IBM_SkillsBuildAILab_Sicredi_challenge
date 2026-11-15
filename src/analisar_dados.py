@@ -90,6 +90,18 @@ _DEFINICOES_SINAIS = [
 ]
 
 
+def _br(numero: float, casas: int = 0) -> str:
+    """Número no formato brasileiro ("13.658", "0,38")."""
+    texto = f"{numero:,.{casas}f}"
+    return texto.replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _br_auto(numero: float) -> str:
+    """Número com até 2 casas, sem zeros sobrando ("190,35", "2", "41")."""
+    texto = _br(numero, 2)
+    return texto.rstrip("0").rstrip(",") if "," in texto else texto
+
+
 def _stats_serie(serie: pd.Series) -> dict:
     """Calcula mediana, percentil 10 e percentil 90 de uma série numérica.
 
@@ -297,9 +309,9 @@ def _doc_secao_variaveis(eda: dict, linhas: list[str]) -> None:
         fr = v["fraudes"]
         le = v["legitimas"]
         linhas.append(
-            f"| {v['variavel']} | {v['pct_vazios']:.1f}% "
-            f"| {fr['mediana']} | {fr['p10']} | {fr['p90']} "
-            f"| {le['mediana']} | {le['p10']} | {le['p90']} |"
+            f"| {v['variavel']} | {_br(v['pct_vazios'], 1)}% "
+            f"| {_br_auto(fr['mediana'])} | {_br_auto(fr['p10'])} | {_br_auto(fr['p90'])} "
+            f"| {_br_auto(le['mediana'])} | {_br_auto(le['p10'])} | {_br_auto(le['p90'])} |"
         )
     linhas += [
         "",
@@ -327,8 +339,8 @@ def _doc_secao_sinais(eda: dict, linhas: list[str]) -> None:
     ]
     for s in eda["sinais"]:
         linhas.append(
-            f"| {s['sinal']} | {s['pct_fraudes_com_sinal']:.1f}% "
-            f"| {s['pct_legitimas_com_sinal']:.1f}% |"
+            f"| {s['sinal']} | {_br(s['pct_fraudes_com_sinal'], 1)}% "
+            f"| {_br(s['pct_legitimas_com_sinal'], 1)}% |"
         )
     linhas += [
         "",
@@ -359,9 +371,9 @@ def _gerar_documento(eda: dict) -> str:
         "",
         "## Visão geral",
         "",
-        f"A base contém **{eda['total_linhas']:,} transações** com "
+        f"A base contém **{_br(eda['total_linhas'])} transações** com "
         f"**{eda['total_fraudes']} fraudes** "
-        f"({eda['percentual_fraude']:.2f}% de taxa de fraude). "
+        f"({_br(eda['percentual_fraude'], 2)}% de taxa de fraude). "
         "O rótulo utilizado é `feedback_label` (coluna `fraude` no parquet); "
         "a coluna `fraud` foi descartada por conter erros sistemáticos.",
         "",
@@ -372,7 +384,8 @@ def _gerar_documento(eda: dict) -> str:
     ]
     for r in eda["por_mes"]:
         linhas.append(
-            f"| {r['mes']} | {r['linhas']:,} | {r['fraudes']} | {r['percentual_fraude']:.2f}% |"
+            f"| {r['mes']} | {_br(r['linhas'])} | {r['fraudes']} "
+            f"| {_br(r['percentual_fraude'], 2)}% |"
         )
     linhas += [
         "",
@@ -388,8 +401,8 @@ def _gerar_documento(eda: dict) -> str:
     ]
     for r in eda["por_tipo"]:
         linhas.append(
-            f"| {r['tipo_transacao']} | {r['linhas']:,} | "
-            f"{r['fraudes']} | {r['percentual_fraude']:.2f}% |"
+            f"| {r['tipo_transacao']} | {_br(r['linhas'])} | "
+            f"{r['fraudes']} | {_br(r['percentual_fraude'], 2)}% |"
         )
     linhas += [
         "",
@@ -405,8 +418,8 @@ def _gerar_documento(eda: dict) -> str:
     ]
     for r in eda["por_modalidade"]:
         linhas.append(
-            f"| {r['modalidade_transacao']} | {r['linhas']:,} | "
-            f"{r['fraudes']} | {r['percentual_fraude']:.2f}% |"
+            f"| {r['modalidade_transacao']} | {_br(r['linhas'])} | "
+            f"{r['fraudes']} | {_br(r['percentual_fraude'], 2)}% |"
         )
     linhas += [
         "",
@@ -424,7 +437,7 @@ def _gerar_documento(eda: dict) -> str:
         "| --- | --- | --- |",
     ]
     for r in eda["por_hora"]:
-        linhas.append(f"| {r['hora']:02d}h | {r['fraudes']} | {r['legitimas']:,} |")
+        linhas.append(f"| {r['hora']:02d}h | {r['fraudes']} | {_br(r['legitimas'])} |")
     linhas += [
         "",
         "Fraudes se concentram na madrugada (0h–4h), confirmando o sinal `madrugada`. "

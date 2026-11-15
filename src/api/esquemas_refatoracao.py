@@ -229,3 +229,60 @@ class DetalheFilialSchema(BaseModel):
     associado: AssociadoNaFilialSchema
     resposta_associado: RespostaAssociadoSchema | None
     bloqueio: BloqueioSchema | None
+
+
+class TotaisSchema(BaseModel):
+    """Totais do painel do gerente."""
+
+    compras: int
+    aprovadas: int
+    confirmacoes: int
+    bloqueadas: int
+    valor_protegido: float
+
+
+class PorTipoSchema(BaseModel):
+    """Contagens por tipo e modalidade."""
+
+    tipo_transacao: str
+    modalidade_transacao: str
+    aprovadas: int
+    confirmacoes: int
+    bloqueadas: int
+
+
+class AcertoModeloSchema(BaseModel):
+    """Acerto do modelo pelas respostas aos avisos."""
+
+    alertas_certos: int
+    alertas_desnecessarios: int
+    sem_resposta: int
+    taxa: float | None
+
+
+class FraudeAprovadaSchema(BaseModel):
+    """Compra contestada (fraude que o modelo aprovou)."""
+
+    associado: str
+    final_cartao: str
+    data_hora: str | None
+    valor: float | None
+
+
+class FraudesAprovadasSchema(BaseModel):
+    """Lista das contestações da carteira."""
+
+    total: int
+    itens: list[FraudeAprovadaSchema]
+
+
+class MetricasFilialSchema(BaseModel):
+    """Saída de ``GET /api/filial/metricas``."""
+
+    filial: FilialSchema
+    periodo: str
+    totais: TotaisSchema
+    por_tipo: list[PorTipoSchema]
+    acerto_modelo: AcertoModeloSchema
+    fraudes_aprovadas: FraudesAprovadasSchema
+    tempo_resposta_mediano_s: float | None

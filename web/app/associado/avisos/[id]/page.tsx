@@ -4,6 +4,9 @@
 
 import ConfirmarCompra from "@/components/associado/ConfirmarCompra";
 
+// A página depende da sessão no navegador (Issue #91): fora da validação de navegação instantânea.
+export const instant = false;
+
 export const metadata = { title: "Confirme esta compra · Sicredi" };
 
 export default async function Pagina({

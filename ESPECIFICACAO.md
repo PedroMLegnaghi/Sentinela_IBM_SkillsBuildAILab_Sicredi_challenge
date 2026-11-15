@@ -787,6 +787,7 @@ Sicredi"}`; a matriz não tem carteira própria.
 - `modelo` mostra o desempenho do modelo em toda a base de teste (março, que o modelo não viu no
   treino), lido de `modelos/avaliacao_agente.json` e `modelos/metricas.json`: `periodo`,
   `transacoes`, `fraudes`, `sentinela` (`fraudes_bloqueadas`, `bloqueadas`, `confirmacoes`,
-  `fraudes_aprovadas`), `sistema_atual` (`fraudes_bloqueadas`, `bloqueadas`,
-  `fraudes_nao_bloqueadas`), `pr_auc` e `roc_auc`; `null` sem os arquivos. Janeiro e fevereiro
-  ficam de fora de propósito: foram usados no treino e inflariam os números.
+  `fraudes_aprovadas`), `treino` (`linhas` e `fraudes` de janeiro e fevereiro), `pr_auc` e
+  `roc_auc`; `null` sem os arquivos. Janeiro e fevereiro ficam de fora da avaliação porque foram
+  usados no treino. O painel não compara com a coluna `decision` da base: o dicionário da
+  Sicredi não a documenta como a decisão de um sistema real, e ela nunca recusa compra legítima.

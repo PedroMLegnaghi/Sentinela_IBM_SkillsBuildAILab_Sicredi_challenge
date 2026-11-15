@@ -13,17 +13,21 @@ e o gerente acompanha os números da carteira.
 
 O modelo foi treinado só com janeiro e fevereiro e testado em março.
 
-| Indicador | Sentinela | Sistema atual |
-| --- | --- | --- |
-| Fraudes bloqueadas | **54 de 54** | 26 de 54 |
-| Compras legítimas bloqueadas | **0** | — |
-| Pedidos de confirmação | 159 (1,2%) | — |
-| Valor das fraudes que passaram | **R$ 0,00** | R$ 6.654,16 |
-| Prejuízo evitado contra o sistema atual | **R$ 6.495,16** (já descontado R$ 1,00 por confirmação) | — |
-| Tempo de decisão | cerca de 1,5 ms | — |
+| Indicador | Sentinela |
+| --- | --- |
+| Fraudes bloqueadas | **54 de 54** |
+| Compras legítimas bloqueadas | **0** |
+| Pedidos de confirmação | 159 (1,2% das compras) |
+| Valor das compras fraudulentas barradas | R$ 13.490,70 |
+| Tempo de decisão | cerca de 1,5 ms |
 
-Os dados são 100% sintéticos e muito separáveis; com dados reais, os números seriam menores e o
-modelo precisaria de monitoramento e retreino.
+**Limites.** O modelo treinou com só 92 fraudes (janeiro e fevereiro). A base é 100% sintética e
+muito separável: o modelo acerta tudo em março por isso, não por ser excepcional. Com dados
+reais, os números seriam menores, e o modelo precisaria de monitoramento e retreino. A base
+recebida também difere da descrita nas orientações: tem 160.000 linhas e 146 fraudes (o texto
+fala em 900.000 e 900), e todas as fraudes estão entre janeiro e março. A coluna `decision` não
+é usada como comparação: o dicionário não a documenta como a decisão de um sistema real, e ela
+nunca recusa uma compra legítima.
 
 ### O que os dados mostram ([docs/analise-exploratoria.md](docs/analise-exploratoria.md))
 

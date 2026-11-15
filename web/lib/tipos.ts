@@ -526,11 +526,7 @@ export interface ModeloNaBaseDeTeste {
     confirmacoes: number | null;
     fraudes_aprovadas: number | null;
   };
-  sistema_atual: {
-    fraudes_bloqueadas: number | null;
-    bloqueadas: number | null;
-    fraudes_nao_bloqueadas: number | null;
-  };
+  treino: { linhas: number | null; fraudes: number | null };
   pr_auc: number | null;
   roc_auc: number | null;
 }

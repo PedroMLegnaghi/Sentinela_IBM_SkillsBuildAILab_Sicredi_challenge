@@ -29,9 +29,8 @@ import {
   CARREGANDO,
   COLUNAS_AGENCIAS,
   DE_N,
-  FRAUDES_BLOQUEADAS_ATUAL,
   FRAUDES_BLOQUEADAS_SENTINELA,
-  FRAUDES_QUE_PASSARAM,
+  FRAUDES_NO_TREINO,
   LEGENDA_MODELO_BASE,
   LEGENDA_PAINEL_MATRIZ,
   LEGITIMAS_BLOQUEADAS,
@@ -44,6 +43,7 @@ import {
   TITULO_MODELO_BASE,
   TITULO_PAINEL_MATRIZ,
   TOTAL_COOPERATIVA,
+  TREINO_DETALHE,
 } from "@/lib/textos";
 
 const n = (valor: number | null | undefined) =>
@@ -95,20 +95,6 @@ function ModeloNaBase({ m }: { m: RespostaMetricasMatriz }) {
               : ""}
           </small>
         </div>
-        <div className="sc-kpi sc-kpi--bloqueio">
-          <div className="sc-rotulo">{FRAUDES_BLOQUEADAS_ATUAL}</div>
-          <b className="sc-num">
-            {DE_N(
-              n(modelo.sistema_atual.fraudes_bloqueadas),
-              n(modelo.fraudes),
-            )}
-          </b>
-          <small>
-            {FRAUDES_QUE_PASSARAM(
-              n(modelo.sistema_atual.fraudes_nao_bloqueadas),
-            )}
-          </small>
-        </div>
         <div className="sc-kpi">
           <div className="sc-rotulo">{LEGITIMAS_BLOQUEADAS}</div>
           <b className="sc-num">{n(legitimasBloqueadas)}</b>
@@ -116,6 +102,11 @@ function ModeloNaBase({ m }: { m: RespostaMetricasMatriz }) {
         <div className="sc-kpi sc-kpi--espera">
           <div className="sc-rotulo">{PEDIDOS_CONFIRMACAO}</div>
           <b className="sc-num">{n(modelo.sentinela.confirmacoes)}</b>
+        </div>
+        <div className="sc-kpi">
+          <div className="sc-rotulo">{FRAUDES_NO_TREINO}</div>
+          <b className="sc-num">{n(modelo.treino.fraudes)}</b>
+          <small>{TREINO_DETALHE(n(modelo.treino.linhas))}</small>
         </div>
       </div>
     </section>

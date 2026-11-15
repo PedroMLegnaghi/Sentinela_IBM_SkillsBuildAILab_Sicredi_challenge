@@ -1,7 +1,7 @@
 """Painel da matriz (ESPECIFICACAO, seção 17.8).
 
 Junta o painel de cada filial (seção 17.4) num consolidado da cooperativa e acrescenta o
-desempenho do modelo em toda a base de teste (março), com a comparação com o sistema atual.
+desempenho do modelo em toda a base de teste (março) e quantas fraudes ele viu no treino.
 """
 
 from __future__ import annotations
@@ -38,11 +38,15 @@ def _com_filial(painel: dict[str, Any], itens: list[dict[str, Any]]) -> list[dic
 
 
 def _modelo(avaliacao: Mapping[str, Any] | None, metricas: Mapping[str, Any] | None):
-    """Desempenho do modelo em toda a base de teste e a comparação com o sistema atual."""
+    """Desempenho do modelo em toda a base de teste e o tamanho do treino.
+
+    A coluna ``decision`` da base não é documentada pela Sicredi como a decisão de um sistema
+    real (e nunca recusa compra legítima), por isso o painel não compara com ela.
+    """
     if not avaliacao:
         return None
     sentinela = avaliacao.get("sentinela", {})
-    atual = avaliacao.get("sistema_atual", {})
+    treino = (metricas or {}).get("treino", {})
     return {
         "periodo": avaliacao.get("periodo"),
         "transacoes": avaliacao.get("transacoes"),
@@ -53,11 +57,7 @@ def _modelo(avaliacao: Mapping[str, Any] | None, metricas: Mapping[str, Any] | N
             "confirmacoes": sentinela.get("confirmacoes"),
             "fraudes_aprovadas": sentinela.get("fraudes_aprovadas"),
         },
-        "sistema_atual": {
-            "fraudes_bloqueadas": atual.get("fraudes_bloqueadas"),
-            "bloqueadas": atual.get("bloqueadas"),
-            "fraudes_nao_bloqueadas": atual.get("fraudes_nao_bloqueadas"),
-        },
+        "treino": {"linhas": treino.get("linhas"), "fraudes": treino.get("fraudes")},
         "pr_auc": (metricas or {}).get("pr_auc"),
         "roc_auc": (metricas or {}).get("roc_auc"),
     }

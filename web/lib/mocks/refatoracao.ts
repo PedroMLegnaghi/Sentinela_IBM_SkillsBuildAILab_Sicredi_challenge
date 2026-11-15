@@ -499,11 +499,7 @@ const metricasMatriz: RespostaMetricasMatriz = {
       confirmacoes: 159,
       fraudes_aprovadas: 0,
     },
-    sistema_atual: {
-      fraudes_bloqueadas: 26,
-      bloqueadas: 26,
-      fraudes_nao_bloqueadas: 28,
-    },
+    treino: { linhas: 25923, fraudes: 92 },
     pr_auc: 1.0,
     roc_auc: 1.0,
   },

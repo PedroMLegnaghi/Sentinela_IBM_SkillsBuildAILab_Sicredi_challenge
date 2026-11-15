@@ -380,7 +380,7 @@ analista. Guardado em memória, como as auditorias; reiniciar a API apaga as not
 ## Contexto
 `data/` ficava fora do Git, e cada pessoa recebia o CSV da Sicredi por fora. Trocar de máquina
 dependia de cópia manual, e o CI pulava todos os testes com dados. Os dados são sintéticos e o
-repositório é privado.
+repositório era privado (tornou-se público em 15/11, na entrega).
 
 ## Decisão
 Versionar em `data/` o CSV comprimido (`.csv.gz`, 61 MB, idêntico ao CSV), o dicionário de dados,
@@ -394,3 +394,31 @@ as orientações do case e `transacoes_preparadas.parquet`. O CSV bruto (281 MB)
 ## Consequências
 O CI roda a conformidade completa. O `.bobignore` continua bloqueando `data/` para as ferramentas
 de arquivo do Bob. Se o repositório ficar público, os dados ficam públicos.
+
+---
+
+# ADR-017 — Áreas do associado, da filial e da matriz, com portas e adaptadores
+
+**Status:** Aceito · **Data:** 2026-11-15
+
+## Contexto
+O site tinha uma única visão, a do analista. O desafio pede foco no associado e na intervenção, e
+a operação real tem papéis diferentes: o associado que compra, o auditor e o gerente da agência e
+a matriz. A base não tem nomes, saldos nem agências.
+
+## Decisão
+O site passa a ter três áreas com login simulado (associado, filial e matriz), cada uma vendo só
+o que pode (ESPECIFICACAO, seção 17). As regras novas ficam em `src/dominio/` e `src/aplicacao/` e
+dependem só de interfaces em `src/portas/`; o armazenamento é um adaptador em memória escolhido em
+`src/composicao.py`. Nomes, saldos e agências são fictícios, ligados a clientes reais de março. As
+respostas e as contestações viram rótulos guardados para retreino.
+
+## Alternativas rejeitadas
+- **Manter só a visão do analista:** não mostra o associado no centro nem a gestão.
+- **Banco de dados já na entrega:** mais tempo e infraestrutura; a porta permite trocar depois
+  (Issue #107, Postgres).
+
+## Consequências
+O ciclo completo fica visível: compra → decisão → aviso → resposta → fila da agência → métricas
+do gerente e da matriz → rótulo para retreino. Reiniciar a API apaga o estado em memória, menos os
+rótulos, que vão para arquivo.

@@ -53,7 +53,27 @@ Quando a IA audita uma compra, ela recebe apenas:
 
 Nenhuma ferramenta devolve o rótulo de fraude nem a coluna `decision`.
 
+O Granite também é usado em mais dois pontos, sempre sem identificadores:
+
+- **Mensagem ao associado:** recebe só o valor, a data, a hora, o tipo do cartão e a situação
+  (pedir confirmação ou bloqueio).
+- **Chat do associado:** recebe os totais de gastos e as compras do próprio associado (valor,
+  data, estabelecimento fictício e situação), com o motivo genérico nas bloqueadas; nunca os
+  sinais, a nota ou o parecer da IA. A IA só informa: não libera nem bloqueia nada.
+
 Nenhum identificador de cartão, cliente ou estabelecimento é enviado ao watsonx.ai.
+
+## O que cada perfil vê (ESPECIFICACAO, seção 17)
+
+| Perfil | Vê | Não vê |
+| --- | --- | --- |
+| Associado | Saldo, cartões, extrato e as próprias compras, com um motivo genérico nas bloqueadas e "Analista da agência" quando um auditor bloqueou | Sinais, nota, contribuições, parecer da IA e o nome do auditor |
+| Auditor | A fila da própria agência, com nome abreviado ("Ana S."), final do cartão, o detalhe técnico, o parecer da IA, a resposta do associado e o histórico agregado | Saldo, limite, extrato e nome completo do associado; compras de outras agências |
+| Gerente | O mesmo que o auditor, mais as métricas da agência | Compras de outras agências |
+| Matriz | Os números de todas as agências e o modelo na base de teste | A fila e o detalhe das compras |
+
+Os rótulos guardados para retreino (`data/rotulos_retreino.csv`, fora do Git) também não têm
+nome nem identificador da base.
 
 ## Regras contra golpe na mensagem ao associado
 

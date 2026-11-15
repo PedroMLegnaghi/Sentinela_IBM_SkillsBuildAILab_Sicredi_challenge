@@ -15,10 +15,10 @@ Duas janelas foram avaliadas para verificar estabilidade das métricas ao longo 
 | jan→fev | 13.658 / 52 | 12.265 / 40 | 1,0000 | 1,0000 | 40 | 40 | 1,0 | 1,0 |
 | jan+fev→mar | 25.923 / 92 | 13.608 / 54 | 1,0000 | 1,0000 | 54 | 54 | 1,0 | 1,0 |
 
-> Os dados sintéticos do desafio têm separabilidade quase perfeita entre fraudes e compras
-> legítimas. PR-AUC = 1,0 e ROC-AUC = 1,0 nas duas janelas confirmam que o modelo generaliza
-> perfeitamente para o mês seguinte — o que é esperado para dados gerados artificialmente com
-> padrões bem definidos.
+> PR-AUC = 1,0 e ROC-AUC = 1,0 nas duas janelas mostram que o modelo acerta o mês seguinte
+> nesta base. Isso diz mais sobre os dados do que sobre o modelo: a base sintética separa
+> fraudes e compras legítimas quase perfeitamente, e o treino teve poucas fraudes (52 e 92).
+> Com dados reais, os números seriam menores.
 
 ---
 
@@ -33,16 +33,15 @@ estatística das métricas principais.
 | Precisão | 1,0 – 1,0 |
 
 > O IC 95% colapsa num único ponto (1,0 – 1,0) porque em todas as 1.000 reamostras o
-> modelo detectou todas as fraudes com precisão perfeita. Isso indica que a robustez não
-> depende de uma amostra específica: em qualquer sub-amostra aleatória de março o resultado
-> é o mesmo.
+> modelo detectou todas as fraudes sem alarme falso. O resultado não depende de uma amostra
+> específica de março, mas continua limitado pela separabilidade da base sintética.
 
 ---
 
 ## 3. Comparação de baselines (março)
 
-Quatro abordagens foram comparadas no mesmo conjunto de teste para justificar o
-Sentinela completo (regras + regressão logística).
+Cinco abordagens foram comparadas no mesmo conjunto de teste. "Alertas" conta toda compra que
+não é aprovada direto (bloqueio ou pedido de confirmação).
 
 | Abordagem | Alertas | Fraudes detectadas | Recall | Precisão | PR-AUC |
 |---|---|---|---|---|---|
@@ -52,10 +51,13 @@ Sentinela completo (regras + regressão logística).
 | Sentinela completo | 213 | 54 | 1,0 | 0,2535 | — |
 | HistGradientBoosting | 54 | 54 | 1,0 | 1,0 | 1,0 |
 
-> Só regras com ≥ 4 sinais dá exatamente 57 alertas e 54 fraudes, confirmando a referência
-> medida em 12/11. O modelo sozinho (regressão logística) é suficiente para precisão e
-> recall perfeitos com 54 alertas, e é mais simples de explicar ao analista que o
-> HistGradientBoosting.
+> Só regras com ≥ 4 sinais dá 57 alertas para as 54 fraudes. O modelo sozinho (regressão
+> logística) chega a precisão e recall de 100% com 54 alertas, empatado com o
+> HistGradientBoosting, e foi o escolhido por ser explicável variável a variável. O Sentinela
+> completo tem 213 alertas porque soma ao modelo uma regra de segurança: com 3 sinais ou mais,
+> ele pede confirmação ao associado mesmo com nota baixa (159 pedidos, nenhuma fraude entre
+> eles). É um atrito pequeno (1,2% das compras), pensado para quando os dados reais não forem
+> tão separáveis quanto estes.
 
 ---
 
@@ -77,13 +79,12 @@ retiradas juntas. A queda de PR-AUC mede a importância relativa de cada coluna.
 | qtd_token_carteira_3m | 1,0 |
 | dist_terminal_anterior_km | 1,0 |
 | risco_estabelecimento | 1,0 |
-| **COLUNAS_VELOCIDADE (3 juntas)** | **0,861** |
+| **As 3 de velocidade juntas** (`vel_cartao_terminal_1h`, `qtd_transacoes_cartao_1min`, `qtd_token_carteira_3m`) | **0,861** |
 
 > Como os dados são sintéticos com boa separabilidade, remover qualquer variável
 > individualmente não derruba a PR-AUC de 1,0 — cada variável tem redundância suficiente
 > nas demais. A exceção é retirar as 3 variáveis de velocidade juntas: a PR-AUC cai para
-> 0,861, confirmando a referência medida em 12/11 (cerca de 0,86) e que essas três colunas
-> concentram o sinal mais insubstituível do conjunto de dados.
+> 0,861: essas três colunas concentram o sinal mais insubstituível da base.
 
 ---
 

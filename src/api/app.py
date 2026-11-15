@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import auditorias as auditoria_mem
 from src.api import respostas as resp_mod
-from src.api import rotas_associado, servicos, sessao
+from src.api import rotas_associado, rotas_filial, servicos, sessao
 from src.api.esquemas import (
     EntradaAnalise,
     EntradaResposta,
@@ -58,6 +58,7 @@ app.add_middleware(
 # Rotas da refatoração (ESPECIFICACAO, seção 17), em arquivos próprios
 app.include_router(sessao.router)
 app.include_router(rotas_associado.router)
+app.include_router(rotas_filial.router)
 
 
 def _auditoria_ativa() -> str:

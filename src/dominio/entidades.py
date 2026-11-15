@@ -126,6 +126,8 @@ class Compra:
     saldo_aplicado: bool = False
     id_transacao_base: int | None = field(default=None, repr=False, compare=False)
     analise: dict[str, Any] | None = field(default=None, repr=False, compare=False)
+    # As 11 variáveis que o modelo usou, guardadas na análise para os rótulos (Issue #127)
+    variaveis: dict[str, float | None] | None = field(default=None, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         """Garante uma situação conhecida."""

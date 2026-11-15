@@ -118,7 +118,7 @@ As colunas abaixo foram identificadas como proibidas (ESPECIFICACAO, seção 5) 
 | `fraud_score` | Score de fraude calculado pelo sistema externo após a decisão; vazamento direto do alvo. |
 | `visa_fraud_score` | Score de fraude da Visa; disponível apenas após a transação ser processada. |
 | `mc_fraud_score` | Score de fraude da Mastercard; disponível apenas após o processamento. |
-| `decision` | Decisão do sistema atual (approve/deny); só é carregada para comparação, nunca como entrada do modelo. |
+| `decision` | Campo sintético approve/deny, não documentado como decisão de um sistema real; todo deny é fraude (vazamento). Nunca é entrada do modelo. |
 | `transaction_status` | Status final da transação; determinado depois da decisão. |
 | `action_code` | Código de ação do sistema; resultado da decisão, não entrada. |
 | `reason_code` | Código de motivo; resultado da decisão, não entrada. |

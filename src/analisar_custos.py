@@ -1,8 +1,10 @@
 """Análise de custo-benefício da prevenção a fraudes.
 
-Calcula o valor das fraudes bloqueadas/não bloqueadas pelo Sentinela e pelo
-sistema atual, o custo dos pedidos de confirmação e a curva de custo por nota
-de corte (0 a 100, de 5 em 5).
+Calcula o valor das fraudes bloqueadas e não bloqueadas pelo Sentinela, o custo dos pedidos de
+confirmação, o valor líquido protegido e a curva de custo por nota de corte (0 a 100, de 5 em 5).
+
+Não compara com a coluna ``decision`` da base: o dicionário da Sicredi não a documenta como a
+decisão de um sistema real (e ela nunca recusa compra legítima).
 
 Uso: python -m src.analisar_custos
 """
@@ -25,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def calcular_custos(teste: pd.DataFrame, custo_confirmacao: float) -> dict:
-    """Calcula as métricas de custo para março no Sentinela e no sistema atual.
+    """Calcula as métricas de custo do Sentinela em março.
 
     Valor vazio em ``valor`` conta como 0 e o índice entra em ``valores_vazios``.
     A curva de custo varre notas de corte de 0 a 100 de 5 em 5 e usa só a nota do modelo:
@@ -34,12 +36,11 @@ def calcular_custos(teste: pd.DataFrame, custo_confirmacao: float) -> dict:
     isso, no corte 30, a curva mostra menos alertas que o total de confirmações do Sentinela.
 
     Args:
-        teste: DataFrame de março com colunas ``nota``, ``decisao``,
-               ``decisao_sistema_atual``, ``valor`` e ``fraude``.
+        teste: DataFrame de março com colunas ``nota``, ``decisao``, ``valor`` e ``fraude``.
         custo_confirmacao: Custo unitário de um pedido de confirmação, em reais.
 
     Returns:
-        Dicionário com sentinela, sistema_atual, comparacao e curva_custo.
+        Dicionário com sentinela, valor_liquido_protegido e curva_custo.
     """
     df = teste.copy()
     # Contagem de valores vazios em 'valor'
@@ -67,28 +68,8 @@ def calcular_custos(teste: pd.DataFrame, custo_confirmacao: float) -> dict:
         "valores_vazios": valores_vazios,
     }
 
-    # --- Sistema atual ---
-    deny_mask = df["decisao_sistema_atual"] == "deny"
-    fraudes_bloqueadas_atual_val = float(df.loc[deny_mask & (df["fraude"] == 1), "valor"].sum())
-    fraudes_nao_bloqueadas_atual_val = float(
-        df.loc[(~deny_mask) & (df["fraude"] == 1), "valor"].sum()
-    )
-
-    sistema_atual = {
-        "fraudes_bloqueadas": int((deny_mask & (df["fraude"] == 1)).sum()),
-        "valor_fraudes_bloqueadas": round(fraudes_bloqueadas_atual_val, 2),
-        "fraudes_nao_bloqueadas": int((~deny_mask & (df["fraude"] == 1)).sum()),
-        "valor_fraudes_nao_bloqueadas": round(fraudes_nao_bloqueadas_atual_val, 2),
-    }
-
-    # --- Comparação ---
-    prejuizo_evitado = round(
-        fraudes_bloqueadas_val - fraudes_bloqueadas_atual_val - custo_confirmacoes, 2
-    )
-    comparacao = {
-        "prejuizo_evitado_sentinela_vs_atual": prejuizo_evitado,
-        "custo_confirmacoes": custo_confirmacoes,
-    }
+    # Valor das fraudes barradas menos o custo de incomodar o associado com as confirmações
+    valor_liquido = round(fraudes_bloqueadas_val - custo_confirmacoes, 2)
 
     # --- Curva de custo por nota de corte (0 a 100, de 5 em 5) ---
     curva = []
@@ -114,8 +95,7 @@ def calcular_custos(teste: pd.DataFrame, custo_confirmacao: float) -> dict:
     return {
         "custo_confirmacao_unitario": custo_confirmacao,
         "sentinela": sentinela,
-        "sistema_atual": sistema_atual,
-        "comparacao": comparacao,
+        "valor_liquido_protegido": valor_liquido,
         "curva_custo": curva,
     }
 
@@ -141,8 +121,6 @@ def main() -> None:
     print(f"Análise de custos salva em {CAMINHO_CUSTOS}")
 
     s = resultado["sentinela"]
-    sa = resultado["sistema_atual"]
-    c = resultado["comparacao"]
     print("\n" + "=" * 60)
     print("ANÁLISE DE CUSTOS — março 2025")
     print("=" * 60)
@@ -150,11 +128,7 @@ def main() -> None:
     print(f"  Sentinela — valor bloqueado       : R$ {s['valor_fraudes_bloqueadas']:,.2f}")
     print(f"  Sentinela — fraudes não bloqueadas: {s['fraudes_nao_bloqueadas']}")
     print(f"  Sentinela — custo confirmações    : R$ {s['custo_confirmacoes']:,.2f}")
-    print(f"  Sistema atual — fraudes bloqueadas: {sa['fraudes_bloqueadas']}")
-    print(f"  Sistema atual — valor bloqueado   : R$ {sa['valor_fraudes_bloqueadas']:,.2f}")
-    print(
-        f"  Prejuízo evitado (Sentinela-atual): R$ {c['prejuizo_evitado_sentinela_vs_atual']:,.2f}"
-    )
+    print(f"  Valor líquido protegido           : R$ {resultado['valor_liquido_protegido']:,.2f}")
     print("=" * 60)
 
 

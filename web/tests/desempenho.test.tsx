@@ -29,15 +29,15 @@ beforeEach(() => {
 });
 
 describe("PaginaDesempenho", () => {
-  it("mostra os indicadores de março com a diferença para o sistema atual", async () => {
+  it("mostra os indicadores de março sem comparar com o sistema atual", async () => {
     render(<PaginaDesempenho />);
 
     expect(
-      await screen.findByText("+28 em relação ao sistema atual"),
+      await screen.findByText("Num mês que o modelo não viu no treino."),
     ).toBeInTheDocument();
     expect(screen.getAllByText("54 de 54").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("26 de 54").length).toBeGreaterThan(0);
-    expect(screen.getByText("48,1%")).toBeInTheDocument();
+    expect(screen.queryByText("26 de 54")).not.toBeInTheDocument();
+    expect(screen.queryByText(/sistema atual/i)).not.toBeInTheDocument();
   });
 
   it("mostra o modelo e a IA lado a lado quando o JSON da #46 existe", async () => {
@@ -55,7 +55,7 @@ describe("PaginaDesempenho", () => {
     });
 
     render(<PaginaDesempenho />);
-    await screen.findByText("+28 em relação ao sistema atual");
+    await screen.findByText("Num mês que o modelo não viu no treino.");
 
     expect(screen.queryByText(TITULO_IA_CONTRA_MODELO)).not.toBeInTheDocument();
   });
@@ -66,24 +66,6 @@ describe("PaginaDesempenho", () => {
     render(<PaginaDesempenho />);
 
     expect(await screen.findByText("Falha inventada.")).toBeInTheDocument();
-  });
-});
-
-describe("Barras da comparação", () => {
-  it("usam as cores da identidade Sicredi", async () => {
-    const { container } = render(<PaginaDesempenho />);
-    await screen.findByText("+28 em relação ao sistema atual");
-
-    const barras = container.querySelectorAll(
-      ".sentinela-barras-trilho > span",
-    );
-
-    expect((barras[0] as HTMLElement).style.backgroundColor).toBe(
-      "var(--sc-verde)",
-    );
-    expect((barras[1] as HTMLElement).style.backgroundColor).toBe(
-      "var(--sc-texto-apoio)",
-    );
   });
 });
 
@@ -112,23 +94,27 @@ describe("Rotas das duas páginas", () => {
 });
 
 describe("SecaoCustos", () => {
-  it("mostra o prejuízo evitado em reais", () => {
+  it("mostra o valor barrado, o custo das confirmações e o valor líquido", () => {
     render(
       <SecaoCustos
         custos={{
-          prejuizo_evitado: 1234.5,
-          sentinela: { custo_total: 159 },
-          sistema_atual: { custo_total: 1393.5 },
+          sentinela: {
+            valor_fraudes_bloqueadas: 13490.7,
+            custo_confirmacoes: 159,
+          },
+          valor_liquido_protegido: 13331.7,
         }}
       />,
     );
 
-    expect(screen.getByText("R$ 1.234,50")).toBeInTheDocument();
+    expect(screen.getByText("R$ 13.490,70")).toBeInTheDocument();
+    expect(screen.getByText("R$ 159,00")).toBeInTheDocument();
+    expect(screen.getByText("R$ 13.331,70")).toBeInTheDocument();
   });
 
   it("não aparece quando falta um campo", () => {
     const { container } = render(
-      <SecaoCustos custos={{ prejuizo_evitado: 10 }} />,
+      <SecaoCustos custos={{ valor_liquido_protegido: 10 }} />,
     );
 
     expect(container).toBeEmptyDOMElement();

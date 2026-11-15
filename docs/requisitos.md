@@ -14,7 +14,7 @@ desafio ao que o Sentinela entrega.
 | Intervenção (IA agêntica) | O agente decide, avisa o associado e uma IA no watsonx.ai audita a decisão com ferramentas | API, `src/auditoria/` | ✅ auditoria · ⏳ canal |
 | Análise explicável de risco | Sinais, explicação, o que pesou na nota e parecer da IA com evidências | painel da Fila | ✅ · ⏳ #41 |
 | Apoio à investigação | Fila priorizada, histórico, auditoria, respostas do analista, simulador | site | ✅ |
-| Reduzir perdas financeiras | 54 de 54 fraudes bloqueadas contra 26 do sistema atual; prejuízo evitado em reais | Desempenho | ✅ · ⏳ #42 |
+| Reduzir perdas financeiras | 54 de 54 fraudes de março bloqueadas, nenhuma legítima bloqueada; R$ 13.490,70 em fraudes barradas e R$ 13.331,70 líquidos, descontadas as confirmações | Desempenho | ✅ |
 | Experiência do associado | 0 compras legítimas bloqueadas; 1,2% de pedidos de confirmação | Desempenho, Como funciona | ✅ · ⏳ #67 |
 | Transparência | Como funciona, explicações, fonte de cada parecer | site | ✅ |
 | Privacidade | Só 16 colunas, nada que identifique a pessoa vai para a IA, dados fora do Git | ESPECIFICACAO, seções 4, 5 e 13 | ✅ · ⏳ #67 |

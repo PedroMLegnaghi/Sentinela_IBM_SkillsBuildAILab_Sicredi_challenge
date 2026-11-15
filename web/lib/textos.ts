@@ -140,35 +140,18 @@ export const COLUNAS_HISTORICO = {
 // --- Issue #44 ---
 export const TITULO_DESEMPENHO = "Desempenho em março de 2025";
 export const LEGENDA_DESEMPENHO = (transacoes: string) =>
-  `Comparação entre o Sentinela e o sistema atual da Sicredi nas ${transacoes} transações de teste.`;
+  `Resultado do Sentinela nas ${transacoes} transações de março, um mês que o modelo não viu no treino.`;
 export const INDICADORES_DESEMPENHO = {
   fraudes: "Fraudes em março",
   sentinela: "Bloqueadas pelo Sentinela",
-  sistemaAtual: "Bloqueadas pelo sistema atual",
   legitimas: "Compras legítimas bloqueadas",
   confirmacoes: "Pedidos de confirmação",
 };
 export const DE_TOTAL = (parte: string, total: string) =>
   `${parte} de ${total}`;
-export const DELTA_SENTINELA = (diferenca: number) =>
-  `${diferenca >= 0 ? "+" : ""}${diferenca} em relação ao sistema atual`;
+export const AJUDA_SENTINELA = "Num mês que o modelo não viu no treino.";
 export const AJUDA_CONFIRMACOES = (percentual: string) =>
   `${percentual} das transações de março.`;
-export const TITULO_GRAFICO_FRAUDES = "Fraudes de março bloqueadas";
-export const ROTULO_SENTINELA = "Sentinela";
-export const ROTULO_SISTEMA_ATUAL = "Sistema atual";
-export const TITULO_COMPARACAO = "Comparação";
-export const COLUNAS_COMPARACAO = {
-  indicador: "Indicador",
-  sistemaAtual: "Sistema atual",
-  sentinela: "Sentinela",
-};
-export const LINHAS_COMPARACAO = {
-  bloqueadas: "Fraudes bloqueadas",
-  naoBloqueadas: "Fraudes não bloqueadas",
-  percentual: "Percentual das fraudes bloqueadas",
-  legitimas: "Compras legítimas bloqueadas",
-};
 export const TITULO_DETALHES_MODELO =
   "Detalhes do modelo (regressão logística)";
 export const LEGENDA_DETALHES_MODELO = (
@@ -204,14 +187,14 @@ export const COLUNAS_IA_CONTRA_MODELO = {
 export const CONCORDANCIA_IA = (confirma: string) =>
   `A IA confirmou ${confirma} das decisões do modelo; as divergências viram casos para o analista olhar com atenção.`;
 export const FONTES_IA = (fontes: string) => `Fonte das auditorias: ${fontes}.`;
-export const TITULO_CUSTOS = "Custo da fraude em março";
+export const TITULO_CUSTOS = "Valor protegido em março";
 export const ROTULOS_CUSTOS = {
-  evitado: "Prejuízo evitado",
-  sentinela: "Custo com o Sentinela",
-  sistemaAtual: "Custo com o sistema atual",
+  barrado: "Fraudes bloqueadas (valor)",
+  confirmacoes: "Custo dos pedidos de confirmação",
+  liquido: "Valor líquido protegido",
 };
 export const AVISO_SINTETICO =
-  "Dados sintéticos: o resultado é otimista. Em produção, o modelo precisaria de monitoramento e retreino com as respostas dos analistas.";
+  "Dados sintéticos e muito separáveis, e o modelo treinou com só 92 fraudes: o resultado é otimista. Com dados reais, os números seriam menores, e o modelo precisaria de monitoramento e retreino com as respostas dos associados.";
 export const TITULO_COMO = "Como o Sentinela decide";
 export const LEAD_COMO =
   "Uma compra no cartão precisa de resposta em milissegundos. O Sentinela decide na hora, avisa o associado quando algo foge do padrão e entrega à filial cada caso com uma segunda opinião da IA.";
@@ -257,7 +240,7 @@ export const IA_COMO = [
 ];
 export const TITULO_DADOS_COMO = "Sobre os dados";
 export const SOBRE_DADOS =
-  "A base tem 160.000 transações sintéticas de 2025, das quais 146 são fraude (0,09%). A fila de demonstração tem todas as fraudes de março e 2.000 compras legítimas de março sorteadas. Colunas que entregam a resposta (scores prontos, decisão do sistema atual, disputas) foram removidas.";
+  "A base tem 160.000 transações sintéticas de 2025, das quais 146 são fraude (0,09%). A fila de demonstração tem todas as fraudes de março e 2.000 compras legítimas de março sorteadas. Colunas que entregam a resposta (scores prontos, a coluna decision e disputas) foram removidas.";
 export const TITULO_LIMITACOES = "Limitações";
 export const LIMITACOES = [
   "Os dados são sintéticos e fáceis de separar: três colunas de velocidade já calculadas carregam o resultado; em dados reais o desempenho seria menor.",

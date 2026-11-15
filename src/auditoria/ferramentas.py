@@ -2,7 +2,7 @@
 
 Cada ferramenta lê só dados anteriores à transação e devolve o envelope
 ``{"status": "ok"|"sem_dados", "dados": dict, "campos_ausentes": list[str]}``. Nenhuma
-devolve o rótulo, a decisão do sistema atual, colunas proibidas ou identificadores.
+devolve o rótulo, a coluna decision da base, colunas proibidas ou identificadores.
 """
 
 from __future__ import annotations

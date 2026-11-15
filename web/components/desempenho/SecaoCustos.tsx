@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * "Custo da fraude em março" (Issue #42): prejuízo evitado e custo de cada sistema, em reais.
- * Lê os campos da backlog (#20): prejuizo_evitado, sentinela.custo_total e
- * sistema_atual.custo_total. Se algum faltar, a seção não aparece.
+ * "Valor protegido em março" (Issue #42): quanto as fraudes bloqueadas somam, quanto custam os
+ * pedidos de confirmação e o valor líquido, lidos de modelos/custos.json. Se algum campo faltar,
+ * a seção não aparece.
  */
 
 import { Tile } from "@carbon/react";
@@ -14,9 +14,9 @@ function numero(valor: unknown): number | null {
   return typeof valor === "number" && Number.isFinite(valor) ? valor : null;
 }
 
-function custoTotal(bloco: unknown): number | null {
+function campo(bloco: unknown, nome: string): number | null {
   if (typeof bloco !== "object" || bloco === null) return null;
-  return numero((bloco as Record<string, unknown>).custo_total);
+  return numero((bloco as Record<string, unknown>)[nome]);
 }
 
 interface PropsSecaoCustos {
@@ -24,15 +24,16 @@ interface PropsSecaoCustos {
 }
 
 export default function SecaoCustos({ custos }: PropsSecaoCustos) {
-  const evitado = numero(custos.prejuizo_evitado);
-  const sentinela = custoTotal(custos.sentinela);
-  const atual = custoTotal(custos.sistema_atual);
-  if (evitado === null || sentinela === null || atual === null) return null;
+  const barrado = campo(custos.sentinela, "valor_fraudes_bloqueadas");
+  const confirmacoes = campo(custos.sentinela, "custo_confirmacoes");
+  const liquido = numero(custos.valor_liquido_protegido);
+  if (barrado === null || confirmacoes === null || liquido === null)
+    return null;
 
   const itens = [
-    { rotulo: ROTULOS_CUSTOS.evitado, valor: evitado },
-    { rotulo: ROTULOS_CUSTOS.sentinela, valor: sentinela },
-    { rotulo: ROTULOS_CUSTOS.sistemaAtual, valor: atual },
+    { rotulo: ROTULOS_CUSTOS.barrado, valor: barrado },
+    { rotulo: ROTULOS_CUSTOS.confirmacoes, valor: confirmacoes },
+    { rotulo: ROTULOS_CUSTOS.liquido, valor: liquido },
   ];
   return (
     <section aria-labelledby="titulo-custos">

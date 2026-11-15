@@ -1,5 +1,5 @@
 /**
- * Página /filial/desempenho: o Sentinela contra o sistema atual em março (Issue #100).
+ * Página /filial/desempenho: o resultado do Sentinela em março (Issue #100).
  */
 
 import PaginaDesempenho from "@/components/desempenho/PaginaDesempenho";

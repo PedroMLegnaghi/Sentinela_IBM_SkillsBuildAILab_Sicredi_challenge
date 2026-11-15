@@ -49,7 +49,7 @@ def avaliar():
     fraudes_total = int(teste["fraude"].sum())
     transacoes = len(teste)
 
-    # Métricas do sistema atual
+    # Coluna "decision" da base (chamada de sistema_atual no JSON; ver ESPECIFICACAO, seção 4)
     bloqueadas_atual = int((teste["decisao_sistema_atual"] == "deny").sum())
     fraudes_bloqueadas_atual = int(
         teste.loc[teste["decisao_sistema_atual"] == "deny", "fraude"].sum()
@@ -106,14 +106,9 @@ def _imprimir_avaliacao(av: dict) -> None:
     print(f"  Aprovadas            : {s['aprovadas']:,}")
     print(f"  Fraudes aprovadas    : {s['fraudes_aprovadas']:,} ({pct_aprov:.1f}% das fraudes)")
 
-    sa = av["sistema_atual"]
-    pct_bloq_atual = sa["fraudes_bloqueadas"] / ft * 100 if ft > 0 else 0
-    print("\nSistema atual:")
-    print(f"  Bloqueadas           : {sa['bloqueadas']:,}")
-    print(
-        f"  Fraudes bloqueadas   : {sa['fraudes_bloqueadas']:,} ({pct_bloq_atual:.1f}% das fraudes)"
-    )
-    print(f"  Fraudes não bloqueadas: {sa['fraudes_nao_bloqueadas']:,}")
+    # A coluna "decision" da base continua no JSON (a conformidade confere), mas não é mostrada
+    # como comparação: o dicionário da Sicredi não a documenta como a decisão de um sistema real.
+    print("\nComparação com a coluna 'decision' da base: omitida (não documentada pela Sicredi).")
     print("=" * 60)
 
 

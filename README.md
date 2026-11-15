@@ -6,7 +6,8 @@ Para cada compra, o Sentinela calcula 9 sinais de alerta, dá uma nota de risco 
 (regressão logística) e decide **na hora**: aprovar, pedir confirmação ao associado ou bloquear.
 Em paralelo, um agente no **IBM watsonx.ai** (IBM Granite) audita a decisão com 5 ferramentas
 (confirma, diverge ou inconclusivo) sem atrasá-la. O associado recebe no app um aviso redigido
-pelo Granite e responde "fui eu" ou "não fui eu". Um analista revisa tudo no site.
+pelo Granite e responde "fui eu" ou "não fui eu". Na filial, o auditor revisa a fila da agência
+e o gerente acompanha os números da carteira.
 
 ## Resultados (março de 2025: 13.608 compras, 54 fraudes)
 
@@ -69,9 +70,11 @@ vai para a IA, para os logs ou para as respostas da API.
 
 ```
 Site (Next.js + Carbon, web/)  ──HTTP──>  API (FastAPI, src/api/)
-                                            ├─ Núcleo: sinais, nota e decisão (src/agente.py)
-                                            ├─ Auditoria em paralelo (src/auditoria/) ──> watsonx.ai
-                                            └─ Canal do associado (src/associado/) ──> watsonx.ai
+  ├─ /associado (celular)                   ├─ Núcleo: sinais, nota e decisão (src/agente.py)
+  └─ /filial (desktop)                      ├─ Auditoria em paralelo (src/auditoria/) ──> watsonx.ai
+                                            ├─ Canal do associado (src/associado/) ──> watsonx.ai
+                                            └─ Associado e filial: src/aplicacao/ ──> src/portas/
+                                                 └─ adaptador em memória (src/adaptadores/memoria/)
 ```
 
 Detalhes em [docs/arquitetura.md](docs/arquitetura.md).
@@ -94,6 +97,16 @@ cd web && npm install && npm run dev                # site em http://localhost:3
 ```
 
 Sem a API, o site roda com dados simulados: `NEXT_PUBLIC_USAR_MOCK=1 npm run dev`.
+
+**As duas áreas.** Em `http://localhost:3000/entrar`, escolha um perfil (não há senha):
+
+- **Associado** (pensado para celular): saldo, cartões, extrato, simular compra, aviso "Foi
+  você?", "Não reconheço esta compra" e o chat. Ana Souza é da Agência Centro; Carlos Lima, da
+  Agência Norte.
+- **Filial** (pensada para desktop): o auditor vê só a fila da própria agência, com sinais, o que
+  pesou na nota e o parecer da IA; o gerente vê também o painel da agência, "Desempenho" e "Como
+  funciona". Nomes, saldos e agências são inventados; cada associado com login é ligado a um
+  cliente real de março da base sintética.
 
 **watsonx.ai (opcional):** copie `.env.example` para `.env` e preencha as credenciais (API key do
 IBM Cloud, Project ID do projeto no watsonx.ai, URL da região e `ibm/granite-4-h-small`). Sem elas,

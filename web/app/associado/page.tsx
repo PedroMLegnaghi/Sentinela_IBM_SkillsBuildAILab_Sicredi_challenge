@@ -4,6 +4,9 @@
 
 import PaginaInicio from "@/components/associado/PaginaInicio";
 
+// A página depende da sessão no navegador (Issue #91): fora da validação de navegação instantânea.
+export const instant = false;
+
 export const metadata = { title: "Início · Sicredi" };
 
 export default function Pagina() {

@@ -1,19 +1,12 @@
-"use client";
-
 /**
  * /filial leva cada papel para a sua página inicial (Issue #91).
  */
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { inicioDoPapel, useSessao } from "@/lib/sessao";
-import { VERIFICANDO_SESSAO } from "@/lib/textos";
+import RedirecionarFilial from "@/components/filial/RedirecionarFilial";
+
+// A página depende da sessão no navegador (Issue #91): fora da validação de navegação instantânea.
+export const instant = false;
 
 export default function Pagina() {
-  const sessao = useSessao();
-  const router = useRouter();
-  useEffect(() => {
-    if (sessao) router.replace(inicioDoPapel(sessao.perfil.papel));
-  }, [sessao, router]);
-  return <p className="sc-carregando">{VERIFICANDO_SESSAO}</p>;
+  return <RedirecionarFilial />;
 }

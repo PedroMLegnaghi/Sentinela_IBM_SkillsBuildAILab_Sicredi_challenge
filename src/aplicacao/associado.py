@@ -14,6 +14,7 @@ from src.associado import notificacoes
 from src.config import HORA_FIM_MADRUGADA, VARIAVEIS_MODELO
 from src.dominio import regras
 from src.dominio.entidades import SITUACOES, Associado, Bloqueio, Cartao, Compra
+from src.dominio.rotulos import evento_da_compra
 from src.portas.repositorios import Repositorios
 
 MOTIVO_GENERICO = "A compra fugiu do seu padrão de uso e foi bloqueada por segurança."
@@ -297,6 +298,7 @@ def simular_compra(
         decisao=analise["decisao"],
         simulada=True,
         analise=analise,
+        variaveis={nome: transacao.get(nome) for nome in VARIAVEIS_MODELO},
     )
     if compra.situacao == "APROVADA":
         regras.aplicar_no_saldo(associado, cartao, compra)
@@ -337,6 +339,7 @@ def contestar_compra(
     compra.saldo_aplicado = compra.saldo_aplicado or not compra.simulada
     regras.devolver_ao_saldo(associado, cartao, compra)
     repos.contestacoes.salvar(contestacao)
+    repos.rotulos.acrescentar(evento_da_compra(compra, "contestacao", None, contestacao.em))
     repos.cartoes.salvar(cartao)
     repos.associados.salvar(associado)
     repos.compras.salvar(compra)
@@ -359,7 +362,8 @@ def aplicar_resposta_do_aviso(
     compra = repos.compras.obter_por_notificacao(id_notificacao)
     if compra is None:
         return None
-    situacao = regras.aplicar_resposta(compra, resposta, _agora())
+    em = _agora()
+    situacao = regras.aplicar_resposta(compra, resposta, em)
     associado = repos.associados.obter(compra.id_associado)
     cartao = repos.cartoes.obter(compra.id_cartao) if compra.id_cartao else None
     if situacao == "APROVADA" and associado is not None and cartao is not None:
@@ -368,6 +372,7 @@ def aplicar_resposta_do_aviso(
     elif situacao == "BLOQUEADA" and compra.bloqueio is None:
         compra.bloqueio = Bloqueio(em=_agora(), motivo=MOTIVO_NAO_RECONHECIDA)
     repos.compras.salvar(compra)
+    repos.rotulos.acrescentar(evento_da_compra(compra, "resposta_aviso", resposta, em))
     return compra
 
 

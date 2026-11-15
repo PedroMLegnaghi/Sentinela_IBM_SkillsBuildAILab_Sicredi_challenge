@@ -6,14 +6,16 @@ Postgres é trocar só este arquivo.
 
 from __future__ import annotations
 
+import dataclasses
 import logging
 from collections.abc import Mapping
 
 import pandas as pd
 
+from src.adaptadores.arquivo.rotulos import RotulosEmArquivo
 from src.adaptadores.memoria.dados_demo import montar_repositorios
-from src.config import CAMINHO_PREPARADO
-from src.portas.repositorios import Repositorios
+from src.config import CAMINHO_PREPARADO, CAMINHO_ROTULOS
+from src.portas.repositorios import RepositorioRotulos, Repositorios
 
 logger = logging.getLogger(__name__)
 
@@ -48,4 +50,10 @@ def obter_repositorios(
     """
     if base is None:
         base = _ler_base()
-    return montar_repositorios(base, decisoes)
+    # Os rótulos sobrevivem a reiniciar a API; o resto da demonstração fica em memória.
+    return dataclasses.replace(montar_repositorios(base, decisoes), rotulos=obter_rotulos())
+
+
+def obter_rotulos() -> RepositorioRotulos:
+    """Histórico de rótulos usado pela API e pela exportação para o retreino."""
+    return RotulosEmArquivo(CAMINHO_ROTULOS)

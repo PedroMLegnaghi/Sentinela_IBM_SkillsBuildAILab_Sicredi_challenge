@@ -14,7 +14,7 @@ from typing import Any
 import pandas as pd
 
 from src.adaptadores.memoria.repositorios import criar_repositorios_vazios
-from src.config import FIM_TESTE, INICIO_TESTE
+from src.config import FIM_TESTE, INICIO_TESTE, VARIAVEIS_MODELO
 from src.dominio.entidades import Associado, Cartao, Compra, Filial, Funcionario
 from src.dominio.regras import distribuir_carteira, filial_da_posicao, situacao_inicial
 from src.portas.repositorios import Repositorios
@@ -137,7 +137,15 @@ def _compra_de_marco(
         situacao=situacao_inicial(decisao),
         decisao=decisao,
         id_transacao_base=int(linha.id_transacao),
+        variaveis={nome: _numero_ou_none(getattr(linha, nome, None)) for nome in VARIAVEIS_MODELO},
     )
+
+
+def _numero_ou_none(valor: Any) -> float | None:
+    """Número da base, ou None quando vazio."""
+    if valor is None or pd.isna(valor):
+        return None
+    return float(valor)
 
 
 def _carregar_compras(

@@ -15,6 +15,7 @@ from typing import Any
 from src.aplicacao.associado import Conflito, NaoEncontrado, situacoes_do_filtro
 from src.dominio import regras
 from src.dominio.entidades import Associado, Bloqueio, Cartao, Compra, Perfil
+from src.dominio.rotulos import evento_da_compra
 from src.portas.repositorios import Repositorios
 
 SITUACOES_PADRAO_FILA = ("BLOQUEADA", "AGUARDANDO", "CONTESTADA")
@@ -301,4 +302,5 @@ def bloquear_compra(
         compra, auditor.id_perfil, em, motivo, (nota or "").strip() or None
     )
     repos.compras.salvar(compra)
+    repos.rotulos.acrescentar(evento_da_compra(compra, "bloqueio_auditor", None, em))
     return compra

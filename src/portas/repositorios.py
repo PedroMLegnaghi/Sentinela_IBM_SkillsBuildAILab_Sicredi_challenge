@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
 from src.dominio.entidades import Associado, Cartao, Compra, Contestacao, Filial, Perfil
+from src.dominio.rotulos import EventoRotulo
 
 
 @runtime_checkable
@@ -126,6 +127,19 @@ class RepositorioContestacoes(Protocol):
         ...
 
 
+@runtime_checkable
+class RepositorioRotulos(Protocol):
+    """Histórico de rótulos para o retreino: só acrescentar e listar, nunca editar ou apagar."""
+
+    def acrescentar(self, evento: EventoRotulo) -> None:
+        """Acrescenta um evento ao fim do histórico."""
+        ...
+
+    def listar(self) -> list[EventoRotulo]:
+        """Todos os eventos, na ordem em que foram gravados."""
+        ...
+
+
 @dataclass(frozen=True)
 class Repositorios:
     """Conjunto de repositórios que a aplicação recebe pronto de ``src.composicao``."""
@@ -136,3 +150,4 @@ class Repositorios:
     cartoes: RepositorioCartoes
     compras: RepositorioCompras
     contestacoes: RepositorioContestacoes
+    rotulos: RepositorioRotulos

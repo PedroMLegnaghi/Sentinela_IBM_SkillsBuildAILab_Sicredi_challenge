@@ -734,3 +734,35 @@ A conversa não é guardada na API: o site manda o histórico a cada pergunta e 
   fixo dos gastos do mês e das compras pendentes ou bloqueadas.
 - "Conversar com gerente" é simulado: a conversa continua na mesma tela, com o nome do gerente e
   o resumo como primeira mensagem dele, e para aí.
+
+### 17.7 Rótulos de retorno para o retreino (Issue #127)
+
+Toda resposta do associado vira um rótulo que pode retreinar o modelo. O retreino em si fica fora
+desta entrega: o campeão não muda.
+
+- **Evento** (`src/dominio/rotulos.py`, `EventoRotulo`): `registrado_em`, `origem`
+  (`resposta_aviso`, `contestacao` ou `bloqueio_auditor`), `id_compra` (opaco), `id_transacao`
+  (só nas compras de março; `null` nas simuladas), `simulada`, `nota`, `decisao_modelo`,
+  `situacao` (depois do evento), `resposta` (`sim`, `nao` ou `null`), `rotulo` (`fraude`,
+  `legitima` ou `null`), `data_hora`, `valor`, `tipo_transacao`, `modalidade_transacao` e as 11
+  variáveis de `VARIAVEIS_MODELO` com os valores que o modelo usou (guardados na compra no
+  momento da análise). Nunca nome, `id_cartao`, `id_cliente` nem `id_estabelecimento`.
+- **Rótulo** (`rotulo_do_evento`):
+
+| Origem | Resposta | Rótulo |
+| --- | --- | --- |
+| `resposta_aviso` ou `bloqueio_auditor` | `nao` | `fraude` |
+| `resposta_aviso` ou `bloqueio_auditor` | `sim` | `legitima` |
+| `contestacao` | — | `fraude` (fraude que o modelo aprovou) |
+| `bloqueio_auditor` | sem resposta | `null` (gravado mesmo assim, para medir o que fica sem resposta) |
+
+- **Quando grava:** na resposta ao aviso (`POST /api/notificacoes/{id}/resposta`, quando o aviso
+  é de uma compra), na contestação e no bloqueio pelo auditor.
+- **Armazenamento:** porta `RepositorioRotulos` só com `acrescentar` e `listar`. A API usa o
+  adaptador em arquivo, que acrescenta uma linha por evento em `data/rotulos_retreino.csv`
+  (`CAMINHO_ROTULOS`), com cabeçalho na primeira vez; os testes usam o adaptador em memória. O
+  arquivo sobrevive a reiniciar a API e fica fora do Git.
+- **Exportação:** `python -m src.exportar_retreino` descarta os eventos sem rótulo, fica com o
+  último evento de cada `id_compra` e grava `data/retreino.parquet` (fora do Git) com as 11
+  variáveis, `data_hora` e `rotulo_retorno` (1 = fraude, 0 = legítima). Imprime quantos eventos
+  leu, quantos rótulos de fraude e de legítima exportou e quantos ficaram sem rótulo.

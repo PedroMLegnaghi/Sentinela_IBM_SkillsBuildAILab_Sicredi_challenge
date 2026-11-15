@@ -10,6 +10,7 @@ from collections.abc import Callable
 from typing import Generic, TypeVar
 
 from src.dominio.entidades import Associado, Cartao, Compra, Contestacao, Filial, Perfil
+from src.dominio.rotulos import EventoRotulo
 from src.portas.repositorios import Repositorios
 
 T = TypeVar("T")
@@ -129,6 +130,24 @@ class ContestacoesEmMemoria(_Tabela[Contestacao]):
         return self.filtrar(lambda c: c.id_filial == id_filial)
 
 
+class RotulosEmMemoria:
+    """Histórico de rótulos em memória (testes e demonstração sem disco)."""
+
+    def __init__(self) -> None:
+        self._eventos: list[EventoRotulo] = []
+        self._lock = threading.Lock()
+
+    def acrescentar(self, evento: EventoRotulo) -> None:
+        """Acrescenta um evento ao fim do histórico."""
+        with self._lock:
+            self._eventos.append(evento)
+
+    def listar(self) -> list[EventoRotulo]:
+        """Todos os eventos, na ordem em que foram gravados."""
+        with self._lock:
+            return list(self._eventos)
+
+
 def criar_repositorios_vazios() -> Repositorios:
     """Conjunto de repositórios em memória, ainda sem dados."""
     return Repositorios(
@@ -138,4 +157,5 @@ def criar_repositorios_vazios() -> Repositorios:
         cartoes=CartoesEmMemoria(),
         compras=ComprasEmMemoria(),
         contestacoes=ContestacoesEmMemoria(),
+        rotulos=RotulosEmMemoria(),
     )

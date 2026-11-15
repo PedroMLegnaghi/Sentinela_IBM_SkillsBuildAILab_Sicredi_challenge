@@ -75,7 +75,16 @@ export default function Shell({ children }: PropsShell) {
             onClick={() => setMenuAberto((v) => !v)}
           />
         )}
-        <HeaderName prefix="">Sentinela</HeaderName>
+        <HeaderName prefix="">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-sicredi.png"
+            alt="Sicredi"
+            height={28}
+            style={{ marginRight: "0.5rem", verticalAlign: "middle" }}
+          />
+          Sentinela
+        </HeaderName>
       </Header>
       <SideNav
         aria-label="Menu de navegação"

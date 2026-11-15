@@ -1,6 +1,218 @@
 // Importa os estilos do Carbon Design System (tema g10)
 @use "@carbon/react";
 
+// --- Identidade Sicredi ---
+:root {
+  --sicredi-verde: #3FA110;
+  --sicredi-verde-acao: #33820D;
+  --sicredi-verde-acao-hover: #26610A;
+  --sicredi-verde-escuro: #146E37;
+  --sicredi-verde-fundo: #ECF6E7;
+  --sicredi-texto: #323C32;
+  --sicredi-texto-apoio: #5A645A;
+  --sicredi-amarelo: #FFCD00;
+  --sicredi-magenta: #E60050;
+
+  --cds-interactive: var(--sicredi-verde-acao);
+  --cds-button-primary: var(--sicredi-verde-acao);
+  --cds-button-primary-hover: var(--sicredi-verde-acao-hover);
+  --cds-button-primary-active: var(--sicredi-verde-acao-hover);
+  --cds-button-tertiary: var(--sicredi-verde-acao);
+  --cds-button-tertiary-hover: var(--sicredi-verde-acao);
+  --cds-button-tertiary-active: var(--sicredi-verde-acao-hover);
+  --cds-link-primary: var(--sicredi-verde-acao);
+  --cds-link-primary-hover: var(--sicredi-verde-acao-hover);
+  --cds-focus: var(--sicredi-verde-acao);
+  --cds-border-interactive: var(--sicredi-verde-acao);
+  --cds-background-brand: var(--sicredi-verde-acao);
+  --cds-tag-background-blue: var(--sicredi-verde-fundo);
+  --cds-tag-color-blue: var(--sicredi-verde-escuro);
+  --cds-tag-border-blue: var(--sicredi-verde-escuro);
+  --cds-tag-hover-blue: var(--sicredi-verde-fundo);
+  --cds-icon-interactive: var(--sicredi-verde-acao);
+  --cds-support-info: var(--sicredi-verde-acao);
+  --cds-support-info-inverse: var(--sicredi-verde-acao);
+  --cds-notification-background-info: var(--sicredi-verde-fundo);
+  --cds-text-primary: var(--sicredi-texto);
+  --cds-text-secondary: var(--sicredi-texto-apoio);
+}
+
+[data-carbon-theme="g10"],
+.cds--g10,
+[data-carbon-theme] {
+  --cds-interactive: var(--sicredi-verde-acao);
+  --cds-button-primary: var(--sicredi-verde-acao);
+  --cds-button-primary-hover: var(--sicredi-verde-acao-hover);
+  --cds-button-primary-active: var(--sicredi-verde-acao-hover);
+  --cds-button-tertiary: var(--sicredi-verde-acao);
+  --cds-button-tertiary-hover: var(--sicredi-verde-acao);
+  --cds-button-tertiary-active: var(--sicredi-verde-acao-hover);
+  --cds-link-primary: var(--sicredi-verde-acao);
+  --cds-link-primary-hover: var(--sicredi-verde-acao-hover);
+  --cds-focus: var(--sicredi-verde-acao);
+  --cds-border-interactive: var(--sicredi-verde-acao);
+  --cds-background-brand: var(--sicredi-verde-acao);
+  --cds-tag-background-blue: var(--sicredi-verde-fundo);
+  --cds-tag-color-blue: var(--sicredi-verde-escuro);
+  --cds-tag-border-blue: var(--sicredi-verde-escuro);
+  --cds-tag-hover-blue: var(--sicredi-verde-fundo);
+  --cds-icon-interactive: var(--sicredi-verde-acao);
+  --cds-support-info: var(--sicredi-verde-acao);
+  --cds-support-info-inverse: var(--sicredi-verde-acao);
+  --cds-notification-background-info: var(--sicredi-verde-fundo);
+  --cds-text-primary: var(--sicredi-texto);
+  --cds-text-secondary: var(--sicredi-texto-apoio);
+}
+
+body,
+.cds--content,
+.cds--header,
+.cds--side-nav,
+.cds--data-table,
+.cds--btn,
+.cds--label,
+.cds--tag {
+  font-family: var(--fonte-texto), "Nunito", sans-serif;
+}
+
+h1,
+h2 {
+  font-family: var(--fonte-titulo), "Exo 2", sans-serif;
+  font-style: italic;
+  font-weight: 700;
+}
+
+// Botões Sicredi
+.cds--btn {
+  font-family: var(--fonte-texto), "Nunito", sans-serif !important;
+}
+
+.cds--btn--primary {
+  background-color: var(--sicredi-verde-acao, #33820D) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+
+  &:hover {
+    background-color: var(--sicredi-verde-acao-hover, #26610A) !important;
+    color: #ffffff !important;
+  }
+
+  &:active {
+    background-color: var(--sicredi-verde-acao-hover, #26610A) !important;
+    color: #ffffff !important;
+  }
+
+  &:focus {
+    border-color: var(--sicredi-verde-acao, #33820D) !important;
+    box-shadow: inset 0 0 0 1px var(--sicredi-verde-acao, #33820D), inset 0 0 0 2px #ffffff !important;
+  }
+
+  .cds--btn__icon,
+  .cds--btn__icon path {
+    fill: #ffffff !important;
+  }
+}
+
+.cds--btn--tertiary {
+  color: var(--sicredi-verde-acao, #33820D) !important;
+  border-color: var(--sicredi-verde-acao, #33820D) !important;
+  background-color: transparent !important;
+
+  &:hover {
+    background-color: var(--sicredi-verde-acao, #33820D) !important;
+    color: #ffffff !important;
+    border-color: var(--sicredi-verde-acao, #33820D) !important;
+
+    .cds--btn__icon,
+    .cds--btn__icon path {
+      fill: #ffffff !important;
+    }
+  }
+
+  &:active {
+    background-color: var(--sicredi-verde-acao-hover, #26610A) !important;
+    color: #ffffff !important;
+    border-color: var(--sicredi-verde-acao-hover, #26610A) !important;
+
+    .cds--btn__icon,
+    .cds--btn__icon path {
+      fill: #ffffff !important;
+    }
+  }
+
+  &:focus {
+    border-color: var(--sicredi-verde-acao, #33820D) !important;
+    box-shadow: inset 0 0 0 1px var(--sicredi-verde-acao, #33820D), inset 0 0 0 2px #ffffff !important;
+  }
+
+  .cds--btn__icon,
+  .cds--btn__icon path {
+    fill: currentColor !important;
+  }
+}
+
+.cds--btn--ghost {
+  color: var(--sicredi-verde-acao, #33820D) !important;
+
+  &:hover {
+    background-color: var(--sicredi-verde-fundo, #ECF6E7) !important;
+    color: var(--sicredi-verde-acao-hover, #26610A) !important;
+  }
+
+  &:focus {
+    border-color: var(--sicredi-verde-acao, #33820D) !important;
+    box-shadow: inset 0 0 0 1px var(--sicredi-verde-acao, #33820D), inset 0 0 0 2px #ffffff !important;
+  }
+}
+
+// Tags Sicredi (Mensagem padrão / Selo Granite)
+.cds--tag--blue {
+  background-color: var(--sicredi-verde-fundo, #ECF6E7) !important;
+  color: var(--sicredi-verde-escuro, #146E37) !important;
+  border: 1px solid var(--sicredi-verde-escuro, #146E37) !important;
+
+  .cds--tag__label {
+    color: var(--sicredi-verde-escuro, #146E37) !important;
+  }
+
+  @media (any-hover: hover) {
+    &:hover {
+      background-color: var(--sicredi-verde-fundo, #ECF6E7) !important;
+      color: var(--sicredi-verde-acao, #33820D) !important;
+      border-color: var(--sicredi-verde-acao, #33820D) !important;
+
+      .cds--tag__label {
+        color: var(--sicredi-verde-acao, #33820D) !important;
+      }
+    }
+  }
+}
+
+// Cores das decisões em todo o site
+.cds--inline-notification--error,
+.sentinela-faixa-bloquear {
+  border-left-color: var(--sicredi-magenta) !important;
+}
+
+.cds--inline-notification--warning,
+.sentinela-faixa-pedir_confirmacao {
+  border-left-color: var(--sicredi-amarelo) !important;
+  background-color: var(--sicredi-amarelo) !important;
+  color: #5A3C1E !important;
+
+  .cds--inline-notification__title,
+  .cds--inline-notification__subtitle,
+  .cds--inline-notification__icon {
+    color: #5A3C1E !important;
+    fill: #5A3C1E !important;
+  }
+}
+
+.cds--inline-notification--success,
+.sentinela-faixa-aprovar {
+  border-left-color: var(--sicredi-verde) !important;
+}
+
 // --- Fila de alertas e painel da transação (Issue #43) ---
 .sentinela-legenda {
   color: var(--cds-text-secondary, #525252);
@@ -75,7 +287,7 @@
 .sentinela-link-linha {
   background: none;
   border: none;
-  color: var(--cds-link-primary, #0f62fe);
+  color: var(--cds-link-primary, var(--sicredi-verde-acao));
   cursor: pointer;
   font: inherit;
   padding: 0;
@@ -123,7 +335,7 @@ ol.sentinela-lista {
 }
 
 .sentinela-cartao-auditoria {
-  border-left: 4px solid var(--cds-interactive, #0f62fe);
+  border-left: 4px solid var(--cds-interactive, var(--sicredi-verde-acao));
 }
 
 .sentinela-contribuicoes {
@@ -164,11 +376,11 @@ ol.sentinela-lista {
 }
 
 .sentinela-barra-risco {
-  background: var(--cds-support-error, #da1e28);
+  background: var(--sicredi-magenta, #E60050);
 }
 
 .sentinela-barra-alivio {
-  background: var(--cds-support-success, #24a148);
+  background: var(--sicredi-verde, #3FA110);
 }
 
 .sentinela-contribuicao-valor {
@@ -246,11 +458,11 @@ ol.sentinela-lista {
 }
 
 .sentinela-barra-modelo {
-  background: var(--cds-interactive, #0f62fe);
+  background: var(--sicredi-verde, #3FA110);
 }
 
 .sentinela-barra-atual {
-  background: var(--cds-border-strong-01, #8d8d8d);
+  background: var(--sicredi-texto-apoio, #5A645A);
 }
 
 // --- Simulador e Respostas (Issue #45) ---

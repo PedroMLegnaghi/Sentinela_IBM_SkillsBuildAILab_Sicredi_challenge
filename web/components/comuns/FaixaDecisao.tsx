@@ -23,6 +23,20 @@ const CONFIG_DECISAO: Record<
   APROVAR: { kind: "success", icone: "✅" },
 };
 
+const ESTILOS_DECISAO: Record<Decisao, React.CSSProperties> = {
+  BLOQUEAR: {
+    borderLeftColor: "var(--sicredi-magenta, #E60050)",
+  },
+  PEDIR_CONFIRMACAO: {
+    borderLeftColor: "var(--sicredi-amarelo, #FFCD00)",
+    backgroundColor: "var(--sicredi-amarelo, #FFCD00)",
+    color: "#5A3C1E",
+  },
+  APROVAR: {
+    borderLeftColor: "var(--sicredi-verde, #3FA110)",
+  },
+};
+
 export default function FaixaDecisao({
   decisao,
   decisaoLegivel,
@@ -38,6 +52,8 @@ export default function FaixaDecisao({
       hideCloseButton
       role="status"
       aria-label={`Decisão: ${texto}`}
+      className={`sentinela-faixa-decisao sentinela-faixa-${decisao.toLowerCase()}`}
+      style={ESTILOS_DECISAO[decisao]}
     />
   );
 }

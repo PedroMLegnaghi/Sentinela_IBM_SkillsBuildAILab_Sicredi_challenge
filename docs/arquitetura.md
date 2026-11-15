@@ -1,20 +1,22 @@
 # Arquitetura
 
 O modelo decide na hora; a IA audita em paralelo; o associado é avisado e responde; a filial
-acompanha (ADR-011, ADR-012 e ADR-015). O site tem duas áreas: a do associado e a da filial
-(auditor e gerente), cada uma vendo só o que pode (ESPECIFICACAO, seção 17). Tudo roda na máquina de quem usa, com dados
-sintéticos; só a auditoria sai para o IBM watsonx.ai, sem identificadores.
+acompanha e a matriz compara as agências (ADR-011, ADR-012 e ADR-015). O site tem três áreas: a
+do associado, a da filial (auditor e gerente) e a da matriz, cada uma vendo só o que pode
+(ESPECIFICACAO, seção 17). Tudo roda na máquina de quem usa, com dados sintéticos. Só três coisas
+saem para o IBM watsonx.ai, sempre sem identificadores: a auditoria da decisão, a redação da
+mensagem ao associado e as respostas do chat.
 
 ## Contêineres
 
 ```mermaid
 graph TB
-    FIL["Auditor e gerente<br/><small>área da filial</small>"]
+    FIL["Auditor, gerente e matriz<br/><small>áreas da filial e da matriz</small>"]
     ASS["Associado<br/><small>área do associado, simulada</small>"]
     AUT["Autorizador de cartões<br/><small>simulado pela API</small>"]
 
     subgraph Sentinela["Sentinela"]
-        SITE["<b>Site</b> · Next.js + Carbon · web/<br/><small>/associado: início, extrato, compra, avisos, chat<br/>/filial: fila, painel do gerente, desempenho</small>"]
+        SITE["<b>Site</b> · Next.js + Carbon · web/<br/><small>/associado: início, extrato, compra, avisos, chat<br/>/filial: fila, painel do gerente, desempenho<br/>/matriz: todas as agências</small>"]
         API["<b>API</b> · FastAPI · src/api/<br/><small>decisão imediata, sessão, rotas do associado<br/>e da filial, auditoria, notificações</small>"]
         APL["<b>Aplicação e domínio</b> · src/aplicacao/, src/dominio/<br/><small>casos de uso e regras puras</small>"]
         POR["<b>Portas</b> · src/portas/<br/><small>interfaces dos repositórios</small>"]
@@ -25,7 +27,7 @@ graph TB
         ARQ[("data/ · modelos/")]
     end
 
-    WX["IBM watsonx.ai<br/><small>Granite com ferramentas</small>"]
+    WX["IBM watsonx.ai<br/><small>Granite (ibm/granite-4-h-small)</small>"]
 
     FIL -->|"localhost:3000/filial"| SITE
     ASS -->|"localhost:3000/associado"| SITE
@@ -37,22 +39,22 @@ graph TB
     API --> APL
     APL --> POR
     MEM -.->|"implementa"| POR
-    AUD -->|"sem identificadores"| WX
-    CAN -->|"redige a mensagem"| WX
+    AUD -->|"audita com ferramentas, sem identificadores"| WX
+    CAN -->|"redige a mensagem e responde no chat"| WX
     NUC --> ARQ
     API --> ARQ
 ```
 
 | Pasta | Responsabilidade |
 | --- | --- |
-| `src/` (raiz) | Dados, modelo, agente, fila e respostas do analista |
+| `src/` (raiz) | Dados, modelo, agente, fila de demonstração e scripts de análise e de retreino |
 | `src/api/` | Rotas (`app.py`), esquemas, serviços, auditorias e respostas |
 | `src/auditoria/` | Ferramentas, cliente do watsonx.ai, modo local, relatório e parecer |
-| `src/associado/` | Notificações e mensagem ao associado (Issue #62) |
-| `src/dominio/`, `src/aplicacao/` | Entidades, regras puras e casos de uso do associado e da filial |
-| `src/portas/`, `src/adaptadores/` | Interfaces dos repositórios e o adaptador em memória; `src/composicao.py` liga os dois |
-| `web/app/` | Uma pasta por página: `associado/`, `filial/` e `entrar/` |
-| `web/components/` | Componentes por página (`fila/`, `painel/`, `desempenho/`…) e `comuns/` |
+| `src/associado/` | Notificações, mensagem redigida pelo Granite (com as regras contra golpe) e chat |
+| `src/dominio/`, `src/aplicacao/` | Entidades, regras puras e casos de uso do associado, da filial e da matriz |
+| `src/portas/`, `src/adaptadores/` | Interfaces dos repositórios, o adaptador em memória e o arquivo de rótulos para retreino; `src/composicao.py` liga os dois |
+| `web/app/` | Uma pasta por área: `entrar/`, `associado/`, `filial/` e `matriz/` |
+| `web/components/` | Componentes por área (`associado/`, `filial/`, `gerente/`, `matriz/`, `desempenho/`…) e `comuns/` |
 | `web/lib/` | Cliente da API, tipos, textos, formatação, mocks |
 
 ## Uma compra suspeita, do começo ao fim
@@ -71,16 +73,37 @@ sequenceDiagram
     C->>A: POST /api/analisar
     A->>N: sinais, nota, decisão
     N-->>A: PEDIR_CONFIRMACAO (≈1,5 ms)
-    A->>S: criar notificação (mensagem validada)
+    A->>S: criar notificação (mensagem do modelo fixo)
     A-->>C: decisão + id_auditoria + id_notificacao
     A->>T: auditar(transação, análise)
     T->>W: chat com ferramentas
     W-->>T: relatório
     T-->>A: CONFIRMA / DIVERGE / INCONCLUSIVO
+    S->>W: redigir a mensagem (segundo plano)
+    W-->>S: texto do Granite
+    Note over S: o texto só substitui o modelo fixo se passar nas regras contra golpe
     P->>A: "Não fui eu" (App do associado)
     A->>S: status negada → compra bloqueada, caso na fila da filial
     AN->>A: abre o caso na fila da agência: decisão, parecer da IA e resposta do associado
 ```
 
+Passo a passo:
+
+1. A API recebe a compra, calcula os 9 sinais e a nota, e decide na hora: aprovar, pedir
+   confirmação ou bloquear.
+2. Se a compra é suspeita, o canal do associado cria o aviso com a mensagem do modelo fixo. A
+   decisão já volta a quem chamou, sem esperar a IA.
+3. Em paralelo, a auditoria pede ao watsonx.ai que confira a decisão com 5 ferramentas. O parecer
+   é CONFIRMA, DIVERGE ou INCONCLUSIVO e nunca muda a decisão.
+4. Também em segundo plano, o Granite redige uma mensagem melhor para o associado. Ela só é usada
+   se passar nas regras contra golpe: começa com "Sicredi:", tem até 160 caracteres, não tem
+   link, nunca pede senha ou código e cita só o valor, a data e a hora reais da compra. Senão,
+   vale o modelo fixo.
+5. O associado responde "Fui eu" ou "Não fui eu" no app. "Não fui eu" bloqueia a compra; a
+   resposta vira um rótulo guardado para retreino.
+6. O auditor da agência abre o caso na fila, vê a decisão, o parecer da IA e a resposta do
+   associado; se o associado ainda não respondeu, pode bloquear a compra. O gerente e a matriz
+   acompanham os números.
+
 A auditoria e a notificação nunca atrasam a decisão. Sem credenciais do watsonx.ai, a auditoria
-e a mensagem usam o modo local e o resto funciona igual.
+e a mensagem usam o modo local (regra dos sinais e modelo fixo) e o resto funciona igual.

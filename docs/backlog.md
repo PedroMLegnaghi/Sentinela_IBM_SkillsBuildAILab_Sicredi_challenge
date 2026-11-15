@@ -1,8 +1,8 @@
 # Backlog
 
 Cada seção é uma Issue do GitHub com o mesmo número. O Bob executa uma Issue com o protocolo do
-`AGENTS.md` (seção 3) e só altera os "Arquivos permitidos". Congelamento do código: **sábado
-14/11, 12h**. Entrega: domingo 15/11, 17h.
+`AGENTS.md` (seção 3) e só altera os "Arquivos permitidos". Congelamento do código: **domingo
+15/11, 12h** (só para as Issues da versão de reserva). Entrega: domingo 15/11, 17h.
 
 ## Regras comuns
 
@@ -17,6 +17,25 @@ Cada seção é uma Issue do GitHub com o mesmo número. O Bob executa uma Issue
 - **Site:** testes com Vitest e os mocks de `web/lib/mocks/`; verificação manual com a API real.
 - **Sem revisão.** O dono roda o portão na própria máquina, abre o PR para `develop`, espera o CI
   verde e faz "Squash and merge".
+
+## Versão de reserva (dom 15/11)
+
+Decidida em sáb 14/11, noite. A refatoração (branch `refatoracao`, Issues #90 a #107) é feita por
+Pedro Muller e Bruno e só entra se estiver pronta até domingo às 14h. Enquanto isso, Pedro Machado,
+Mariana e Lucas melhoram o `develop` com o Bob, para que a entrega tenha uma versão melhor caso a
+refatoração não entre. Cada Issue abaixo é independente das outras; quando duas mexem no mesmo
+arquivo (`globals.scss`, `Shell.tsx`, `textos.ts`), cada uma só toca o seu bloco, e quem integrar
+depois dá `git pull` e resolve o conflito antes do merge.
+
+| # | Título | Dono | Branch | Prazo |
+| --- | --- | --- | --- | --- |
+| 108 | feat: aplica a identidade visual da Sicredi no site atual | Mariana | `feature/108-identidade-sicredi` | dom 15/11, 12h |
+| 48 | fix: corrige a acessibilidade e a responsividade do site | Lucas | `feature/48-acessibilidade` | dom 15/11, 12h |
+| 109 | feat: mostra quando o aviso ao associado foi redigido pelo IBM Granite | Lucas | `feature/109-selo-granite` | dom 15/11, 12h |
+| 110 | feat: adiciona cenários prontos ao simulador "e se" | Pedro Machado | `feature/110-cenarios-simulador` | dom 15/11, 12h |
+| 111 | docs: atualiza a arquitetura e os requisitos com o estado final | Pedro Machado | `feature/111-docs-estado-final` | dom 15/11, 12h |
+| 112 | fix: mostra a latência em segundos e padroniza os números do Desempenho | Mariana | `feature/112-numeros-desempenho` | dom 15/11, 12h |
+| 66 | feat: cria o "Pergunte à IA sobre este caso" (extra) | Pedro Machado | `feature/66-pergunte-a-ia` | dom 15/11, 12h |
 
 ## Feitas
 
@@ -39,7 +58,6 @@ Cada seção é uma Issue do GitHub com o mesmo número. O Bob executa uma Issue
 | --- | --- | --- | --- | --- | --- |
 | 62 | feat: cria o canal do associado na API | Bruno | `feature/62-canal-do-associado` | — | sex 13/11, 14h |
 | 41 | feat: explica o que pesou na nota | Bruno | `feature/41-explicabilidade` | — | sex 13/11, 19h |
-| 48 | fix: corrige a acessibilidade e a responsividade do site | Bruno | `feature/48-acessibilidade` | #63, #64 | sáb 14/11, 11h |
 | 63 | feat: cria o app do associado no site | Mariana | `feature/63-app-do-associado` | mocks; API da #62 | sex 13/11, 19h |
 | 64 | feat: mostra o perfil do associado no painel | Pedro Machado | `feature/64-perfil-do-associado` | — | sex 13/11, 19h |
 | 47 | feat: documenta a análise exploratória dos dados | Pedro Machado | `feature/47-analise-exploratoria` | — | sex 13/11, 19h |
@@ -49,7 +67,6 @@ Cada seção é uma Issue do GitHub com o mesmo número. O Bob executa uma Issue
 | 32 | docs: atualiza o README e propõe os textos de entrega | Lucas | `feature/32-readme-e-textos` | todas | sáb 14/11, 12h |
 | 65 | feat: redige a mensagem ao associado com o watsonx.ai | Pedro Muller | `feature/65-mensagem-pela-ia` | #62, watsonx.ai | sáb 14/11, 11h |
 | 46 | (execução) compara a auditoria por IA com o modelo | Pedro Muller | `feature/46-rodar-ia-contra-modelo` | watsonx.ai | sáb 14/11, 11h |
-| 66 | feat: cria o "Pergunte à IA sobre este caso" (extra) | Pedro Muller | `feature/66-pergunte-a-ia` | — | sáb 14/11, 11h |
 | 8 | chore: publica a versão de entrega, grava o vídeo e envia | Pedro Muller | `develop` → `main` | todas | sáb 14/11, 22h |
 
 ---
@@ -97,17 +114,6 @@ quando `src/associado/__init__.py` existe.
 
 **Aceite:** portão completo; numa transação bloqueada, o painel mostra contribuições positivas
 grandes.
-
-## #48 — fix: corrige a acessibilidade e a responsividade do site
-
-- **Antes do Bob:** Lighthouse (Accessibility) no Chrome em todas as páginas, zoom de 200% e
-  janela de 768 px; registre notas e problemas num comentário da Issue.
-- **Arquivos permitidos:** `web/**`, exceto `web/lib/tipos.ts` e `web/lib/api.ts`.
-
-**Passos:** um commit por problema registrado; refazer o Lighthouse e colocar as notas no PR.
-
-**Aceite:** Lighthouse Accessibility ≥ 90 em todas as páginas; nada cortado em 200% e 768 px;
-portão do site.
 
 ## #63 — feat: cria o app do associado no site
 
@@ -256,17 +262,6 @@ gerada (sem identificadores).
 O script já está em `develop`. Com o `.env` preenchido: `python -m src.avaliar_ia`; conferir que
 nenhuma auditoria caiu no modo local; commit só de `modelos/ia_contra_modelo.json`. A página
 Desempenho passa a mostrar a comparação.
-
-## #66 — feat: cria o "Pergunte à IA sobre este caso" (extra)
-
-ESPECIFICACAO, seção 16. Só depois da #65 e da #46.
-
-- **Arquivos permitidos:** `src/auditoria/perguntas.py` (novo), `src/api/app.py`,
-  `src/api/esquemas.py`, `tests/test_perguntas.py`, `web/components/painel/PergunteIA.tsx`
-  (novo), `web/components/painel/PainelTransacao.tsx`, `web/lib/tipos.ts`, `web/lib/api.ts`,
-  `web/lib/mocks/*`, bloco "Pergunte à IA" de `web/lib/textos.ts`.
-
-**Aceite:** portão completo e do site; conformidade da API sem pular o teste de perguntas.
 
 ## #8 — chore: publica a versão de entrega, grava o vídeo e envia
 
@@ -1017,3 +1012,156 @@ Trocar o armazenamento em memória por Postgres, sem mudar o domínio nem as rot
 
 **Fora desta Issue:** Autenticação real.
 
+---
+
+## #108 — feat: aplica a identidade visual da Sicredi no site atual
+
+**Dono:** Mariana · **Branch:** `feature/108-identidade-sicredi` (a partir de `develop`) · **Prazo:** dom 15/11, 12h
+
+Hoje o site tem a cara padrão do IBM Carbon (azul, cinza, IBM Plex). Esta Issue troca a aparência pela identidade da Sicredi sem mudar nenhuma tela nem comportamento: cores, fontes, logo no cabeçalho e cores dos gráficos. Fonte das regras: https://marca.sicredi.com.br (páginas Cores, Tipografia e Logo).
+
+- **Arquivos permitidos:** `web/app/layout.tsx` (fontes); `web/app/globals.scss` (bloco novo "Identidade Sicredi" logo depois de `@use "@carbon/react";` e troca das cores fixas azuis); `web/components/layout/Shell.tsx` (só o logo e o nome no cabeçalho); `web/components/comuns/FaixaDecisao.tsx`, `web/components/comuns/BarraNota.tsx`, `web/components/painel/GraficoContribuicoes.tsx`, `web/components/desempenho/ComparacaoSistemas.tsx` (só cores); `web/public/logo-sicredi.png` e `web/public/logo-sicredi-branco.png` (já estão no repositório; não altere).
+
+**Passos**
+
+1. Leia `web/AGENTS.md`: o Next.js 16 difere do que os modelos conhecem.
+2. Em `web/app/globals.scss`, logo depois de `@use "@carbon/react";`, crie o bloco `// --- Identidade Sicredi ---` com estas variáveis em `:root`: `--sicredi-verde: #3FA110`, `--sicredi-verde-acao: #33820D`, `--sicredi-verde-acao-hover: #26610A`, `--sicredi-verde-escuro: #146E37`, `--sicredi-verde-fundo: #ECF6E7`, `--sicredi-texto: #323C32`, `--sicredi-texto-apoio: #5A645A`, `--sicredi-amarelo: #FFCD00`, `--sicredi-magenta: #E60050`.
+3. No mesmo bloco, sobreponha os tokens do Carbon em `:root`: `--cds-interactive`, `--cds-button-primary`, `--cds-link-primary`, `--cds-focus`, `--cds-border-interactive` e `--cds-background-brand` recebem `var(--sicredi-verde-acao)`; `--cds-button-primary-hover` e `--cds-link-primary-hover` recebem `var(--sicredi-verde-acao-hover)`; `--cds-text-primary` recebe `var(--sicredi-texto)`; `--cds-text-secondary` recebe `var(--sicredi-texto-apoio)`.
+4. Ainda em `globals.scss`, troque os valores de reserva azuis (`#0f62fe`) pelas variáveis da Sicredi.
+5. Em `web/app/layout.tsx`, carregue com `next/font/google` a fonte `Nunito` (pesos 400, 600, 700 e 800) para o texto e `Exo_2` (pesos 600 e 700, estilos normal e itálico) para os títulos. Exponha as duas como variáveis CSS (`--fonte-texto` e `--fonte-titulo`) no `<body>`.
+6. Em `globals.scss`, aplique `font-family: var(--fonte-texto)` em `body` e nos componentes do Carbon (`.cds--content, .cds--header, .cds--side-nav, .cds--data-table, .cds--btn, .cds--label, .cds--tag`), e `font-family: var(--fonte-titulo); font-style: italic; font-weight: 700` em `h1` e `h2`.
+7. Em `Shell.tsx`, troque o texto "Sentinela" do cabeçalho por `<img src="/logo-sicredi.png" alt="Sicredi" height={28}>` seguido do texto "Sentinela". Não estique nem recolora o logo.
+8. Cores das decisões em todo o site: BLOQUEAR usa `--sicredi-magenta`, PEDIR_CONFIRMACAO usa `--sicredi-amarelo` (com texto escuro `#5A3C1E` em cima dele) e APROVAR usa `--sicredi-verde`. Ajuste `FaixaDecisao` e `BarraNota`.
+9. Barras dos gráficos (`GraficoContribuicoes` e `ComparacaoSistemas`): Sentinela em `--sicredi-verde`, sistema atual em `--sicredi-texto-apoio`, contribuições que aumentam o risco em `--sicredi-magenta` e as que diminuem em `--sicredi-verde`.
+10. Rode o site (`npm run dev`) e passe por todas as páginas procurando azul do Carbon que tenha sobrado (botões, links, abas, foco do teclado, caixas de seleção, barra de rolagem do controle deslizante).
+
+**Aceite:** Nenhum azul do Carbon em botão, link, foco, seleção ou gráfico, em nenhuma página. Botão primário com texto branco usa `#33820D` (o verde `#3FA110` com texto branco não tem contraste suficiente). Títulos em Exo 2 itálico e textos em Nunito. O PR tem prints de antes e depois da Fila, do Desempenho e do App do associado. Os testes do site continuam passando sem alteração.
+
+**Fora desta Issue:** Mudar layout, textos ou comportamento; responsividade (Issue #48).
+
+## #48 — fix: corrige a acessibilidade e a responsividade do site
+
+**Dono:** Lucas · **Branch:** `feature/48-acessibilidade` (a partir de `develop`) · **Prazo:** dom 15/11, 12h
+
+Em telas pequenas o site fica inutilizável: em 375 px o menu lateral fica sempre aberto, ocupa metade da tela e espreme o conteúdo (o título "Fila de alertas" quebra em três linhas e o App do associado fica cortado). Esta Issue faz o site funcionar em celular, tablet e com zoom de 200%, e corrige os problemas de acessibilidade.
+
+- **Arquivos permitidos:** `web/components/layout/Shell.tsx`; `web/app/globals.scss` (bloco novo `// --- Responsividade (Issue #48) ---` no fim do arquivo e ajustes nas regras de grade existentes); `web/components/**` (só atributos de acessibilidade: `aria-*`, `alt`, rótulos, ordem de foco); `web/tests/` (testes novos de acessibilidade).
+
+**Passos**
+
+1. Antes de mudar algo, rode o Lighthouse (aba Accessibility do Chrome) em cada página (`/`, `/desempenho`, `/como-funciona`, `/simulador`, `/respostas`, `/associado`) e abra também em 375 px, 768 px e com zoom de 200%. Registre as notas e os problemas num comentário desta Issue.
+2. Menu: em `Shell.tsx`, use o padrão do Carbon `HeaderMenuButton` + `SideNav` com `expanded` controlado por estado. Abaixo de 1056 px o menu começa fechado e abre pelo botão; ao escolher uma página, fecha. Acima de 1056 px fica como hoje.
+3. Fila e painel (`.sentinela-fila`): abaixo de 1056 px as duas colunas viram uma só, com o painel abaixo da tabela.
+4. Tabelas (fila, respostas, desempenho): envolva cada uma num contêiner com `overflow-x: auto`, para rolar de lado em vez de espremer as colunas.
+5. App do associado: abaixo de 480 px a moldura do celular some e o conteúdo ocupa a largura toda.
+6. Simulador: abaixo de 1056 px os controles e o resultado ficam um embaixo do outro.
+7. Acessibilidade: todo campo com rótulo visível; todo gráfico com texto alternativo que diga os números; estados (decisão, situação) não podem depender só da cor (precisam de texto ou ícone); foco visível em todos os elementos clicáveis.
+8. Faça um commit por problema corrigido.
+9. Refaça o Lighthouse e cole as notas novas na descrição do PR.
+
+**Aceite:** Lighthouse Accessibility ≥ 90 em todas as páginas. Nada cortado nem sobreposto em 375 px, 768 px e com zoom de 200%. Dá para usar o menu e responder a um aviso no App do associado só com o teclado. Os testes do site continuam passando.
+
+**Fora desta Issue:** Cores e fontes (Issue da identidade Sicredi).
+
+## #109 — feat: mostra quando o aviso ao associado foi redigido pelo IBM Granite
+
+**Dono:** Lucas · **Branch:** `feature/109-selo-granite` (a partir de `develop`) · **Prazo:** dom 15/11, 12h
+
+Desde a #65, a mensagem ao associado pode ser redigida pelo IBM Granite (watsonx.ai) ou vir do modelo fixo. A API já devolve isso no campo `fonte_mensagem` ("watsonx" ou "modelo"), mas o site não mostra. Esta Issue mostra a origem no App do associado e no painel da transação, o que também ajuda no vídeo.
+
+- **Arquivos permitidos:** `web/components/associado/ItemNotificacao.tsx`; `web/components/painel/PainelTransacao.tsx` (só o bloco "Associado"); `web/lib/textos.ts` (só os blocos "App do associado" e "Associado" do painel); `web/lib/mocks/index.ts` (um aviso com cada fonte); `web/tests/associado.test.tsx`.
+
+**Passos**
+
+1. Confira o campo `fonte_mensagem` em `web/lib/tipos.ts` (tipo `FonteMensagem`) e na ESPECIFICACAO, seção 15.
+2. Em `ItemNotificacao.tsx`, mostre abaixo da mensagem uma etiqueta discreta (`Tag` do Carbon, tamanho `sm`): "Redigida pelo IBM Granite" quando `fonte_mensagem` for "watsonx" e "Mensagem padrão" quando for "modelo". Os textos ficam em `textos.ts`.
+3. Lembre que a mensagem pode trocar depois de alguns segundos: o aviso nasce com o modelo fixo e o Granite melhora o texto em segundo plano. Se a lista de avisos já é atualizada de tempos em tempos, a etiqueta acompanha; se não é, acrescente uma atualização a cada 5 segundos enquanto houver aviso "aguardando" com `fonte_mensagem` "modelo", parando depois de 30 segundos.
+4. No bloco "Associado" do painel da transação, mostre a mesma etiqueta ao lado do status do aviso.
+5. Nos mocks, deixe um aviso com cada fonte.
+6. Testes: a etiqueta certa para cada fonte; a etiqueta muda quando o mock passa de "modelo" para "watsonx".
+
+**Aceite:** Com a API real e o `.env` ativo, um aviso novo aparece primeiro com "Mensagem padrão" e, em alguns segundos, com "Redigida pelo IBM Granite". Sem o `.env`, aparece só "Mensagem padrão" e nada quebra.
+
+**Fora desta Issue:** Mudar a API ou o texto da mensagem.
+
+## #110 — feat: adiciona cenários prontos ao simulador "e se"
+
+**Dono:** Pedro Machado · **Branch:** `feature/110-cenarios-simulador` (a partir de `develop`) · **Prazo:** dom 15/11, 12h
+
+Hoje, para ver o Sentinela bloquear ou pedir confirmação no simulador, é preciso mexer em vários campos. Esta Issue cria três botões de cenário que preenchem tudo de uma vez, o que deixa a demonstração (e o vídeo) rápida e previsível.
+
+- **Arquivos permitidos:** `web/components/simulador/ControlesSimulador.tsx`, `web/components/simulador/SimuladorTransacao.tsx`; `web/lib/simulacao.ts` (valores de cada cenário); `web/lib/textos.ts` (só o bloco do simulador); `web/tests/simulador.test.tsx`.
+
+**Passos**
+
+1. Leia `web/lib/simulacao.ts` e `ControlesSimulador.tsx` para entender os campos (valor, velocidades, hora, risco do estabelecimento, IP, cartão presente etc.).
+2. Em `web/lib/simulacao.ts`, crie a constante `CENARIOS` com três itens, cada um com um nome, uma frase curta e o valor de **todos** os campos do simulador: "Compra comum" (tarde, valor baixo, cartão presente, IP conhecido, sem rajada); "Madrugada no exterior" (3h da manhã, sem cartão presente, IP de país desconhecido, valor médio, sem rajada); "Rajada de compras" (madrugada, várias transações no último minuto e na última hora, sem cartão presente).
+3. Em cima dos controles, mostre os três cenários como botões (`Button` do Carbon, `kind="tertiary"`, tamanho `sm`), com a frase como dica. Ao clicar, todos os campos recebem os valores do cenário e a análise roda de novo, como acontece hoje ao mudar um campo.
+4. Mantenha o botão (ou ação) que volta aos valores da transação original da fila.
+5. Ajuste os valores rodando com a API real até que: "Compra comum" dê APROVAR, "Madrugada no exterior" dê PEDIR_CONFIRMACAO ou BLOQUEAR, e "Rajada de compras" dê BLOQUEAR.
+6. Testes: cada botão preenche os campos com os valores de `CENARIOS`; os três botões têm nome acessível.
+
+**Aceite:** Com a API real, os três cenários dão as decisões descritas no passo 5. Os cenários funcionam também com `NEXT_PUBLIC_USAR_MOCK=1`.
+
+**Fora desta Issue:** Mudar o modelo, os limiares ou a API.
+
+## #111 — docs: atualiza a arquitetura e os requisitos com o estado final
+
+**Dono:** Pedro Machado · **Branch:** `feature/111-docs-estado-final` (a partir de `develop`) · **Prazo:** dom 15/11, 12h
+
+A arquitetura e o mapa de requisitos foram escritos antes das últimas entregas (mensagem pelo Granite na #65, comparação IA × modelo na #46, privacidade na #67). Esta Issue confere cada afirmação contra o código e os JSONs de `modelos/` e atualiza os dois documentos, que os avaliadores vão ler.
+
+- **Arquivos permitidos:** `docs/arquitetura.md`; `docs/requisitos.md`.
+
+**Passos**
+
+1. Leia o `README.md`, a `ESPECIFICACAO.md` (seções 12 a 15) e `docs/privacidade.md`: eles já estão atualizados e são a referência.
+2. Em `docs/arquitetura.md`: confira que o diagrama mostra o site, a API, o núcleo, a auditoria e o canal do associado, e que o canal também chama o watsonx.ai (mensagem pelo Granite, em segundo plano). Descreva o fluxo de uma compra suspeita do começo ao fim: decisão na hora → aviso ao associado (modelo fixo e, depois, o texto do Granite se passar nas regras) → auditoria em paralelo → resposta do associado → painel do analista.
+3. Em `docs/requisitos.md`: para cada item do desafio, uma linha com "como atendemos" e "onde está" (arquivo ou página do site). Inclua a comparação IA × modelo (`modelos/ia_contra_modelo.json`: 254 compras, recall de 100% nos dois, precisão de 96,4% contra 44,3%) e a mensagem pelo Granite.
+4. Todo número citado tem de sair de um arquivo do repositório (`modelos/*.json` ou a saída de `python -m src.avaliar_agente`). Não invente nem arredonde diferente do README.
+5. Procure menções a Streamlit e Ollama: fora de `docs/decisoes.md` (que guarda o histórico das decisões) elas não podem existir nestes dois arquivos.
+6. Escreva em português simples, frases curtas, sem jargão sem explicação.
+
+**Aceite:** Todos os números batem com o README e com `modelos/*.json`. Nenhuma menção a Streamlit ou Ollama nos dois arquivos. O portão Python continua verde (nenhum código foi alterado).
+
+**Fora desta Issue:** Alterar o README, a ESPECIFICACAO ou qualquer código.
+
+## #112 — fix: mostra a latência em segundos e padroniza os números do Desempenho
+
+**Dono:** Mariana · **Branch:** `feature/112-numeros-desempenho` (a partir de `develop`) · **Prazo:** dom 15/11, 12h
+
+Na página Desempenho, a tabela "Modelo e IA lado a lado" mostra o tempo da IA como "6.061,7 ms", que é difícil de ler e esconde a comparação principal (milissegundos contra segundos). Esta Issue padroniza os números da página.
+
+- **Arquivos permitidos:** `web/components/desempenho/SecaoIaContraModelo.tsx`; `web/components/desempenho/IndicadoresDesempenho.tsx`, `web/components/desempenho/SecaoCustos.tsx` (só formatação); `web/lib/formatacao.ts` (função nova); `web/tests/formatacao.test.ts`, `web/tests/desempenho.test.tsx`.
+
+**Passos**
+
+1. Em `web/lib/formatacao.ts`, crie `formatarDuracao(ms: number): string`: abaixo de 1.000 ms mostra em milissegundos com uma casa ("5,0 ms"); de 1.000 ms para cima, em segundos com uma casa ("6,1 s").
+2. Em `SecaoIaContraModelo.tsx`, use `formatarDuracao` nas linhas de tempo e acrescente, abaixo da tabela, uma frase com a razão entre os tempos medianos ("A IA levou cerca de 1.200 vezes mais que o modelo"), calculada a partir dos dados, não escrita à mão.
+3. Confira os outros números da página: porcentagens com uma casa e vírgula, valores em reais com `R$` e duas casas, contagens com ponto de milhar. Use sempre as funções de `formatacao.ts`.
+4. Testes de `formatarDuracao` (999, 1.000, 6.061,7) e um teste da página com o texto "6,1 s".
+
+**Aceite:** A tabela mostra "5,0 ms" para o modelo e "6,1 s" para a IA (dados atuais). Os números da página continuam iguais aos do README.
+
+**Fora desta Issue:** Mudar o layout da página ou os dados da API.
+
+## #66 — feat: cria o "Pergunte à IA sobre este caso" (extra)
+
+**Dono:** Pedro Machado · **Branch:** `feature/66-pergunte-a-ia` (a partir de `develop`) · **Prazo:** dom 15/11, 12h
+
+Extra, só depois das outras duas Issues do Pedro Machado. O analista faz uma pergunta livre sobre a transação aberta no painel e o IBM Granite responde usando as mesmas 5 ferramentas da auditoria. O contrato já está fechado na ESPECIFICACAO, seção 16, e o teste de conformidade já existe (hoje pulado).
+
+- **Arquivos permitidos:** `src/auditoria/perguntas.py` (novo); `src/api/app.py` (só a rota nova) e `src/api/esquemas.py` (esquemas novos); `web/components/painel/PergunteIA.tsx` (novo) e `web/components/painel/PainelTransacao.tsx` (só para incluir o componente); `web/lib/api.ts`, `web/lib/tipos.ts`, `web/lib/mocks/index.ts`, `web/lib/textos.ts` (só o que for desta Issue); `tests/test_perguntas.py` (novo), `web/tests/pergunte.test.tsx` (novo).
+
+**Passos**
+
+1. Leia a ESPECIFICACAO, seção 16, e o teste pulado em `tests/test_conformidade_api.py` (procure por "perguntas"). **Não altere o teste de conformidade**: ele é a régua.
+2. Em `src/auditoria/perguntas.py`, reaproveite `src/auditoria/watsonx.py` (`_chamar_chat`, as ferramentas de `ferramentas.py`) e o modo local de `local.py`. Com credenciais, o Granite responde à pergunta usando as ferramentas; sem credenciais, a resposta lista o resumo de cada ferramenta e diz que a IA está indisponível.
+3. Crie a rota `POST /api/transacoes/{id_transacao}/perguntas` exatamente como a seção 16: pergunta de 1 a 300 caracteres (senão 422), transação fora da fila dá 404, resposta com `resposta`, `ferramentas_usadas`, `fonte` e `latencia_ms`.
+4. A resposta nunca pode trazer identificador (cartão, cliente, estabelecimento), rótulo nem a decisão do sistema atual. Escreva um teste para isso.
+5. No painel da transação, abaixo do relatório da IA, crie o bloco "Pergunte à IA sobre este caso": campo de texto, botão "Perguntar", indicador de carregamento (a resposta leva alguns segundos), a resposta, as ferramentas usadas e a fonte.
+6. O teste de conformidade deixa de ser pulado sozinho quando a rota existe: rode `python -m pytest tests/test_conformidade_api.py -q -rs` e confira que ele **passa** (não aparece mais como pulado).
+
+**Aceite:** O teste de conformidade das perguntas passa. Com o `.env`, uma pergunta real é respondida pelo watsonx.ai; sem ele, pelo modo local. Os dois portões (Python e site) estão verdes e `python -m src.avaliar_agente` mostra os mesmos números.
+
+**Fora desta Issue:** Mudar a auditoria existente ou o modelo.

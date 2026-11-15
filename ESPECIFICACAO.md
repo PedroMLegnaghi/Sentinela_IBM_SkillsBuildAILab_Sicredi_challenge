@@ -510,9 +510,16 @@ relatório para o analista, ao lado da decisão.
 
 ## 14. Site: `web/` (ADR-011 e ADR-014)
 
-- Next.js (App Router) com TypeScript estrito e o Carbon Design System da IBM (`@carbon/react`),
-  em `web/`. Rotas: `/` (Fila de alertas), `/desempenho`, `/como-funciona`, `/simulador`,
-  `/respostas`.
+- Next.js (App Router) com TypeScript estrito e o Carbon Design System da IBM (`@carbon/react`)
+  com a identidade visual da Sicredi (`web/styles/sicredi.scss`: verde `#3FA110`, botões
+  `#33820D`, Exo 2 e Nunito), em `web/`. Rotas (seção 17):
+  - `/` leva a `/entrar`, o login simulado com todos os perfis.
+  - Associado (celular): `/associado` (início), `/associado/extrato`, `/associado/comprar`
+    (simular compra), `/associado/avisos/[id]` ("Foi você?"), `/associado/compras/[id]`
+    (detalhe e "Não reconheço esta compra") e `/associado/chat`.
+  - Filial (desktop): `/filial/fila` (auditor e gerente), `/filial/painel` (gerente),
+    `/filial/desempenho` e `/filial/como-funciona`.
+  - Matriz (desktop): `/matriz`, mais Desempenho e Como funciona.
 - Textos de tela em `web/lib/textos.ts`; formatação pt-BR em `web/lib/formatacao.ts` (moeda
   "R$ 1.234,50", nota "97,3", percentual "48,1%", data "03/03/2025 00:17", vazio → "—"); tipos
   em `web/lib/tipos.ts`, espelho exato da seção 12; cliente em `web/lib/api.ts`, com a URL de

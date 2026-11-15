@@ -276,6 +276,15 @@ class FraudesAprovadasSchema(BaseModel):
     itens: list[FraudeAprovadaSchema]
 
 
+class BloqueiosDoAuditorSchema(BaseModel):
+    """Bloqueios de um auditor e quantos o associado confirmou ou desfez."""
+
+    auditor: str
+    bloqueios: int
+    corretos: int
+    liberados_depois: int
+
+
 class MetricasFilialSchema(BaseModel):
     """Saída de ``GET /api/filial/metricas``."""
 
@@ -286,3 +295,4 @@ class MetricasFilialSchema(BaseModel):
     acerto_modelo: AcertoModeloSchema
     fraudes_aprovadas: FraudesAprovadasSchema
     tempo_resposta_mediano_s: float | None
+    bloqueios_por_auditor: list[BloqueiosDoAuditorSchema]

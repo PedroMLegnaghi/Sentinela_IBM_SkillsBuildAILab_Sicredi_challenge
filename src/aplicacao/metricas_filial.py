@@ -137,6 +137,36 @@ def _fraudes_aprovadas(repos: Repositorios, id_filial: str) -> dict[str, Any]:
     return {"total": len(itens), "itens": itens}
 
 
+def _bloqueios_por_auditor(
+    repos: Repositorios, id_filial: str, compras: list[Compra]
+) -> list[dict[str, Any]]:
+    """Um item por auditor da filial: bloqueios, corretos ("não fui eu") e liberados ("fui eu").
+
+    Auditor que ainda não bloqueou aparece com zeros (seção 17.5).
+    """
+    contagens = {
+        perfil.id_perfil: {
+            "auditor": perfil.nome,
+            "bloqueios": 0,
+            "corretos": 0,
+            "liberados_depois": 0,
+        }
+        for perfil in repos.perfis.listar()
+        if perfil.papel == "auditor" and perfil.id_filial == id_filial
+    }
+    for compra in compras:
+        bloqueio = compra.bloqueio
+        if bloqueio is None or bloqueio.id_auditor not in contagens:
+            continue
+        linha = contagens[bloqueio.id_auditor]
+        linha["bloqueios"] += 1
+        if bloqueio.correto is True:
+            linha["corretos"] += 1
+        elif bloqueio.correto is False:
+            linha["liberados_depois"] += 1
+    return list(contagens.values())
+
+
 def calcular_metricas(
     repos: Repositorios,
     id_filial: str,
@@ -180,4 +210,5 @@ def calcular_metricas(
         "acerto_modelo": acerto,
         "fraudes_aprovadas": _fraudes_aprovadas(repos, id_filial),
         "tempo_resposta_mediano_s": tempo,
+        "bloqueios_por_auditor": _bloqueios_por_auditor(repos, id_filial, compras),
     }

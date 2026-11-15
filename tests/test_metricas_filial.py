@@ -267,3 +267,65 @@ def test_as_duas_filiais_somadas_dao_os_numeros_da_secao_11():
         for campo in ("aprovadas", "confirmacoes", "bloqueadas")
     ]
     assert soma == [13395, 159, 54]
+
+
+# --- Bloqueios por auditor (Issue #104) -------------------------------------------------------
+
+
+def _compra_bloqueada_pelo_auditor(cliente, id_auditor: str = "aud-01") -> dict:
+    cabecalho = _cabecalho(cliente, "asc-01")
+    compra = cliente.post(
+        "/api/associado/compras", json={"cartao": "car-01-c", **SUSPEITA}, headers=cabecalho
+    ).json()["compra"]
+    cliente.post(
+        f"/api/filial/compras/{compra['id_compra']}/bloqueio",
+        json={"nota": None},
+        headers=_cabecalho(cliente, id_auditor),
+    )
+    return compra
+
+
+def _por_auditor(cliente) -> dict[str, dict]:
+    return {linha["auditor"]: linha for linha in _metricas(cliente)["bloqueios_por_auditor"]}
+
+
+def test_cada_auditor_da_filial_aparece_com_zeros_antes_de_bloquear(cliente, ambiente):
+    linhas = _por_auditor(cliente)
+
+    assert set(linhas) == {"Rafael Moura", "Júlia Prates"}
+    assert linhas["Rafael Moura"] == {
+        "auditor": "Rafael Moura",
+        "bloqueios": 0,
+        "corretos": 0,
+        "liberados_depois": 0,
+    }
+
+
+def test_nao_fui_eu_conta_o_bloqueio_como_correto(cliente, ambiente):
+    compra = _compra_bloqueada_pelo_auditor(cliente)
+
+    cliente.post(f"/api/notificacoes/{compra['id_notificacao']}/resposta", json={"resposta": "nao"})
+    rafael = _por_auditor(cliente)["Rafael Moura"]
+
+    assert (rafael["bloqueios"], rafael["corretos"], rafael["liberados_depois"]) == (1, 1, 0)
+
+
+def test_fui_eu_conta_o_bloqueio_como_liberado_depois(cliente, ambiente):
+    compra = _compra_bloqueada_pelo_auditor(cliente, "aud-02")
+
+    cliente.post(f"/api/notificacoes/{compra['id_notificacao']}/resposta", json={"resposta": "sim"})
+    linhas = _por_auditor(cliente)
+
+    assert (linhas["Júlia Prates"]["bloqueios"], linhas["Júlia Prates"]["liberados_depois"]) == (
+        1,
+        1,
+    )
+    assert linhas["Rafael Moura"]["bloqueios"] == 0
+
+
+def test_bloqueio_sem_resposta_conta_so_no_total(cliente, ambiente):
+    _compra_bloqueada_pelo_auditor(cliente)
+
+    rafael = _por_auditor(cliente)["Rafael Moura"]
+
+    assert (rafael["bloqueios"], rafael["corretos"], rafael["liberados_depois"]) == (1, 0, 0)

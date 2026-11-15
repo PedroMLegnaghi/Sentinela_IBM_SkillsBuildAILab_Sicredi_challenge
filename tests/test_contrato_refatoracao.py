@@ -376,6 +376,7 @@ def test_metricas_da_filial(cliente):
         "acerto_modelo",
         "fraudes_aprovadas",
         "tempo_resposta_mediano_s",
+        "bloqueios_por_auditor",  # seção 17.5 (Issue #104)
     }
     totais = corpo["totais"]
     assert totais["aprovadas"] + totais["confirmacoes"] + totais["bloqueadas"] == totais["compras"]

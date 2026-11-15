@@ -137,37 +137,55 @@ as respostas do chat.
 ### 2.1 Contêineres
 
 ```mermaid
-graph TB
-    USU["Associado, auditor, gerente e matriz<br/>navegador"]
-    AUT["Autorizador de cartões<br/>simulado pela API"]
+flowchart TB
+    subgraph Pessoas["Quem usa, pelo navegador"]
+        ASS["👤 Associado"]
+        AUD["🔎 Auditor"]
+        GER["📊 Gerente"]
+        MAT["🏢 Matriz"]
+    end
+    AUT["💳 Autorizador de cartões<br/>simulado"]
 
-    subgraph Sentinela["Sentinela (localhost)"]
-        SITE["Site · Next.js + React · web/<br/>/entrar · /associado · /filial · /matriz"]
-        API["API · FastAPI · src/api/<br/>sessão, rotas do associado, da filial e da matriz,<br/>decisão, auditoria, notificações"]
-        APL["Aplicação e domínio<br/>src/aplicacao/ · src/dominio/"]
-        POR["Portas · src/portas/"]
-        MEM["Adaptadores · src/adaptadores/<br/>memória e arquivo de rótulos"]
-        NUC["Núcleo de decisão<br/>src/agente.py · explicabilidade.py"]
-        AUDI["Auditoria · src/auditoria/<br/>5 ferramentas · modo local"]
-        CAN["Canal do associado · src/associado/<br/>avisos · mensagem · chat"]
-        ARQ[("data/ · modelos/")]
+    subgraph Local["💻 Na máquina (localhost)"]
+        SITE["🖥️ Site · web/<br/>Next.js · porta 3000"]
+        API["⚙️ API · src/api/<br/>FastAPI · porta 8000"]
+        subgraph Compra["A cada compra"]
+            NUC["⚡ Decisão na hora<br/>src/agente.py"]
+            AUDI["🤖 Auditoria da IA<br/>src/auditoria/"]
+            CAN["📱 Aviso e chat<br/>src/associado/"]
+        end
+        REG["📋 Regras das áreas<br/>src/aplicacao/<br/>src/dominio/"]
+        subgraph Dados["Dados"]
+            MOD[("modelos/<br/>modelo treinado")]
+            MEM[("memória<br/>compras, cartões<br/>e avisos")]
+            ROT[("data/<br/>rótulos para<br/>retreino")]
+        end
     end
 
-    WX["☁️ IBM watsonx.ai<br/>Granite ibm/granite-4-h-small"]
+    WX["☁️ IBM watsonx.ai<br/>Granite"]
 
-    USU -->|"localhost:3000"| SITE
-    SITE -->|"HTTP + X-Sessao<br/>localhost:8000"| API
+    ASS & AUD & GER & MAT --> SITE
+    SITE -->|"HTTP + X-Sessao"| API
     AUT -->|"POST /api/analisar"| API
-    API --> APL --> POR
-    MEM -.->|implementa| POR
-    API --> NUC
-    API -->|em paralelo| AUDI
-    API --> CAN
-    AUDI -->|"chat com ferramentas,<br/>sem identificadores"| WX
-    CAN -->|"redige o aviso<br/>e responde no chat"| WX
-    NUC --> ARQ
-    MEM --> ARQ
+    API --> NUC & AUDI & CAN
+    API --> REG
+    NUC -->|lê| MOD
+    REG -->|guarda| MEM
+    REG -->|acrescenta| ROT
+    AUDI -->|"sem identificadores"| WX
+    CAN -->|"sem identificadores"| WX
 ```
+
+Leia de cima para baixo:
+
+1. As quatro pessoas usam o **site**, e o site só fala com a **API**. O autorizador de cartões
+   simulado também manda compras direto para a API.
+2. A cada compra, a API **decide na hora** com o modelo treinado. Em paralelo, pede a
+   **auditoria da IA** e o **aviso ao associado**, que o Granite redige no watsonx.ai. Sem
+   credenciais, a auditoria roda no modo local e o aviso usa o modelo fixo.
+3. As **regras das áreas** (associado, filial e matriz) guardam compras, cartões e avisos em
+   memória, carregados de `data/` quando a API inicia, e acrescentam cada resposta do associado
+   aos rótulos para retreino. Essas regras não sabem onde os dados ficam (seção 2.2).
 
 ### 2.2 Portas e adaptadores (as regras não dependem do armazenamento)
 

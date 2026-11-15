@@ -448,7 +448,7 @@
     },
     {
       "coluna": "decision",
-      "motivo": "Decisão do sistema atual (approve/deny); só é carregada para comparação, nunca como entrada do modelo."
+      "motivo": "Campo sintético approve/deny, não documentado como decisão de um sistema real; todo deny é fraude (vazamento). Nunca é entrada do modelo."
     },
     {
       "coluna": "transaction_status",

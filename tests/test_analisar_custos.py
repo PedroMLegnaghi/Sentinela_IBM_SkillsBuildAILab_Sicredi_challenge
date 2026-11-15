@@ -86,26 +86,21 @@ def test_custo_confirmacoes_e_produto_unitario():
     assert abs(resultado["sentinela"]["custo_confirmacoes"] - esperado) < 0.001
 
 
-def test_sistema_atual_fraudes_bloqueadas_correto():
-    """Sistema atual conta apenas as transações com decisao_sistema_atual == 'deny'."""
-    df = _df_custos()
-    resultado = calcular_custos(df, CUSTO_PEDIDO_CONFIRMACAO)
+def test_nao_compara_com_a_coluna_decision():
+    """A coluna decision da base não é documentada como sistema real: não entra no resultado."""
+    resultado = calcular_custos(_df_custos(), CUSTO_PEDIDO_CONFIRMACAO)
 
-    assert resultado["sistema_atual"]["fraudes_bloqueadas"] == 10
+    assert "sistema_atual" not in resultado
+    assert "comparacao" not in resultado
 
 
-def test_prejuizo_evitado_e_diferenca():
-    """Prejuízo evitado é a diferença de valor bloqueado menos custo de confirmações."""
-    df = _df_custos()
-    custo_unit = 1.0
-    resultado = calcular_custos(df, custo_unit)
+def test_valor_liquido_protegido_desconta_as_confirmacoes():
+    """Valor líquido = valor das fraudes bloqueadas menos o custo das confirmações."""
+    resultado = calcular_custos(_df_custos(), 1.0)
 
     s = resultado["sentinela"]
-    sa = resultado["sistema_atual"]
-    esperado = round(
-        s["valor_fraudes_bloqueadas"] - sa["valor_fraudes_bloqueadas"] - s["custo_confirmacoes"], 2
-    )
-    assert abs(resultado["comparacao"]["prejuizo_evitado_sentinela_vs_atual"] - esperado) < 0.01
+    esperado = round(s["valor_fraudes_bloqueadas"] - s["custo_confirmacoes"], 2)
+    assert abs(resultado["valor_liquido_protegido"] - esperado) < 0.01
 
 
 def test_curva_custo_tem_21_pontos():

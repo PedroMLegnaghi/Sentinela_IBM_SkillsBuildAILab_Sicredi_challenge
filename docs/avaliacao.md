@@ -117,26 +117,25 @@ A taxa prevista é a média da nota das compras de cada faixa; a última faixa i
 
 ## 6. Análise de custos (março)
 
-A análise de custo compara o Sentinela com o sistema atual considerando o valor das
-fraudes interceptadas e o custo operacional dos pedidos de confirmação.
+A análise de custo mostra quanto vale o que o Sentinela barrou e quanto custa incomodar o
+associado com os pedidos de confirmação (`python -m src.analisar_custos`, `modelos/custos.json`).
 
 **Custo unitário de confirmação assumido:** R$ 1,00
 
-| Métrica | Sentinela | Sistema atual |
-|---|---|---|
-| Fraudes bloqueadas | 54 | 26 |
-| Valor das fraudes bloqueadas (R$) | 13.490,70 | 6.836,54 |
-| Fraudes não bloqueadas | 0 | 28 |
-| Valor das fraudes não bloqueadas (R$) | 0,00 | 6.654,16 |
-| Confirmações solicitadas | 159 | — |
-| Custo das confirmações (R$) | 159,00 | — |
+| Métrica | Sentinela |
+|---|---|
+| Fraudes bloqueadas | 54 de 54 |
+| Valor das fraudes bloqueadas (R$) | 13.490,70 |
+| Fraudes não bloqueadas | 0 |
+| Confirmações solicitadas | 159 |
+| Custo das confirmações (R$) | 159,00 |
+| **Valor líquido protegido (R$)** | **13.331,70** |
 
-**Prejuízo evitado (Sentinela − sistema atual, descontado custo de confirmações):** R$ 6.495,16
-
-> O Sentinela intercepta as 54 fraudes de março (R$ 13.490,70), enquanto o sistema atual
-> bloqueou apenas 26 (R$ 6.836,54), deixando 28 fraudes (R$ 6.654,16) passarem. Com custo
-> de confirmação de R$ 1,00 por pedido e apenas 159 confirmações, o prejuízo evitado é de
-> R$ 6.495,16 — mais do que justificando o custo operacional das confirmações.
+> Não comparamos com a coluna `decision` da base. O dicionário da Sicredi a descreve só como
+> "campo sintético inspirado no nome técnico decision", sem dizer que é a decisão de um sistema
+> real, e ela nunca recusa uma compra legítima (os 77 "deny" da base são todos fraude), o que
+> indica vazamento. Os números acima também são otimistas: o modelo treinou com só 92 fraudes e
+> a base sintética é muito separável.
 
 ---
 

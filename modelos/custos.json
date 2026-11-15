@@ -9,16 +9,7 @@
     "custo_confirmacoes": 159.0,
     "valores_vazios": 65
   },
-  "sistema_atual": {
-    "fraudes_bloqueadas": 26,
-    "valor_fraudes_bloqueadas": 6836.54,
-    "fraudes_nao_bloqueadas": 28,
-    "valor_fraudes_nao_bloqueadas": 6654.16
-  },
-  "comparacao": {
-    "prejuizo_evitado_sentinela_vs_atual": 6495.16,
-    "custo_confirmacoes": 159.0
-  },
+  "valor_liquido_protegido": 13331.7,
   "curva_custo": [
     {
       "corte": 0,

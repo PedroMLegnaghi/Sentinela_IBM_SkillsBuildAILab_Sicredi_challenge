@@ -130,11 +130,14 @@ demora enquanto o modelo carrega.
 
 ## Contexto
 A base tem colunas que entregam a resposta ou só existem depois da decisão: scores de fraude
-prontos, a decisão do sistema atual, campos de disputa e uma coluna `fraud` que não é o rótulo.
+prontos, a coluna `decision` (approve/deny), campos de disputa e uma coluna `fraud` que não é o
+rótulo.
 
 ## Decisão
 Essas colunas nunca entram no modelo nem nas regras (lista na ESPECIFICACAO, seção 5).
-`decision` é carregada só para comparar com o sistema atual.
+`decision` é carregada só para conferir invariantes antigas. Até 15/11 ela era apresentada como
+"sistema atual"; deixou de ser: o dicionário da Sicredi não a documenta como a decisão de um
+sistema real, e ela nunca recusa compra legítima (vazamento). Não é usada como comparação.
 
 ## Alternativas rejeitadas
 - **Usar `fraud_score`:** o modelo apenas copiaria o sistema existente, e o score pode não estar

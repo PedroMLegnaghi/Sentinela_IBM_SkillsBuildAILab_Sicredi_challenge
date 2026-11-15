@@ -80,7 +80,7 @@ Carregar SOMENTE estas 16 colunas (parâmetro usecols), nunca o arquivo inteiro:
 | cp_card_prev_term_dist_1h | decimal (km) | cerca de 8% vazio |
 | acceptor_risk | número | cerca de 8% vazio |
 | mcc | número | cerca de 1% vazio |
-| decision | texto | "approve", "deny" ou vazio (8%); decisão do sistema atual |
+| decision | texto | "approve", "deny" ou vazio (8%); campo sintético, não documentado como decisão de um sistema real (todo "deny" é fraude) |
 | feedback_label | booleano | True = fraude. É O RÓTULO. |
 
 ## 5. Colunas proibidas (vazamento de informação)
@@ -92,8 +92,10 @@ entrada do modelo nem das regras:
 `dispute_`, `fdz_` ou `oob_`.
 
 Atenção: a coluna `fraud` NÃO é o rótulo (ela está errada em quase todas as linhas).
-O rótulo é `feedback_label`. A coluna `decision` é carregada apenas para comparar o
-Sentinela com o sistema atual, nunca como entrada.
+O rótulo é `feedback_label`. A coluna `decision` é carregada só para conferir as invariantes da
+seção 11, nunca como entrada nem como argumento de comparação: a Sicredi não a documenta como a
+decisão de um sistema real (os nomes `decisao_sistema_atual` e `sistema_atual` ficam por
+compatibilidade com os testes de conformidade).
 
 ## 6. Dados preparados: `data/transacoes_preparadas.parquet`
 
@@ -378,7 +380,8 @@ Etapa 2 (modelo):
 - PR-AUC e ROC-AUC iguais ou acima de 0,99 (os dados são sintéticos e fáceis de separar;
   valores perto de 1,0 são esperados).
 - Nos cortes 30, 50 e 70: 54 alertas e 54 fraudes detectadas (precisão 1,0 e recall 1,0).
-- Sistema atual no teste: 26 bloqueadas, as 26 são fraude (28 fraudes não bloqueadas).
+- Coluna `decision` no teste (`sistema_atual` no JSON): 26 "deny", os 26 são fraude (28 fraudes
+  sem "deny"). Só invariante; não é comparação.
 - Os três coeficientes mais fortes são de dist_terminal_anterior_km,
   qtd_transacoes_cartao_1min e vel_cartao_terminal_1h (em qualquer ordem).
 
@@ -387,7 +390,7 @@ Etapa 3 (agente):
   LEGITIMA, perto de 0.
 - avaliar_agente (março de 2025): 13.608 transações e 54 fraudes; Sentinela com 54
   bloqueadas (54 fraudes), 159 pedidos de confirmação (0 fraudes) e 13.395 aprovadas
-  (0 fraudes). Sistema atual: 26 fraudes bloqueadas e 28 não bloqueadas.
+  (0 fraudes). Coluna `decision` (`sistema_atual` no JSON): 26 "deny", todos fraude.
   Uma diferença pequena (poucas unidades) em confirmações é aceitável; em fraudes, não.
 
 Interface e entrega: critérios de cada Issue em `docs/backlog.md`. A fila tem 2.054
@@ -581,7 +584,7 @@ verdade; o "App do associado" do site faz o papel do celular.
   (seção 13), com os mesmos limites de iterações e tempo, e só afirma o que as ferramentas
   mostraram. Sem credenciais (modo local), a resposta lista o resumo de cada ferramenta e diz
   que a IA está indisponível.
-- A resposta nunca traz identificador, rótulo ou decisão do sistema atual.
+- A resposta nunca traz identificador, rótulo ou a coluna `decision`.
 
 ## 17. Associado e filial (refatoração; Issues #90 a #101)
 

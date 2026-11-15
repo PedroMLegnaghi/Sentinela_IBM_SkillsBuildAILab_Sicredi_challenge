@@ -138,7 +138,7 @@ as respostas do chat.
 
 ```mermaid
 flowchart TB
-    PES["👤 Associado · 🔎 Auditor<br/>📊 Gerente · 🏢 Matriz<br/>pelo navegador"]
+    PES["Pelo navegador:<br/>👤 Associado<br/>🔎 Auditor<br/>📊 Gerente<br/>🏢 Matriz"]
     AUT["💳 Autorizador de cartões<br/>simulado"]
 
     subgraph Local["💻 Na máquina (localhost)"]

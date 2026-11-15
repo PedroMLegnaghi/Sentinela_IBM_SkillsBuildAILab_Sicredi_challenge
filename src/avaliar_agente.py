@@ -8,18 +8,26 @@ import json
 import pandas as pd
 
 from src.agente import AgenteSentinela
-from src.config import CAMINHO_AVALIACAO, CAMINHO_PREPARADO
+from src.config import CAMINHO_AVALIACAO, CAMINHO_PREPARADO, FIM_TESTE, INICIO_TESTE
 
 
 def avaliar():
-    """Roda analisar_lote no teste de março e salva avaliacao_agente.json."""
+    """Roda analisar_lote no teste de março e salva avaliacao_agente.json.
+
+    Filtra o período de teste (``INICIO_TESTE`` a ``FIM_TESTE``), executa
+    ``analisar_lote`` e persiste ``avaliacao_agente.json``.
+
+    Returns:
+        Dicionário com as métricas no formato da seção 8.6 da especificação.
+
+    Raises:
+        FileNotFoundError: Se ``CAMINHO_PREPARADO`` ou ``CAMINHO_MODELO``
+            não existirem.
+    """
     print("Carregando dados preparados...")
     df = pd.read_parquet(CAMINHO_PREPARADO)
 
-    # Filtro de teste: março de 2025 (igual à seção 7)
-    teste = df[
-        (df["data_hora"] >= "2025-03-01") & (df["data_hora"] < "2025-04-01")
-    ].copy()
+    teste = df[(df["data_hora"] >= INICIO_TESTE) & (df["data_hora"] < FIM_TESTE)].copy()
     print(f"  Transações em março: {len(teste):,}")
 
     print("Carregando agente...")
@@ -32,14 +40,16 @@ def avaliar():
     bloqueadas = int((resultado["decisao"] == "BLOQUEAR").sum())
     fraudes_bloqueadas = int(resultado.loc[resultado["decisao"] == "BLOQUEAR", "fraude"].sum())
     confirmacoes = int((resultado["decisao"] == "PEDIR_CONFIRMACAO").sum())
-    fraudes_em_confirmacao = int(resultado.loc[resultado["decisao"] == "PEDIR_CONFIRMACAO", "fraude"].sum())
+    fraudes_em_confirmacao = int(
+        resultado.loc[resultado["decisao"] == "PEDIR_CONFIRMACAO", "fraude"].sum()
+    )
     aprovadas = int((resultado["decisao"] == "APROVAR").sum())
     fraudes_aprovadas = int(resultado.loc[resultado["decisao"] == "APROVAR", "fraude"].sum())
 
     fraudes_total = int(teste["fraude"].sum())
     transacoes = len(teste)
 
-    # Métricas do sistema atual
+    # Coluna "decision" da base (chamada de sistema_atual no JSON; ver ESPECIFICACAO, seção 4)
     bloqueadas_atual = int((teste["decisao_sistema_atual"] == "deny").sum())
     fraudes_bloqueadas_atual = int(
         teste.loc[teste["decisao_sistema_atual"] == "deny", "fraude"].sum()
@@ -66,7 +76,7 @@ def avaliar():
     }
 
     CAMINHO_AVALIACAO.parent.mkdir(parents=True, exist_ok=True)
-    with open(CAMINHO_AVALIACAO, "w", encoding="utf-8") as f:
+    with CAMINHO_AVALIACAO.open("w", encoding="utf-8") as f:
         json.dump(avaliacao, f, indent=2, ensure_ascii=False)
     print(f"Avaliação salva em {CAMINHO_AVALIACAO}")
 
@@ -88,7 +98,7 @@ def _imprimir_avaliacao(av: dict) -> None:
     pct_aprov = s["fraudes_aprovadas"] / ft * 100 if ft > 0 else 0
     pct_conf_tx = s["confirmacoes"] / av["transacoes"] * 100 if av["transacoes"] > 0 else 0
 
-    print(f"\nSentinela:")
+    print("\nSentinela:")
     print(f"  Bloqueadas           : {s['bloqueadas']:,}")
     print(f"  Fraudes bloqueadas   : {s['fraudes_bloqueadas']:,} ({pct_bloq:.1f}% das fraudes)")
     print(f"  Confirmações         : {s['confirmacoes']:,} ({pct_conf_tx:.2f}% das transações)")
@@ -96,12 +106,9 @@ def _imprimir_avaliacao(av: dict) -> None:
     print(f"  Aprovadas            : {s['aprovadas']:,}")
     print(f"  Fraudes aprovadas    : {s['fraudes_aprovadas']:,} ({pct_aprov:.1f}% das fraudes)")
 
-    sa = av["sistema_atual"]
-    pct_bloq_atual = sa["fraudes_bloqueadas"] / ft * 100 if ft > 0 else 0
-    print(f"\nSistema atual:")
-    print(f"  Bloqueadas           : {sa['bloqueadas']:,}")
-    print(f"  Fraudes bloqueadas   : {sa['fraudes_bloqueadas']:,} ({pct_bloq_atual:.1f}% das fraudes)")
-    print(f"  Fraudes não bloqueadas: {sa['fraudes_nao_bloqueadas']:,}")
+    # A coluna "decision" da base continua no JSON (a conformidade confere), mas não é mostrada
+    # como comparação: o dicionário da Sicredi não a documenta como a decisão de um sistema real.
+    print("\nComparação com a coluna 'decision' da base: omitida (não documentada pela Sicredi).")
     print("=" * 60)
 
 

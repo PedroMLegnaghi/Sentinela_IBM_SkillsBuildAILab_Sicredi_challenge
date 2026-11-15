@@ -1,0 +1,552 @@
+/**
+ * Tipos TypeScript que espelham exatamente os objetos da API (ESPECIFICACAO, seções 12 e 13).
+ * Nenhum campo inventado: qualquer mudança exige uma Issue que mude a ESPECIFICACAO primeiro.
+ */
+
+// --- Seção 12.1: Objetos da API ---
+
+export interface Sinal {
+  id: string;
+  descricao: string;
+}
+
+export interface Contribuicao {
+  variavel: string;
+  nome: string;
+  contribuicao: number;
+}
+
+export type Decisao = "APROVAR" | "PEDIR_CONFIRMACAO" | "BLOQUEAR";
+
+export interface Analise {
+  nota: number;
+  decisao: Decisao;
+  decisao_legivel: string;
+  sinais: Sinal[];
+  explicacao: string;
+  contribuicoes: Contribuicao[];
+  latencia_ms: number;
+}
+
+export interface ItemFila {
+  id_transacao: number;
+  nota: number;
+  decisao: Decisao;
+  valor: number | null;
+  data_hora: string | null;
+  tipo_transacao: string;
+  modalidade_transacao: string;
+  n_sinais: number;
+}
+
+export interface Transacao {
+  id_transacao: number;
+  data_hora: string | null;
+  valor: number | null;
+  tipo_transacao: string;
+  modalidade_transacao: string;
+  hora: number | null;
+  madrugada: number | null;
+  credito: number | null;
+  nao_presente: number | null;
+  ip_pais_desconhecido: number | null;
+  vel_cartao_terminal_1h: number | null;
+  qtd_transacoes_cartao_1min: number | null;
+  qtd_token_carteira_3m: number | null;
+  dist_terminal_anterior_km: number | null;
+  risco_estabelecimento: number | null;
+}
+
+export interface ItemHistorico {
+  data_hora: string | null;
+  valor: number | null;
+  tipo_transacao: string;
+  modalidade_transacao: string;
+  dist_terminal_anterior_km: number | null;
+}
+
+export interface Resposta {
+  id_transacao: number;
+  resposta: "fraude" | "legitima";
+  registrado_em: string;
+}
+
+// --- Seção 12.2: Corpos de resposta dos endpoints ---
+
+export interface RespostaFila {
+  total_fila: number;
+  contagens: {
+    BLOQUEAR: number;
+    PEDIR_CONFIRMACAO: number;
+    APROVAR: number;
+  };
+  itens: ItemFila[];
+}
+
+// --- Seção 12.1: PerfilAssociado (Issue #64) ---
+
+export interface PerfilAssociado {
+  compras_anteriores: number;
+  mediana_valor: number | null;
+  valor_atual_sobre_mediana: number | null;
+  hora_mais_comum: number | null;
+  percentual_madrugada: number | null;
+  percentual_credito_nao_presente: number | null;
+}
+
+export interface RespostaTransacao {
+  transacao: Transacao;
+  analise: Analise;
+  historico: ItemHistorico[];
+  resposta_analista: Resposta | null;
+  perfil_associado: PerfilAssociado | null;
+  notificacao: Notificacao | null;
+}
+
+export interface RespostaAnalisar {
+  analise: Analise;
+  id_auditoria: string | null;
+  id_notificacao: string | null;
+}
+
+export interface RespostaAuditoriaIniciada {
+  id_auditoria: string;
+  status: string;
+}
+
+export interface RespostaRespostas {
+  total: number;
+  fraudes: number;
+  legitimas: number;
+  concordancia: number | null;
+  itens: Array<{
+    id_transacao: number;
+    resposta: "fraude" | "legitima";
+    registrado_em: string;
+    decisao: Decisao;
+    nota: number;
+  }>;
+}
+
+/** modelos/metricas.json (ESPECIFICACAO, seção 7). */
+export interface Metricas {
+  modelo: string;
+  treino: { linhas: number; fraudes: number };
+  teste: { linhas: number; fraudes: number };
+  pr_auc: number;
+  roc_auc: number;
+  limiares: Array<{
+    limiar: number;
+    alertas: number;
+    fraudes_detectadas: number;
+    precisao: number;
+    recall: number;
+  }>;
+  comparacao_hgb?: { pr_auc: number; roc_auc: number };
+}
+
+/** modelos/avaliacao_agente.json (ESPECIFICACAO, seção 8.6). */
+export interface AvaliacaoAgente {
+  periodo: string;
+  transacoes: number;
+  fraudes_total: number;
+  sentinela: {
+    bloqueadas: number;
+    fraudes_bloqueadas: number;
+    confirmacoes: number;
+    fraudes_em_confirmacao: number;
+    aprovadas: number;
+    fraudes_aprovadas: number;
+  };
+  sistema_atual: {
+    bloqueadas: number;
+    fraudes_bloqueadas: number;
+    fraudes_nao_bloqueadas: number;
+  };
+}
+
+/** Acerto de um conjunto de alertas (Issue #46). */
+export interface AcertoAlertas {
+  alertas: number;
+  fraudes_pegas: number;
+  recall: number | null;
+  precisao: number | null;
+}
+
+/** modelos/ia_contra_modelo.json (Issue #46, src/avaliar_ia.py). */
+export interface IaContraModelo {
+  transacoes: number;
+  fraudes: number;
+  fontes: Record<string, number>;
+  latencia_modelo: { p50_ms: number; p95_ms: number };
+  latencia_ia: { p50_ms: number; p95_ms: number };
+  pareceres: Record<string, number>;
+  concordancia_por_decisao: Record<string, number | null>;
+  modelo: AcertoAlertas;
+  ia_sozinha: AcertoAlertas;
+}
+
+export interface RespostaMetricas {
+  metricas: Metricas;
+  avaliacao: AvaliacaoAgente;
+  extras: {
+    avaliacao_rigorosa: Record<string, unknown> | null;
+    custos: Record<string, unknown> | null;
+    eda: Record<string, unknown> | null;
+    ia_contra_modelo: IaContraModelo | null;
+  };
+}
+
+export interface RespostaSaude {
+  status: string;
+  modelo_carregado: boolean;
+  dados_carregados: boolean;
+  auditoria: "watsonx" | "local";
+}
+
+// --- Seção 13: Auditoria por IA ---
+
+export type ParecerIA = "CONFIRMA" | "DIVERGE" | "INCONCLUSIVO";
+export type RiscoIA = "BAIXO" | "SUSPEITO" | "ALTO";
+export type Confianca = "BAIXA" | "MEDIA" | "ALTA";
+export type FonteIA = "watsonx" | "local";
+
+export interface Ferramenta {
+  nome: string;
+  resumo: string;
+}
+
+export interface Relatorio {
+  parecer: ParecerIA;
+  risco_ia: RiscoIA | null;
+  confianca: Confianca;
+  explicacao: string;
+  evidencias_a_favor: string[];
+  evidencias_contra: string[];
+  dados_ausentes: string[];
+  ferramentas_usadas: Ferramenta[];
+  fonte: FonteIA;
+  modelo: string;
+}
+
+export interface Auditoria {
+  id_auditoria: string;
+  status: "pendente" | "concluida" | "erro";
+  relatorio: Relatorio | null;
+  latencia_ms: number | null;
+  mensagem: string | null;
+}
+
+// --- Corpo de entrada do POST /api/analisar ---
+
+export interface EntradaAnalisar {
+  valor?: number | null;
+  hora?: number | null;
+  madrugada?: number | null;
+  credito?: number | null;
+  nao_presente?: number | null;
+  ip_pais_desconhecido?: number | null;
+  vel_cartao_terminal_1h?: number | null;
+  qtd_transacoes_cartao_1min?: number | null;
+  qtd_token_carteira_3m?: number | null;
+  dist_terminal_anterior_km?: number | null;
+  risco_estabelecimento?: number | null;
+  data_hora?: string | null;
+  tipo_transacao?: string | null;
+  modalidade_transacao?: string | null;
+  auditar?: boolean;
+}
+
+// --- Seção 15: Canal do associado ---
+
+export type StatusNotificacao = "aguardando" | "confirmada" | "negada";
+export type TipoNotificacao = "CONFIRMACAO" | "AVISO_BLOQUEIO";
+export type FonteMensagem = "watsonx" | "modelo";
+
+export interface Notificacao {
+  id_notificacao: string;
+  id_transacao: number | null;
+  tipo: TipoNotificacao;
+  mensagem: string;
+  fonte_mensagem: FonteMensagem;
+  criada_em: string;
+  status: StatusNotificacao;
+  respondida_em: string | null;
+  resultado: string | null;
+}
+
+export interface RespostaNotificacoes {
+  itens: Notificacao[];
+}
+
+export interface EntradaRespostaNotificacao {
+  resposta: "sim" | "nao";
+}
+
+// --- Corpo de entrada do POST /api/respostas ---
+
+export interface EntradaResposta {
+  id_transacao: number;
+  resposta: "fraude" | "legitima";
+}
+
+// --- Seção 17: Associado e filial (refatoração) ---
+
+export type Papel = "associado" | "auditor" | "gerente" | "matriz";
+export type SituacaoCompra =
+  "APROVADA" | "AGUARDANDO" | "BLOQUEADA" | "CONTESTADA";
+export type TipoCartao = "debito" | "credito";
+
+export interface Filial {
+  id_filial: string;
+  nome: string;
+}
+
+export interface Perfil {
+  id_perfil: string;
+  nome: string;
+  papel: Papel;
+  filial: Filial;
+}
+
+export interface RespostaPerfis {
+  perfis: Perfil[];
+}
+
+export interface EntradaSessao {
+  id_perfil: string;
+}
+
+export interface Sessao {
+  token: string;
+  perfil: Perfil;
+}
+
+export interface Cartao {
+  id: string;
+  tipo: TipoCartao;
+  final: string;
+  bloqueado: boolean;
+}
+
+export interface CompraExtrato {
+  id_compra: string;
+  estabelecimento: string;
+  data_hora: string | null;
+  valor: number | null;
+  tipo_transacao: string;
+  modalidade_transacao: string;
+  final_cartao: string;
+  situacao: SituacaoCompra;
+  id_notificacao: string | null;
+  simulada: boolean;
+}
+
+export interface Bloqueio {
+  por: string;
+  em: string;
+  motivo: string;
+}
+
+export interface RespostaAssociado {
+  resposta: "sim" | "nao";
+  em: string;
+}
+
+export interface CompraPendente {
+  id_notificacao: string;
+  id_compra: string;
+  valor: number | null;
+  data_hora: string | null;
+}
+
+export interface RespostaInicio {
+  associado: { nome: string; filial: string };
+  saldo: number;
+  limite_total: number;
+  limite_disponivel: number;
+  cartoes: Cartao[];
+  pendentes: CompraPendente[];
+  ultimas_compras: CompraExtrato[];
+}
+
+export interface RespostaExtrato {
+  total: number;
+  itens: CompraExtrato[];
+}
+
+export interface DetalheCompra extends CompraExtrato {
+  bloqueio: Bloqueio | null;
+  resposta_associado: RespostaAssociado | null;
+  pode_contestar: boolean;
+}
+
+/** Corpo de POST /api/associado/compras: cartão, estabelecimento e as variáveis da análise. */
+export interface EntradaCompra extends Omit<
+  EntradaAnalisar,
+  "credito" | "auditar" | "tipo_transacao"
+> {
+  cartao: string;
+  estabelecimento: string;
+  data_hora: string;
+}
+
+export interface RespostaCompra {
+  compra: CompraExtrato;
+  id_notificacao: string | null;
+}
+
+export interface RespostaContestacao {
+  compra: CompraExtrato;
+  cartao: Cartao;
+}
+
+export interface ItemFilaFilial {
+  id_compra: string;
+  nota: number;
+  decisao: Decisao;
+  associado: string;
+  final_cartao: string;
+  data_hora: string | null;
+  valor: number | null;
+  tipo_transacao: string;
+  modalidade_transacao: string;
+  situacao: SituacaoCompra;
+  veredito_ia: ParecerIA | null;
+}
+
+export interface RespostaFilaFilial {
+  filial: Filial;
+  total: number;
+  itens: ItemFilaFilial[];
+}
+
+export interface AssociadoNaFilial {
+  nome_abreviado: string;
+  final_cartao: string;
+  historico: {
+    compras_90d: number;
+    valor_mediano: number | null;
+    contestacoes: number;
+  };
+}
+
+export interface RespostaCompraFilial {
+  compra: ItemFilaFilial;
+  analise: Analise;
+  auditoria: Auditoria | null;
+  associado: AssociadoNaFilial;
+  resposta_associado: RespostaAssociado | null;
+  bloqueio: Bloqueio | null;
+}
+
+export interface DecisoesPorTipo {
+  tipo_transacao: string;
+  modalidade_transacao: string;
+  aprovadas: number;
+  confirmacoes: number;
+  bloqueadas: number;
+}
+
+export interface RespostaMetricasFilial {
+  filial: Filial;
+  periodo: string;
+  totais: {
+    compras: number;
+    aprovadas: number;
+    confirmacoes: number;
+    bloqueadas: number;
+    valor_protegido: number;
+  };
+  por_tipo: DecisoesPorTipo[];
+  acerto_modelo: {
+    alertas_certos: number;
+    alertas_desnecessarios: number;
+    sem_resposta: number;
+    taxa: number | null;
+  };
+  fraudes_aprovadas: {
+    total: number;
+    itens: {
+      associado: string;
+      final_cartao: string;
+      data_hora: string | null;
+      valor: number | null;
+    }[];
+  };
+  tempo_resposta_mediano_s: number | null;
+  /** Issue #104: um item por auditor da filial (ausente até a API implementar). */
+  bloqueios_por_auditor?: BloqueiosDoAuditor[];
+}
+
+// --- Seção 17.5: o auditor bloqueia (Issues #102 a #104) ---
+
+export interface EntradaBloqueio {
+  nota: string | null;
+}
+
+export interface BloqueiosDoAuditor {
+  auditor: string;
+  bloqueios: number;
+  corretos: number;
+  liberados_depois: number;
+}
+
+// --- Seção 17.6: chat do associado (Issues #105 e #106) ---
+
+export interface MensagemChat {
+  autor: "associado" | "ia";
+  texto: string;
+}
+
+export interface EntradaChat {
+  mensagem: string;
+  historico: MensagemChat[];
+}
+
+export interface RespostaChat {
+  resposta: string;
+  fonte: "watsonx" | "local";
+}
+
+export interface RespostaChatGerente {
+  gerente: { nome: string };
+  resumo: string;
+}
+
+// --- Seção 17.8: painel da matriz ---
+
+export interface ModeloNaBaseDeTeste {
+  periodo: string | null;
+  transacoes: number | null;
+  fraudes: number | null;
+  sentinela: {
+    fraudes_bloqueadas: number | null;
+    bloqueadas: number | null;
+    confirmacoes: number | null;
+    fraudes_aprovadas: number | null;
+  };
+  treino: { linhas: number | null; fraudes: number | null };
+  pr_auc: number | null;
+  roc_auc: number | null;
+}
+
+export type ConsolidadoMatriz = Omit<
+  RespostaMetricasFilial,
+  "filial" | "periodo" | "fraudes_aprovadas" | "bloqueios_por_auditor"
+> & {
+  fraudes_aprovadas: {
+    total: number;
+    itens: (RespostaMetricasFilial["fraudes_aprovadas"]["itens"][number] & {
+      filial: string;
+    })[];
+  };
+  bloqueios_por_auditor: (BloqueiosDoAuditor & { filial: string })[];
+};
+
+export interface RespostaMetricasMatriz {
+  periodo: string;
+  consolidado: ConsolidadoMatriz;
+  por_filial: RespostaMetricasFilial[];
+  modelo: ModeloNaBaseDeTeste | null;
+}

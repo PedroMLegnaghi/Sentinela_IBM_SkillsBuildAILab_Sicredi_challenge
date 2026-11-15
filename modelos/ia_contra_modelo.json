@@ -1,0 +1,37 @@
+{
+  "transacoes": 254,
+  "fraudes": 54,
+  "fontes": {
+    "watsonx": 254
+  },
+  "latencia_modelo": {
+    "p50_ms": 5.03,
+    "p95_ms": 6.82
+  },
+  "latencia_ia": {
+    "p50_ms": 6063.66,
+    "p95_ms": 7129.6
+  },
+  "pareceres": {
+    "CONFIRMA": 176,
+    "DIVERGE": 72,
+    "INCONCLUSIVO": 6
+  },
+  "concordancia_por_decisao": {
+    "APROVAR": 63.6,
+    "PEDIR_CONFIRMACAO": 100.0,
+    "BLOQUEAR": 88.9
+  },
+  "modelo": {
+    "alertas": 56,
+    "fraudes_pegas": 54,
+    "recall": 100.0,
+    "precisao": 96.4
+  },
+  "ia_sozinha": {
+    "alertas": 122,
+    "fraudes_pegas": 54,
+    "recall": 100.0,
+    "precisao": 44.3
+  }
+}

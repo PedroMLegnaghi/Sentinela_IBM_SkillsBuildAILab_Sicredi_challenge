@@ -3,13 +3,10 @@
 Uso: python -m src.preparar_dados
 """
 
-import math
-
 import pandas as pd
 
-from src.config import CAMINHO_CSV, CAMINHO_PREPARADO
+from src.config import CAMINHO_CSV, CAMINHO_PREPARADO, HORA_FIM_MADRUGADA
 
-# Colunas a carregar do CSV original (seção 4)
 COLUNAS_ORIGINAIS = [
     "event_occurred_at",
     "card_id",
@@ -31,8 +28,14 @@ COLUNAS_ORIGINAIS = [
 
 
 def preparar() -> pd.DataFrame:
-    """Lê o CSV com usecols, gera as 21 colunas e salva o parquet."""
+    """Lê o CSV com usecols, gera as 21 colunas e salva o parquet.
 
+    Returns:
+        DataFrame com as 21 colunas na ordem da seção 6, todas as 160.000 linhas.
+
+    Raises:
+        FileNotFoundError: Se ``CAMINHO_CSV`` não existir.
+    """
     print("Lendo CSV (apenas 16 colunas)...")
     df_raw = pd.read_csv(
         CAMINHO_CSV,
@@ -41,58 +44,34 @@ def preparar() -> pd.DataFrame:
     )
     print(f"  Linhas lidas: {len(df_raw):,}")
 
-    # --- Montagem das 21 colunas na ordem exata da seção 6 ---
-
     df = pd.DataFrame()
 
-    # id_transacao: número da linha no CSV original, começando em 0
     df["id_transacao"] = df_raw.index.astype("int64")
-
-    # data_hora: datetime64
     df["data_hora"] = pd.to_datetime(df_raw["event_occurred_at"], errors="coerce")
-
-    # identificadores (texto)
     df["id_cartao"] = df_raw["card_id"].astype(str).where(df_raw["card_id"].notna(), other=None)
-    df["id_cliente"] = df_raw["customer_id"].astype(str).where(df_raw["customer_id"].notna(), other=None)
-    df["id_estabelecimento"] = df_raw["acceptor_id"].astype(str).where(df_raw["acceptor_id"].notna(), other=None)
-
-    # valor: float64
+    df["id_cliente"] = (
+        df_raw["customer_id"].astype(str).where(df_raw["customer_id"].notna(), other=None)
+    )
+    df["id_estabelecimento"] = (
+        df_raw["acceptor_id"].astype(str).where(df_raw["acceptor_id"].notna(), other=None)
+    )
     df["valor"] = df_raw["amount"].astype("float64")
-
-    # categorias de transação (texto, sem acento)
     df["tipo_transacao"] = df_raw["tipo_transacao"]
     df["modalidade_transacao"] = df_raw["modalidade_transacao"]
-
-    # hora: float64 (vazio se data_hora for vazia)
     df["hora"] = df["data_hora"].dt.hour.astype("float64")
-
-    # madrugada: int64 — 1 se hora < 5; senão 0 (0 quando hora é vazia)
-    df["madrugada"] = (df["hora"].notna() & (df["hora"] < 5)).astype("int64")
-
-    # credito: int64
+    df["madrugada"] = (df["hora"].notna() & (df["hora"] < HORA_FIM_MADRUGADA)).astype("int64")
     df["credito"] = (df_raw["tipo_transacao"] == "credito").astype("int64")
-
-    # nao_presente: int64
     df["nao_presente"] = (df_raw["modalidade_transacao"] == "cartao_nao_presente").astype("int64")
-
-    # ip_pais_desconhecido: int64
     df["ip_pais_desconhecido"] = (df_raw["device_ip_country_code"] == "ZZ").astype("int64")
-
-    # colunas de velocidade / distância / risco: float64 (mantém NaN)
     df["vel_cartao_terminal_1h"] = df_raw["cp_card_term_vel_1h"].astype("float64")
     df["qtd_transacoes_cartao_1min"] = df_raw["cardid_count_1m"].astype("float64")
     df["qtd_token_carteira_3m"] = df_raw["digitalwallettoken_count_3m"].astype("float64")
     df["dist_terminal_anterior_km"] = df_raw["cp_card_prev_term_dist_1h"].astype("float64")
     df["risco_estabelecimento"] = df_raw["acceptor_risk"].astype("float64")
     df["mcc"] = df_raw["mcc"].astype("float64")
-
-    # decisao_sistema_atual: texto (manter vazio como vazio)
     df["decisao_sistema_atual"] = df_raw["decision"]
-
-    # fraude: int64 — rótulo (feedback_label)
     df["fraude"] = df_raw["feedback_label"].fillna(False).astype(bool).astype("int64")
 
-    # --- Salvar ---
     print(f"Salvando parquet em {CAMINHO_PREPARADO} ...")
     CAMINHO_PREPARADO.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(CAMINHO_PREPARADO, index=False)
@@ -102,8 +81,11 @@ def preparar() -> pd.DataFrame:
 
 
 def imprimir_resumo(df: pd.DataFrame) -> None:
-    """Imprime o resumo pedido na seção 6."""
+    """Imprime o resumo pedido na seção 6.
 
+    Args:
+        df: DataFrame retornado por ``preparar``.
+    """
     print("\n" + "=" * 60)
     print("RESUMO DOS DADOS PREPARADOS")
     print("=" * 60)
@@ -111,7 +93,9 @@ def imprimir_resumo(df: pd.DataFrame) -> None:
     total_linhas = len(df)
     total_fraudes = int(df["fraude"].sum())
     print(f"Total de linhas        : {total_linhas:,}")
-    print(f"Total de fraudes       : {total_fraudes:,}  ({total_fraudes / total_linhas * 100:.2f}%)")
+    print(
+        f"Total de fraudes       : {total_fraudes:,}  ({total_fraudes / total_linhas * 100:.2f}%)"
+    )
 
     print("\nFraudes por mês:")
     fraudes = df[df["fraude"] == 1].copy()

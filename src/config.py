@@ -6,7 +6,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 
 # Caminhos de dados e modelos
-CAMINHO_CSV = RAIZ / "data" / "case_transacoes_cartoes_sintetico_900k.csv.gz"
+CAMINHO_CSV = RAIZ / "data" / "case_transacoes_cartoes_sintetico_900k.csv"
 CAMINHO_PREPARADO = RAIZ / "data" / "transacoes_preparadas.parquet"
 CAMINHO_FEEDBACK = RAIZ / "data" / "feedback.csv"
 CAMINHO_MODELO = RAIZ / "modelos" / "sentinela.joblib"
@@ -37,3 +37,100 @@ MIN_SINAIS_CONFIRMAR = 3
 OLLAMA_URL = "http://localhost:11434"
 OLLAMA_MODELO = "granite4:micro"
 OLLAMA_TIMEOUT_S = 60
+OLLAMA_TIMEOUT_DISPONIBILIDADE_S = 2
+
+# Semente de aleatoriedade
+SEMENTE = 42
+
+# Datas de divisão treino/teste
+INICIO_TREINO = "2025-01-01"
+INICIO_TESTE = "2025-03-01"
+FIM_TESTE = "2025-04-01"
+
+# Hora de corte da madrugada
+HORA_FIM_MADRUGADA = 5
+
+# Limiares dos sinais de alerta (seção 8.2)
+LIMIAR_VELOCIDADE_TERMINAL = 10
+LIMIAR_RAJADA_1MIN = 5
+LIMIAR_TOKEN_CARTEIRA = 30
+LIMIAR_DISTANCIA_KM = 100
+LIMIAR_VALOR_ALTO = 150
+LIMIAR_RISCO_ESTABELECIMENTO = 40
+
+# Tamanho da amostra de legítimas na fila de demonstração
+TAMANHO_AMOSTRA_LEGITIMAS = 2000
+
+# Rótulos legíveis por decisão (seção 8.3)
+ROTULOS_DECISAO = {
+    "BLOQUEAR": "Bloquear e enviar ao analista",
+    "PEDIR_CONFIRMACAO": "Pedir confirmação ao cliente",
+    "APROVAR": "Aprovar",
+}
+
+# --- Incrementos ---
+
+# Caminhos dos JSONs gerados pelos scripts dos incrementos
+CAMINHO_CUSTOS = RAIZ / "modelos" / "custos.json"
+CAMINHO_AVALIACAO_RIGOROSA = RAIZ / "modelos" / "avaliacao_rigorosa.json"
+CAMINHO_EDA = RAIZ / "modelos" / "eda.json"
+CAMINHO_IA_CONTRA_MODELO = RAIZ / "modelos" / "ia_contra_modelo.json"
+CAMINHO_NOTIFICACOES = RAIZ / "data" / "notificacoes.csv"
+# Rótulos de retorno para o retreino (Issue #127): CSV só de acréscimo, fora do Git
+CAMINHO_ROTULOS = RAIZ / "data" / "rotulos_retreino.csv"
+
+# Custo por pedido de confirmação em reais (premissa do time; não é cobrado pelo Sicredi)
+CUSTO_PEDIDO_CONFIRMACAO = 1.0
+
+# Repetições do bootstrap para intervalos de confiança (Issue #28)
+REPETICOES_BOOTSTRAP = 1000
+
+# Colunas de velocidade usadas na ablação (Issue #28 e #29)
+COLUNAS_VELOCIDADE = [
+    "vel_cartao_terminal_1h",
+    "qtd_transacoes_cartao_1min",
+    "qtd_token_carteira_3m",
+]
+
+# --- API web (Issue #38) ---
+
+# Origens permitidas no CORS (só o site local em desenvolvimento)
+API_ORIGENS_PERMITIDAS = ["http://localhost:3000"]
+
+# Auditoria por IA (ESPECIFICACAO, seção 13; ADR-012 e ADR-013)
+AUDITORIA_MAX_ITERACOES = 6
+AUDITORIA_TIMEOUT_S = 30
+WATSONX_URL_PADRAO = "https://us-south.ml.cloud.ibm.com"
+WATSONX_URL_IAM = "https://iam.cloud.ibm.com/identity/token"
+WATSONX_VERSAO_API = "2024-10-08"
+# Modelo sugerido; conferir no Prompt Lab da conta e definir WATSONX_MODELO no .env.
+AUDITORIA_MODELO_PADRAO = "ibm/granite-4-h-small"
+CAMINHO_ENV = RAIZ / ".env"
+# Regra do modo local da auditoria (medida em 12/11: 4 sinais ou mais pegam as 54 fraudes de
+# março com 57 alertas).
+AUDITORIA_SINAIS_RISCO_ALTO = 4
+AUDITORIA_SINAIS_SUSPEITO = 2
+
+# --- Canal do associado (ESPECIFICACAO, seção 15; ADR-015) ---
+
+# Regras contra golpe aplicadas a toda mensagem ao associado, inclusive a do modelo fixo
+MENSAGEM_PREFIXO = "Sicredi:"
+MENSAGEM_MAX_CARACTERES = 160
+# Trechos que denunciam link ou pedido de dado sigiloso (comparados em minúsculas)
+MENSAGEM_TERMOS_PROIBIDOS = (
+    "http",
+    "www",
+    ".com",
+    "senha",
+    "código",
+    "codigo",
+    "token",
+    "cvv",
+    "validade",
+    "número do cartão",
+    "numero do cartao",
+    "dados do cartão",
+    "dados do cartao",
+)
+# Mais dígitos seguidos do que isso, fora do valor, parece número de cartão ou documento
+MENSAGEM_MAX_DIGITOS_SEGUIDOS = 3

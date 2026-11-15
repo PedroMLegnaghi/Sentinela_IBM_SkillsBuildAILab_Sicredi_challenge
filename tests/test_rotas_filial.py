@@ -384,3 +384,132 @@ def test_detalhe_mostra_a_resposta_do_associado_e_a_contestacao_entra_na_fila(cl
     assert any(
         i["id_compra"] == aprovada["id_compra"] and i["situacao"] == "CONTESTADA" for i in fila
     )
+
+
+# --- Bloqueio pelo auditor (Issue #102) -------------------------------------------------------
+# cmp-000002 é a compra de março da Ana que aguarda o associado, com aviso, na Agência Centro.
+
+
+def _bloquear(cliente, id_perfil: str = "aud-01", id_compra: str = "cmp-000002", nota=None):
+    return cliente.post(
+        f"/api/filial/compras/{id_compra}/bloqueio",
+        json={"nota": nota},
+        headers=_cabecalho(cliente, id_perfil),
+    )
+
+
+def test_auditor_bloqueia_compra_aguardando_com_nome_data_e_motivo(cliente):
+    resposta = _bloquear(cliente, nota="Associado viaja pouco.")
+
+    assert resposta.status_code == 201
+    corpo = resposta.json()
+    assert corpo["compra"]["situacao"] == "BLOQUEADA"
+    assert corpo["bloqueio"]["por"] == "Rafael Moura"
+    assert corpo["bloqueio"]["motivo"] == f"{EXPLICACAO} Nota do analista: Associado viaja pouco."
+    assert corpo["bloqueio"]["em"]
+
+
+def test_motivo_usa_a_explicacao_da_ia_quando_a_auditoria_ja_terminou(cliente):
+    import src.api.auditorias as auditoria_mem  # noqa: PLC0415
+
+    auditoria_mem.registrar_auditoria(
+        "trans_1",
+        {
+            "id_auditoria": "trans_1",
+            "status": "concluida",
+            "relatorio": {"parecer": "CONFIRMA", "explicacao": "A IA viu um padrão estranho."},
+            "latencia_ms": 1.0,
+            "mensagem": None,
+        },
+    )
+
+    corpo = _bloquear(cliente).json()
+
+    assert corpo["bloqueio"]["motivo"] == "A IA viu um padrão estranho."
+
+
+def test_associado_ve_analista_da_agencia_e_motivo_generico_nunca_o_nome(cliente):
+    _bloquear(cliente, nota="Nota interna.")
+
+    detalhe = cliente.get(
+        "/api/associado/compras/cmp-000002", headers=_cabecalho(cliente, "asc-01")
+    ).json()
+
+    assert detalhe["situacao"] == "BLOQUEADA"
+    assert detalhe["bloqueio"]["por"] == "Analista da agência Agência Centro"
+    assert detalhe["bloqueio"]["motivo"] == associado_app.MOTIVO_GENERICO
+    assert "Rafael" not in str(detalhe)
+    assert "Nota interna" not in str(detalhe)
+
+
+@pytest.mark.parametrize("id_perfil", ["ger-01", "asc-01"])
+def test_so_o_auditor_bloqueia(cliente, id_perfil):
+    assert _bloquear(cliente, id_perfil).status_code == 403
+
+
+def test_auditor_de_outra_filial_recebe_403_e_compra_inexistente_404(cliente):
+    assert _bloquear(cliente, "aud-03").status_code == 403
+    assert _bloquear(cliente, id_compra="cmp-999999").status_code == 404
+
+
+def test_compra_que_nao_aguarda_o_associado_responde_409(cliente):
+    assert _bloquear(cliente, id_compra="cmp-000001").status_code == 409  # já BLOQUEADA
+    assert _bloquear(cliente, id_compra="cmp-000003").status_code == 409  # APROVADA
+    assert _bloquear(cliente).status_code == 201
+    assert _bloquear(cliente).status_code == 409  # bloquear duas vezes
+
+
+def test_nota_com_mais_de_300_caracteres_responde_422(cliente):
+    assert _bloquear(cliente, nota="x" * 301).status_code == 422
+    assert _bloquear(cliente, nota="x" * 300).status_code == 201
+
+
+def _responder_aviso(cliente, resposta: str) -> None:
+    aviso = notificacoes.listar()
+    id_aviso = next(
+        a["id_notificacao"]
+        for a in aviso
+        if a["status"] == "aguardando" and a["tipo"] == "CONFIRMACAO"
+    )
+    cliente.post(f"/api/notificacoes/{id_aviso}/resposta", json={"resposta": resposta})
+
+
+def test_fui_eu_depois_do_bloqueio_libera_sozinho_e_conta_incorreto(cliente, ambiente):
+    limite_antes = ambiente.associados.obter("asc-01").limite_disponivel
+    _bloquear(cliente)
+
+    _responder_aviso(cliente, "sim")
+    compra = ambiente.compras.obter("cmp-000002")
+
+    assert compra.situacao == "APROVADA"
+    assert compra.bloqueio.correto is False
+    # Compra de março: já está no saldo inicial, então o limite não muda (seção 17.1).
+    assert ambiente.associados.obter("asc-01").limite_disponivel == limite_antes
+
+
+def test_liberacao_de_compra_simulada_aplica_o_saldo_uma_unica_vez(cliente, ambiente):
+    cabecalho = _cabecalho(cliente, "asc-01")
+    compra = cliente.post(
+        "/api/associado/compras", json={"cartao": "car-01-c", **SUSPEITA}, headers=cabecalho
+    ).json()["compra"]
+    limite_antes = ambiente.associados.obter("asc-01").limite_disponivel
+    _bloquear(cliente, id_compra=compra["id_compra"])
+
+    rota = f"/api/notificacoes/{compra['id_notificacao']}/resposta"
+    cliente.post(rota, json={"resposta": "sim"})
+    cliente.post(rota, json={"resposta": "sim"})
+
+    assert ambiente.compras.obter(compra["id_compra"]).situacao == "APROVADA"
+    assert ambiente.associados.obter("asc-01").limite_disponivel == pytest.approx(
+        limite_antes - SUSPEITA["valor"]
+    )
+
+
+def test_nao_fui_eu_depois_do_bloqueio_mantem_bloqueada_e_conta_correto(cliente, ambiente):
+    _bloquear(cliente)
+
+    _responder_aviso(cliente, "nao")
+    compra = ambiente.compras.obter("cmp-000002")
+
+    assert compra.situacao == "BLOQUEADA"
+    assert compra.bloqueio.correto is True

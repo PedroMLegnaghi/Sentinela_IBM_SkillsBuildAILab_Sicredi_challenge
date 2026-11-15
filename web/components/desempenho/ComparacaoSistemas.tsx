@@ -29,11 +29,13 @@ export default function ComparacaoSistemas({
       rotulo: ROTULO_SENTINELA,
       valor: sentinela.fraudes_bloqueadas,
       classe: "sentinela-barra-modelo",
+      cor: "var(--sc-verde)",
     },
     {
       rotulo: ROTULO_SISTEMA_ATUAL,
       valor: atual.fraudes_bloqueadas,
       classe: "sentinela-barra-atual",
+      cor: "var(--sc-texto-apoio)",
     },
   ];
   const linhas = [
@@ -77,7 +79,10 @@ export default function ComparacaoSistemas({
             <span className="sentinela-barras-trilho" aria-hidden="true">
               <span
                 className={barra.classe}
-                style={{ width: `${(barra.valor / total) * 100}%` }}
+                style={{
+                  width: `${(barra.valor / total) * 100}%`,
+                  backgroundColor: barra.cor,
+                }}
               />
             </span>
             <strong>

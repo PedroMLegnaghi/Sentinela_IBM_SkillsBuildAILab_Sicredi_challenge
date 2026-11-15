@@ -126,11 +126,11 @@ def _cartao(cliente, cabecalho, tipo: str) -> str:
 # --- Sessão -----------------------------------------------------------------------------------
 
 
-def test_perfis_listam_dezesseis_e_sessao_devolve_token(cliente):
+def test_perfis_listam_dezessete_e_sessao_devolve_token(cliente):
     perfis = cliente.get("/api/sessao/perfis").json()["perfis"]
     sessao_aberta = cliente.post("/api/sessao", json={"id_perfil": "asc-01"})
 
-    assert len(perfis) == 16
+    assert len(perfis) == 17  # 1 matriz, 2 gerentes, 4 auditores e 10 associados
     assert sessao_aberta.status_code == 200
     assert sessao_aberta.json()["perfil"]["filial"] == {
         "id_filial": "fil-centro",

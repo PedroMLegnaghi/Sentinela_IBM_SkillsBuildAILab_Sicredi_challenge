@@ -15,6 +15,7 @@ from src.dominio.entidades import (
     Cartao,
     Compra,
     Contestacao,
+    Filial,
     RespostaAssociado,
 )
 
@@ -27,6 +28,8 @@ SITUACAO_POR_DECISAO = {
 SITUACAO_POR_RESPOSTA = {"sim": "APROVADA", "nao": "BLOQUEADA"}
 ID_FILIAL_CENTRO = "fil-centro"
 ID_FILIAL_NORTE = "fil-norte"
+# A matriz vê todas as filiais e não tem carteira própria.
+MATRIZ = Filial("matriz", "Matriz Sicredi")
 
 
 def situacao_inicial(decisao: str) -> str:

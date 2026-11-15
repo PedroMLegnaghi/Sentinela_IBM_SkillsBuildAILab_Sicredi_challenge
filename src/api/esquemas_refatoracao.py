@@ -296,3 +296,74 @@ class MetricasFilialSchema(BaseModel):
     fraudes_aprovadas: FraudesAprovadasSchema
     tempo_resposta_mediano_s: float | None
     bloqueios_por_auditor: list[BloqueiosDoAuditorSchema]
+
+
+# --- Seção 17.8: painel da matriz ---
+
+
+class FraudeAprovadaMatrizSchema(FraudeAprovadaSchema):
+    """Contestação com a filial de origem."""
+
+    filial: str
+
+
+class BloqueiosDoAuditorMatrizSchema(BloqueiosDoAuditorSchema):
+    """Bloqueios de um auditor, com a filial dele."""
+
+    filial: str
+
+
+class FraudesAprovadasMatrizSchema(BaseModel):
+    """Contestações de todas as filiais."""
+
+    total: int
+    itens: list[FraudeAprovadaMatrizSchema]
+
+
+class ConsolidadoMatrizSchema(BaseModel):
+    """Soma de todas as filiais."""
+
+    totais: TotaisSchema
+    por_tipo: list[PorTipoSchema]
+    acerto_modelo: AcertoModeloSchema
+    fraudes_aprovadas: FraudesAprovadasMatrizSchema
+    tempo_resposta_mediano_s: float | None
+    bloqueios_por_auditor: list[BloqueiosDoAuditorMatrizSchema]
+
+
+class SentinelaModeloSchema(BaseModel):
+    """Resultado do Sentinela em toda a base de teste."""
+
+    fraudes_bloqueadas: int | None
+    bloqueadas: int | None
+    confirmacoes: int | None
+    fraudes_aprovadas: int | None
+
+
+class SistemaAtualModeloSchema(BaseModel):
+    """Resultado do sistema atual na mesma base."""
+
+    fraudes_bloqueadas: int | None
+    bloqueadas: int | None
+    fraudes_nao_bloqueadas: int | None
+
+
+class ModeloMatrizSchema(BaseModel):
+    """Desempenho do modelo em toda a base de teste (março)."""
+
+    periodo: str | None
+    transacoes: int | None
+    fraudes: int | None
+    sentinela: SentinelaModeloSchema
+    sistema_atual: SistemaAtualModeloSchema
+    pr_auc: float | None
+    roc_auc: float | None
+
+
+class MetricasMatrizSchema(BaseModel):
+    """Saída de ``GET /api/matriz/metricas``."""
+
+    periodo: str
+    consolidado: ConsolidadoMatrizSchema
+    por_filial: list[MetricasFilialSchema]
+    modelo: ModeloMatrizSchema | None

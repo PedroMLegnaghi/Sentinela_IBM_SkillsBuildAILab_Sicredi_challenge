@@ -651,7 +651,7 @@ R$ 3.000,00 e disponível R$ 2.150,00 para todos. Finais de cartão, com 4 dígi
 
 ### 17.3 Objetos
 
-- **Perfil:** `{"id_perfil": str, "nome": str, "papel": "associado"|"auditor"|"gerente",
+- **Perfil:** `{"id_perfil": str, "nome": str, "papel": "associado"|"auditor"|"gerente"|"matriz",
   "filial": {"id_filial": str, "nome": str}}`.
 - **Cartao:** `{"id": str, "tipo": "debito"|"credito", "final": str, "bloqueado": bool}`.
 - **CompraExtrato:** `{"id_compra": str, "estabelecimento": str, "data_hora": str|null,
@@ -674,7 +674,7 @@ R$ 3.000,00 e disponível R$ 2.150,00 para todos. Finais de cartão, com 4 dígi
 
 | Método e caminho | Papel | Entrada | Saída (200, salvo indicação) |
 | --- | --- | --- | --- |
-| `GET /api/sessao/perfis` | — | — | `{"perfis": [Perfil]}`: 2 gerentes, 4 auditores e 10 associados |
+| `GET /api/sessao/perfis` | — | — | `{"perfis": [Perfil]}`: 1 matriz, 2 gerentes, 4 auditores e 10 associados |
 | `POST /api/sessao` | — | `{"id_perfil": str}` | `{"token": str, "perfil": Perfil}`; perfil desconhecido → 404 |
 | `GET /api/associado/inicio` | associado | — | `{"associado": {"nome": str, "filial": str}, "saldo": float, "limite_total": float, "limite_disponivel": float, "cartoes": [Cartao], "pendentes": [{"id_notificacao": str, "id_compra": str, "valor": float\|null, "data_hora": str\|null}], "ultimas_compras": [CompraExtrato]}` (3 mais recentes) |
 | `GET /api/associado/extrato` | associado | `situacao` (opcional, separadas por vírgula; inválida → 422) | `{"total": int, "itens": [CompraExtrato]}`, da mais recente para a mais antiga; as simuladas primeiro, na ordem em que foram feitas |
@@ -769,3 +769,24 @@ desta entrega: o campeão não muda.
   último evento de cada `id_compra` e grava `data/retreino.parquet` (fora do Git) com as 11
   variáveis, `data_hora` e `rotulo_retorno` (1 = fraude, 0 = legítima). Imprime quantos eventos
   leu, quantos rótulos de fraude e de legítima exportou e quantos ficaram sem rótulo.
+
+### 17.8 Matriz: o painel de todas as filiais
+
+A matriz acompanha as filiais como o gerente acompanha a própria agência. O perfil é Sofia
+Andrade (`mat-01`, papel `matriz`), com a filial `{"id_filial": "matriz", "nome": "Matriz
+Sicredi"}`; a matriz não tem carteira própria.
+
+| Método e caminho | Papel | Entrada | Saída |
+| --- | --- | --- | --- |
+| `GET /api/matriz/metricas` | matriz | — | `{"periodo": str, "consolidado": {"totais", "por_tipo", "acerto_modelo", "fraudes_aprovadas", "tempo_resposta_mediano_s", "bloqueios_por_auditor"}, "por_filial": [corpo de GET /api/filial/metricas de cada filial], "modelo": {...}\|null}`; outros papéis → 403 |
+
+- `consolidado` soma as filiais: os totais e as linhas por tipo se somam; `acerto_modelo` e
+  `tempo_resposta_mediano_s` são recalculados com os avisos de todas as filiais; os itens de
+  `fraudes_aprovadas` e de `bloqueios_por_auditor` ganham o campo `filial` (nome).
+- Sem compras simuladas, `consolidado.totais` repete os números de março da seção 11.
+- `modelo` mostra o desempenho do modelo em toda a base de teste (março, que o modelo não viu no
+  treino), lido de `modelos/avaliacao_agente.json` e `modelos/metricas.json`: `periodo`,
+  `transacoes`, `fraudes`, `sentinela` (`fraudes_bloqueadas`, `bloqueadas`, `confirmacoes`,
+  `fraudes_aprovadas`), `sistema_atual` (`fraudes_bloqueadas`, `bloqueadas`,
+  `fraudes_nao_bloqueadas`), `pr_auc` e `roc_auc`; `null` sem os arquivos. Janeiro e fevereiro
+  ficam de fora de propósito: foram usados no treino e inflariam os números.

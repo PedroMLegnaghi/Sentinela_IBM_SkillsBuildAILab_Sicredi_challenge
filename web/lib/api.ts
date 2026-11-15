@@ -35,6 +35,7 @@ import type {
   MensagemChat,
   RespostaChat,
   RespostaChatGerente,
+  RespostaMetricasMatriz,
 } from "@/lib/tipos";
 import { obterSessao } from "@/lib/sessao";
 
@@ -421,4 +422,10 @@ export async function chamarGerente(historico: MensagemChat[]): Promise<Resposta
     "/api/associado/chat/gerente",
     comSessao(comoJson({ historico })),
   );
+}
+
+/** GET /api/matriz/metricas (seção 17.8) */
+export async function obterMetricasMatriz(): Promise<RespostaMetricasMatriz> {
+  if (USAR_MOCK) return (await obterMocksRefatoracao()).metricasMatriz;
+  return buscar<RespostaMetricasMatriz>("/api/matriz/metricas", comSessao());
 }

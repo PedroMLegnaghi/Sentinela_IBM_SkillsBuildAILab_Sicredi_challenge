@@ -230,6 +230,7 @@ def test_filiais_funcionarios_e_perfis_sao_os_da_especificacao(repos):
     assert [p.papel for p in perfis].count("gerente") == 2
     assert [p.papel for p in perfis].count("auditor") == 4
     assert [p.papel for p in perfis].count("associado") == 10
+    assert [p.papel for p in perfis].count("matriz") == 1
     assert repos.perfis.obter("aud-03") == Funcionario(
         "aud-03", "Tiago Nunes", "auditor", "fil-norte"
     )
@@ -295,7 +296,7 @@ def test_sem_parquet_a_demonstracao_sobe_so_com_os_dados_inventados(monkeypatch,
 
     repos_sem_base = composicao.obter_repositorios()
 
-    assert len(repos_sem_base.perfis.listar()) == 16
+    assert len(repos_sem_base.perfis.listar()) == 17
     assert repos_sem_base.associados.obter("asc-01").id_cliente_base is None
     assert len(repos_sem_base.cartoes.listar_por_associado("asc-10")) == 2
 
@@ -378,5 +379,5 @@ def test_um_duble_substitui_o_repositorio_sem_mexer_nas_regras():
 def test_perfil_so_aceita_papel_conhecido():
     with pytest.raises(ValueError, match="Papel"):
         Perfil("x", "Alguém", "cliente", "fil-centro")
-    with pytest.raises(ValueError, match="auditor ou gerente"):
+    with pytest.raises(ValueError, match="nunca associado"):
         Funcionario("x", "Alguém", "associado", "fil-centro")

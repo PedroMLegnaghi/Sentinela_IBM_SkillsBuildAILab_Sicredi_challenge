@@ -80,6 +80,7 @@ export function useSessao(): Sessao | null | undefined {
 export function inicioDoPapel(papel: Papel): string {
   if (papel === "associado") return "/associado";
   if (papel === "gerente") return "/filial/painel";
+  if (papel === "matriz") return "/matriz";
   return "/filial/fila";
 }
 

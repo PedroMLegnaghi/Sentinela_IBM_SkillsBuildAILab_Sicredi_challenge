@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Moldura da área da filial (Issue #91): menu lateral com a agência, os links do papel e
- * quem entrou. Os links mudam para auditor e gerente.
+ * Moldura da área interna (Issue #91): menu lateral com a agência (ou a matriz), os links do
+ * papel e quem entrou. Os links mudam para auditor, gerente e matriz (seção 17.8).
  */
 
 import Link from "next/link";
@@ -16,6 +16,7 @@ import {
   NAV_DESEMPENHO,
   NAV_FILA,
   NAV_PAINEL_AGENCIA,
+  NAV_PAINEL_MATRIZ,
   ROTULO_NAV_FILIAL,
   ROTULOS_PAPEL,
   SAIR,
@@ -24,6 +25,11 @@ import {
 const LINKS: Record<Exclude<Papel, "associado">, { href: string; rotulo: string }[]> = {
   auditor: [
     { href: "/filial/fila", rotulo: NAV_FILA },
+    { href: "/filial/desempenho", rotulo: NAV_DESEMPENHO },
+    { href: "/filial/como-funciona", rotulo: NAV_COMO_FUNCIONA },
+  ],
+  matriz: [
+    { href: "/matriz", rotulo: NAV_PAINEL_MATRIZ },
     { href: "/filial/desempenho", rotulo: NAV_DESEMPENHO },
     { href: "/filial/como-funciona", rotulo: NAV_COMO_FUNCIONA },
   ],
@@ -45,7 +51,7 @@ export default function MolduraFilial({ children }: { children: React.ReactNode 
   const router = useRouter();
 
   return (
-    <GuardaSessao papeis={["auditor", "gerente"]}>
+    <GuardaSessao papeis={["auditor", "gerente", "matriz"]}>
       {(sessao) => (
         <div className="sc-filial">
           <aside className="sc-filial__lado">

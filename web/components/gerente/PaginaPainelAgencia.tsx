@@ -28,6 +28,7 @@ import {
   DESCRICAO_BARRA_TIPO,
   DESCRICAO_ROSCA,
   DOS_ALERTAS_RESPONDIDOS,
+  COLUNA_AGENCIA,
   COLUNAS_BLOQUEIOS,
   EXPLICA_ACERTO,
   EXPLICA_BLOQUEIOS,
@@ -58,7 +59,7 @@ import {
 const pct = (parte: number, todo: number) =>
   todo > 0 ? `${formatarDecimal((parte / todo) * 100, 1)}%` : "—";
 
-function Indicadores({ m }: { m: RespostaMetricasFilial }) {
+export function Indicadores({ m }: { m: RespostaMetricasFilial }) {
   const t = m.totais;
   return (
     <div className="sc-kpis">
@@ -86,7 +87,7 @@ function Indicadores({ m }: { m: RespostaMetricasFilial }) {
   );
 }
 
-function DecisoesPorTipo({ m }: { m: RespostaMetricasFilial }) {
+export function DecisoesPorTipo({ m }: { m: RespostaMetricasFilial }) {
   return (
     <section className="sc-cartao" aria-labelledby="titulo-decisoes-tipo">
       <h2 id="titulo-decisoes-tipo" className="sc-painel__subtitulo">
@@ -131,7 +132,7 @@ function DecisoesPorTipo({ m }: { m: RespostaMetricasFilial }) {
   );
 }
 
-function AcertoModelo({ m }: { m: RespostaMetricasFilial }) {
+export function AcertoModelo({ m }: { m: RespostaMetricasFilial }) {
   const a = m.acerto_modelo;
   const taxa = a.taxa === null ? null : `${formatarDecimal(a.taxa, 0)}%`;
   return (
@@ -168,7 +169,7 @@ function AcertoModelo({ m }: { m: RespostaMetricasFilial }) {
   );
 }
 
-function FraudesAprovadas({ m }: { m: RespostaMetricasFilial }) {
+export function FraudesAprovadas({ m }: { m: RespostaMetricasFilial }) {
   const f = m.fraudes_aprovadas;
   return (
     <section className="sc-cartao" aria-labelledby="titulo-fraudes-aprovadas">
@@ -188,6 +189,7 @@ function FraudesAprovadas({ m }: { m: RespostaMetricasFilial }) {
                 <b>{ASSOCIADO_E_CARTAO(item.associado, item.final_cartao)}</b>
                 <br />
                 <small className="sc-apoio sc-num">
+                  {"filial" in item && typeof item.filial === "string" ? `${item.filial} · ` : ""}
                   {formatarDiaHora(item.data_hora)} · {formatarMoeda(item.valor)}
                 </small>
               </span>
@@ -200,10 +202,13 @@ function FraudesAprovadas({ m }: { m: RespostaMetricasFilial }) {
   );
 }
 
-function BloqueiosEquipe({ m }: { m: RespostaMetricasFilial }) {
+export function BloqueiosEquipe({ m }: { m: RespostaMetricasFilial }) {
   const linhas = m.bloqueios_por_auditor;
   if (!linhas) return null;
   const algum = linhas.some((l) => l.bloqueios > 0);
+  const filialDe = (l: (typeof linhas)[number]) =>
+    "filial" in l && typeof l.filial === "string" ? l.filial : null;
+  const comFilial = linhas.some((l) => filialDe(l) !== null);
   return (
     <section className="sc-cartao" aria-labelledby="titulo-bloqueios-equipe">
       <h2 id="titulo-bloqueios-equipe" className="sc-painel__subtitulo">
@@ -217,6 +222,7 @@ function BloqueiosEquipe({ m }: { m: RespostaMetricasFilial }) {
             <thead>
               <tr>
                 <th scope="col">{COLUNAS_BLOQUEIOS.auditor}</th>
+                {comFilial && <th scope="col">{COLUNA_AGENCIA}</th>}
                 <th scope="col" className="sc-direita">{COLUNAS_BLOQUEIOS.bloqueios}</th>
                 <th scope="col" className="sc-direita">{COLUNAS_BLOQUEIOS.corretos}</th>
                 <th scope="col" className="sc-direita">{COLUNAS_BLOQUEIOS.liberados}</th>
@@ -224,8 +230,9 @@ function BloqueiosEquipe({ m }: { m: RespostaMetricasFilial }) {
             </thead>
             <tbody>
               {linhas.map((l) => (
-                <tr key={l.auditor}>
+                <tr key={`${filialDe(l) ?? ""}-${l.auditor}`}>
                   <td>{l.auditor}</td>
+                  {comFilial && <td>{filialDe(l)}</td>}
                   <td className="sc-direita sc-num">{formatarInteiro(l.bloqueios)}</td>
                   <td className="sc-direita sc-num">{formatarInteiro(l.corretos)}</td>
                   <td className="sc-direita sc-num">{formatarInteiro(l.liberados_depois)}</td>

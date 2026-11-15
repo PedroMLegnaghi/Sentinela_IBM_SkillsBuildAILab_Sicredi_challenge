@@ -39,6 +39,7 @@ def _compra(situacao: str = "APROVADA", valor: float = 100.0, tipo: str = "debit
         tipo_transacao=tipo,
         modalidade_transacao="cartao_presente",
         situacao=situacao,
+        simulada=True,
     )
 
 
@@ -99,6 +100,15 @@ def test_saldo_e_aplicado_uma_unica_vez():
     regras.aplicar_no_saldo(associado, _cartao(), compra)
     assert not regras.aplicar_no_saldo(associado, _cartao(), compra)
     assert associado.saldo == 990.0
+
+
+def test_compra_de_marco_aprovada_nao_desconta_de_novo():
+    associado = _associado()
+    compra = _compra(valor=10.0)
+    compra.simulada = False
+
+    assert not regras.aplicar_no_saldo(associado, _cartao(), compra)
+    assert associado.saldo == 1000.0
 
 
 def test_devolver_ao_saldo_desfaz_a_aplicacao():

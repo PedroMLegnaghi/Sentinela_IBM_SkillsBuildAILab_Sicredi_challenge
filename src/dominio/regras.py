@@ -11,6 +11,7 @@ from collections.abc import Iterable
 from src.dominio.entidades import (
     RESPOSTAS_ASSOCIADO,
     Associado,
+    Bloqueio,
     Cartao,
     Compra,
     Contestacao,
@@ -48,7 +49,8 @@ def situacao_inicial(decisao: str) -> str:
 def aplicar_no_saldo(associado: Associado, cartao: Cartao, compra: Compra) -> bool:
     """Desconta uma compra APROVADA do saldo (débito) ou do limite disponível (crédito).
 
-    Só aplica uma vez por compra; AGUARDANDO, BLOQUEADA e CONTESTADA não mexem em nada.
+    Só aplica uma vez por compra; AGUARDANDO, BLOQUEADA e CONTESTADA não mexem em nada. As
+    compras de março já estão no saldo inicial (seção 17.1): só as simuladas são aplicadas.
 
     Args:
         associado: Dono do cartão; tem o saldo e o limite alterados no lugar.
@@ -59,6 +61,8 @@ def aplicar_no_saldo(associado: Associado, cartao: Cartao, compra: Compra) -> bo
         True se descontou; False se não havia o que aplicar.
     """
     if compra.situacao != "APROVADA" or compra.saldo_aplicado or compra.valor is None:
+        return False
+    if not compra.simulada:
         return False
     if cartao.tipo == "debito":
         associado.saldo = round(associado.saldo - compra.valor, 2)
@@ -108,7 +112,41 @@ def aplicar_resposta(compra: Compra, resposta: str, em: str) -> str:
     compra.resposta_associado = RespostaAssociado(resposta=resposta, em=em)
     if compra.situacao == "AGUARDANDO":
         compra.situacao = SITUACAO_POR_RESPOSTA[resposta]
+    elif compra.situacao == "BLOQUEADA" and _bloqueada_por_auditor(compra):
+        # O aviso continua valendo depois do bloqueio do auditor (seção 17.5).
+        compra.bloqueio.correto = resposta == "nao"
+        if resposta == "sim":
+            compra.situacao = "APROVADA"
     return compra.situacao
+
+
+def _bloqueada_por_auditor(compra: Compra) -> bool:
+    return compra.bloqueio is not None and compra.bloqueio.id_auditor is not None
+
+
+def bloquear_pelo_auditor(
+    compra: Compra, id_auditor: str, em: str, motivo: str, nota: str | None
+) -> Bloqueio:
+    """Auditor bloqueia uma compra que ainda espera o associado.
+
+    Args:
+        compra: Compra AGUARDANDO; vira BLOQUEADA.
+        id_auditor: Perfil do auditor que bloqueou.
+        em: Momento do bloqueio em ISO 8601.
+        motivo: Explicação da IA (ou do modelo) que embasa o bloqueio.
+        nota: Nota livre do auditor, ou None.
+
+    Returns:
+        O Bloqueio gravado na compra.
+
+    Raises:
+        ValueError: Se a compra não está AGUARDANDO.
+    """
+    if compra.situacao != "AGUARDANDO":
+        raise ValueError("Só uma compra que aguarda o associado pode ser bloqueada pelo auditor.")
+    compra.situacao = "BLOQUEADA"
+    compra.bloqueio = Bloqueio(em=em, motivo=motivo, id_auditor=id_auditor, nota_auditor=nota)
+    return compra.bloqueio
 
 
 def contestar(compra: Compra, cartao: Cartao, em: str, id_contestacao: str) -> Contestacao:

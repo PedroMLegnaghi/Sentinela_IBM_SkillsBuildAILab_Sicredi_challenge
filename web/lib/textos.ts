@@ -214,14 +214,13 @@ export const AVISO_SINTETICO =
   "Dados sintéticos: o resultado é otimista. Em produção, o modelo precisaria de monitoramento e retreino com as respostas dos analistas.";
 export const TITULO_COMO = "Como o Sentinela decide";
 export const LEAD_COMO =
-  "Uma compra no cartão precisa de resposta em milissegundos. Por isso o modelo de machine learning decide na hora, e uma IA no IBM watsonx.ai audita a mesma compra logo depois, como segunda opinião para o analista.";
-export const TITULO_CAMINHO = "O caminho de uma compra";
+  "Uma compra no cartão precisa de resposta em milissegundos. O Sentinela decide na hora, avisa o associado quando algo foge do padrão e entrega à filial cada caso com uma segunda opinião da IA.";
+export const TITULO_CAMINHO = "Do associado à filial em quatro passos";
 export const PASSOS_CAMINHO = [
-  "A API recebe a compra e calcula 9 sinais de alerta com regras simples.",
-  "O modelo (regressão logística) dá uma nota de risco de 0 a 100.",
-  "A decisão sai na hora: aprovar, pedir confirmação ao cliente ou bloquear e enviar ao analista.",
-  "Em paralelo, a IA investiga a compra com ferramentas (histórico do cartão, perfil do cliente e do estabelecimento) e diz se confirma, diverge ou não conclui.",
-  "O analista vê as duas opiniões, decide e registra a resposta.",
+  "O associado faz a compra no cartão.",
+  "O Sentinela decide na hora: calcula 9 sinais, dá uma nota de 0 a 100 e aprova, pede confirmação ou bloqueia.",
+  'A IA audita a decisão e o associado confirma: a IA investiga a compra e diz se concorda; o associado responde "Foi você?" no app.',
+  "A filial acompanha: o auditor revisa a fila da agência e o gerente vê os números da carteira.",
 ];
 export const TITULO_SINAIS_COMO = "Os 9 sinais de alerta";
 export const COLUNAS_SINAIS = { sinal: "Sinal", quando: "Dispara quando" };
@@ -245,8 +244,8 @@ export const SINAIS_EXPLICADOS: Array<[string, string]> = [
 ];
 export const TITULO_DECISAO_COMO = "Como a decisão é tomada";
 export const REGRAS_DECISAO = [
-  "Bloquear e enviar ao analista: nota de 70 ou mais, ou IP de país desconhecido.",
-  "Pedir confirmação ao cliente: nota de 30 ou mais, ou 3 sinais ou mais.",
+  "Bloquear na hora e avisar o associado: nota de 70 ou mais, ou IP de país desconhecido.",
+  "Pedir confirmação ao associado: nota de 30 ou mais, ou 3 sinais ou mais.",
   "Aprovar: nos demais casos.",
 ];
 export const TITULO_IA_COMO = "Como a IA audita";
@@ -263,8 +262,8 @@ export const TITULO_LIMITACOES = "Limitações";
 export const LIMITACOES = [
   "Os dados são sintéticos e fáceis de separar: três colunas de velocidade já calculadas carregam o resultado; em dados reais o desempenho seria menor.",
   "Todas as fraudes da base estão entre janeiro e março de 2025; em uso real, o modelo precisa de monitoramento.",
-  "Pedir confirmação ao cliente é só indicado na tela; nenhuma notificação é enviada.",
-  "As respostas do analista ficam salvas, mas ainda não retreinam o modelo automaticamente.",
+  "O aviso ao associado é simulado no app do site; nada é enviado por SMS ou push.",
+  "As respostas do associado e do auditor ainda não retreinam o modelo automaticamente.",
 ];
 
 // --- Issue #45 ---
@@ -345,8 +344,7 @@ export const BOTAO_AVISAR_ASSOCIADO = "Avisar o associado";
 export const AVISO_ASSOCIADO_ENVIADO = "Notificação enviada ao associado.";
 export const ERRO_NOTIFICACAO_409 =
   "O associado já foi avisado sobre esta transação.";
-export const ERRO_RESPOSTA_409 =
-  "O associado já respondeu a esta notificação.";
+export const ERRO_RESPOSTA_409 = "O associado já respondeu a esta notificação.";
 export const ERRO_NOTIFICACAO_422 =
   "Não é possível notificar o associado em transações aprovadas.";
 export const LINK_VER_NO_APP = "Ver no app do associado";
@@ -355,10 +353,12 @@ export const CRIADA_EM = (quando: string) => `Enviada em ${quando}`;
 
 // --- Issue #64 — Perfil do associado ---
 export const TITULO_PERFIL_ASSOCIADO = "O normal deste associado";
-export const PERFIL_SEM_HISTORICO = "Primeira compra registrada deste associado.";
+export const PERFIL_SEM_HISTORICO =
+  "Primeira compra registrada deste associado.";
 export const PERFIL_COMPRAS_ANTERIORES = (n: number) =>
   `${n} ${n === 1 ? "compra anterior" : "compras anteriores"} na base`;
-export const PERFIL_MEDIANA_VALOR = (valor: string) => `Mediana de valor: ${valor}`;
+export const PERFIL_MEDIANA_VALOR = (valor: string) =>
+  `Mediana de valor: ${valor}`;
 export const PERFIL_RAZAO_MEDIANA = (razao: string) =>
   `Esta compra é ${razao}× a mediana`;
 export const PERFIL_RAZAO_ALTA = "⚠ Esta compra é alta em relação à mediana";
@@ -381,7 +381,8 @@ export const PRIVACIDADE_COMO = [
 // --- Issue #91: identidade, molduras e entrada ---
 export const ALT_LOGO = "Sicredi";
 export const ENTRAR_TITULO = "Quem está entrando?";
-export const ENTRAR_LEGENDA = "Acesso simulado, sem senha. Escolha uma pessoa para ver o Sentinela pelo lado dela.";
+export const ENTRAR_LEGENDA =
+  "Acesso simulado, sem senha. Escolha uma pessoa para ver o Sentinela pelo lado dela.";
 export const ENTRAR_BOTAO = "Entrar";
 export const ENTRANDO = "Entrando…";
 export const ROTULOS_PAPEL: Record<string, string> = {
@@ -418,12 +419,14 @@ export const ATALHO_INVESTIR = "Investir";
 export const ATALHO_EM_BREVE = "Em breve";
 export const ROTULO_ATALHOS = "Atalhos";
 export const PENDENTE_TITULO = "Uma compra espera a sua resposta.";
-export const PENDENTE_DETALHE = (valor: string, quando: string) => `${valor} em ${quando}.`;
+export const PENDENTE_DETALHE = (valor: string, quando: string) =>
+  `${valor} em ${quando}.`;
 export const PENDENTE_BOTAO = "Responder";
 export const ULTIMAS_COMPRAS = "Últimas compras";
 export const VER_EXTRATO = "Ver extrato completo";
 export const MEUS_CARTOES = "Meus cartões";
-export const CARTAO_DESCRICAO = (tipo: string, final: string) => `${tipo} · final ${final}`;
+export const CARTAO_DESCRICAO = (tipo: string, final: string) =>
+  `${tipo} · final ${final}`;
 export const CARTAO_BLOQUEADO = "Bloqueado";
 export const TITULO_EXTRATO = "Extrato";
 export const FILTROS_EXTRATO = "Filtrar compras";
@@ -442,7 +445,8 @@ export const ROTULOS_FILTRO_SITUACAO: Record<string, string> = {
 };
 export const EXTRATO_VAZIO = "Nenhuma compra com este filtro.";
 export const COMPRA_SIMULADA = "Simulada";
-export const DESCRICAO_COMPRA = (quando: string, tipo: string) => `${quando} · ${tipo}`;
+export const DESCRICAO_COMPRA = (quando: string, tipo: string) =>
+  `${quando} · ${tipo}`;
 export const ABRIR_COMPRA = (estabelecimento: string, valor: string) =>
   `Abrir a compra em ${estabelecimento}, ${valor}`;
 export const VOLTAR = "Voltar";
@@ -475,37 +479,54 @@ export const CAMPOS_COMPRA = {
   token: "Usos da carteira digital em 3 meses",
   distancia: "Distância da compra anterior (km)",
 };
-export const MODALIDADES = { presente: "Cartão na mão", naoPresente: "Pela internet" };
-export const PAISES = { conhecido: "Brasil", desconhecido: "País desconhecido" };
+export const MODALIDADES = {
+  presente: "Cartão na mão",
+  naoPresente: "Pela internet",
+};
+export const PAISES = {
+  conhecido: "Brasil",
+  desconhecido: "País desconhecido",
+};
 export const MAIS_DETALHES = "Mais detalhes da compra";
 export const BOTAO_COMPRAR = "Fazer a compra";
 export const COMPRANDO = "Enviando…";
-export const RESULTADO_COMPRA: Record<string, { titulo: string; texto: string }> = {
-  APROVADA: { titulo: "Compra aprovada.", texto: "O valor já aparece no seu extrato." },
+export const RESULTADO_COMPRA: Record<
+  string,
+  { titulo: string; texto: string }
+> = {
+  APROVADA: {
+    titulo: "Compra aprovada.",
+    texto: "O valor já aparece no seu extrato.",
+  },
   AGUARDANDO: {
     titulo: "Precisamos confirmar com você.",
     texto: "Enviamos um aviso. A compra fica em espera até a sua resposta.",
   },
   BLOQUEADA: {
     titulo: "Compra bloqueada por segurança.",
-    texto: "A compra fugiu do seu padrão de uso. Enviamos um aviso para você confirmar se foi você.",
+    texto:
+      "A compra fugiu do seu padrão de uso. Enviamos um aviso para você confirmar se foi você.",
   },
   CONTESTADA: { titulo: "Compra contestada.", texto: "" },
 };
 export const VER_AVISO = "Responder ao aviso";
 export const VER_COMPRA = "Ver a compra";
 export const SALDO_AGORA = (saldo: string) => `Saldo agora: ${saldo}.`;
-export const ERRO_CARTAO_BLOQUEADO = "Este cartão está bloqueado. Escolha outro cartão.";
+export const ERRO_CARTAO_BLOQUEADO =
+  "Este cartão está bloqueado. Escolha outro cartão.";
 export const TITULO_AVISO = "Confirme esta compra";
 export const MENSAGEM_DO_SICREDI = "Mensagem do Sicredi";
-export const RODAPE_SEGURANCA = "O Sicredi nunca pede senha, código ou link por mensagem.";
+export const RODAPE_SEGURANCA =
+  "O Sicredi nunca pede senha, código ou link por mensagem.";
 export const AVISO_JA_RESPONDIDO = "Você já respondeu a este aviso.";
 export const DETALHE_VALOR = "Valor";
 export const CONTESTAR = "Não reconheço esta compra";
-export const CONTESTAR_EXPLICACAO = "O cartão será bloqueado e a sua agência será avisada.";
+export const CONTESTAR_EXPLICACAO =
+  "O cartão será bloqueado e a sua agência será avisada.";
 export const CONTESTAR_CONFIRMAR = "Sim, contestar e bloquear o cartão";
 export const CANCELAR = "Cancelar";
-export const CONTESTADA_OK = "Compra contestada. O cartão foi bloqueado e a sua agência foi avisada.";
+export const CONTESTADA_OK =
+  "Compra contestada. O cartão foi bloqueado e a sua agência foi avisada.";
 
 // --- Issue #97: fila do auditor e painel da compra na filial ---
 export const TITULO_FILA_FILIAL = "Fila de alertas";
@@ -531,8 +552,10 @@ export const COLUNAS_FILA_FILIAL = {
   situacao: "Situação",
   ia: "IA",
 };
-export const ROTULO_TABELA_FILA_FILIAL = "Compras da agência: escolha uma para ver o detalhe";
-export const ASSOCIADO_E_CARTAO = (nome: string, final: string) => `${nome} · final ${final}`;
+export const ROTULO_TABELA_FILA_FILIAL =
+  "Compras da agência: escolha uma para ver o detalhe";
+export const ASSOCIADO_E_CARTAO = (nome: string, final: string) =>
+  `${nome} · final ${final}`;
 export const ROTULOS_VEREDITO: Record<string, string> = {
   CONFIRMA: "Confirma",
   DIVERGE: "Diverge",
@@ -540,7 +563,8 @@ export const ROTULOS_VEREDITO: Record<string, string> = {
 };
 export const SEM_VEREDITO = "—";
 export const FILA_FILIAL_VAZIA = "Nenhuma compra com este filtro.";
-export const ESCOLHA_UMA_COMPRA = "Escolha uma compra na fila para ver o detalhe.";
+export const ESCOLHA_UMA_COMPRA =
+  "Escolha uma compra na fila para ver o detalhe.";
 export const COMPRA_EM_ANALISE = "Compra em análise";
 export const ROTULO_NOTA = "Nota de risco";
 export const NOTA_DE_100 = (nota: string) => `${nota} de 100`;
@@ -548,7 +572,8 @@ export const DECISAO_DO_MODELO = "Decisão do modelo";
 export const TITULO_SINAIS_FILIAL = (n: number) => `Sinais de alerta (${n})`;
 export const EXPLICACAO_DO_MODELO = "Explicação do modelo";
 export const TITULO_ASSOCIADO_FILIAL = "Associado";
-export const SEM_RESPOSTA_ASSOCIADO = "O associado ainda não respondeu ao aviso.";
+export const SEM_RESPOSTA_ASSOCIADO =
+  "O associado ainda não respondeu ao aviso.";
 export const RESPOSTA_DO_ASSOCIADO = (resposta: string, quando: string) =>
   `Respondeu "${resposta}" em ${quando}.`;
 export const LEITURA_RESPOSTA = {
@@ -556,15 +581,23 @@ export const LEITURA_RESPOSTA = {
   sim: "O associado reconhece a compra.",
 };
 export const HISTORICO_AGREGADO = "Histórico (agregado)";
-export const RESUMO_HISTORICO = (compras: string, mediana: string, contestacoes: string) =>
+export const RESUMO_HISTORICO = (
+  compras: string,
+  mediana: string,
+  contestacoes: string,
+) =>
   `${compras} compras em 90 dias · mediana ${mediana} · ${contestacoes} contestações.`;
 export const TITULO_BLOQUEIO = "Bloqueio";
-export const BLOQUEIO_POR = (por: string, quando: string) => `Bloqueada por ${por} em ${quando}.`;
+export const BLOQUEIO_POR = (por: string, quando: string) =>
+  `Bloqueada por ${por} em ${quando}.`;
 
 // --- Issue #99: painel do gerente ---
 export const TITULO_PAINEL_AGENCIA = "Painel da agência";
-export const LEGENDA_PAINEL_AGENCIA = (periodo: string, compras: string, agencia: string) =>
-  `${periodo} · ${compras} compras na carteira da ${agencia}.`;
+export const LEGENDA_PAINEL_AGENCIA = (
+  periodo: string,
+  compras: string,
+  agencia: string,
+) => `${periodo} · ${compras} compras na carteira da ${agencia}.`;
 export const PERIODOS: Record<string, string> = { "2025-03": "Março de 2025" };
 export const KPI_APROVADAS = "Aprovadas";
 export const KPI_CONFIRMACOES = "Pedidos de confirmação";
@@ -575,27 +608,36 @@ export const PROTEGIDOS = (valor: string) => `${valor} protegidos`;
 export const MEDIANA = "mediana";
 export const SEM_RESPOSTAS_AINDA = "Ainda não há respostas";
 export const TITULO_DECISOES_TIPO = "Decisões por tipo de compra";
-export const TIPO_E_MODALIDADE = (tipo: string, modalidade: string) => `${tipo}, ${modalidade}`;
+export const TIPO_E_MODALIDADE = (tipo: string, modalidade: string) =>
+  `${tipo}, ${modalidade}`;
 export const MODALIDADE_CURTA: Record<string, string> = {
   cartao_presente: "com cartão",
   cartao_nao_presente: "sem cartão",
 };
-export const DESCRICAO_BARRA_TIPO = (rotulo: string, aprovadas: string, confirmacoes: string, bloqueadas: string) =>
+export const DESCRICAO_BARRA_TIPO = (
+  rotulo: string,
+  aprovadas: string,
+  confirmacoes: string,
+  bloqueadas: string,
+) =>
   `${rotulo}: ${aprovadas} aprovadas, ${confirmacoes} pedidos de confirmação e ${bloqueadas} bloqueadas.`;
 export const LEGENDA_APROVADAS = "Aprovadas";
 export const LEGENDA_CONFIRMACOES = "Pedidos de confirmação";
 export const LEGENDA_BLOQUEADAS = "Bloqueadas";
 export const TITULO_ACERTO_MODELO = "Acerto do modelo";
 export const DOS_ALERTAS_RESPONDIDOS = "dos alertas respondidos";
-export const DESCRICAO_ROSCA = (taxa: string) => `O modelo acertou ${taxa} dos alertas que os associados responderam.`;
-export const ALERTAS_CERTOS = (n: string) => `${n} associados responderam "não fui eu": o alerta estava certo.`;
-export const ALERTAS_DESNECESSARIOS = (n: string) => `${n} responderam "fui eu": alerta desnecessário.`;
+export const DESCRICAO_ROSCA = (taxa: string) =>
+  `O modelo acertou ${taxa} dos alertas que os associados responderam.`;
+export const ALERTAS_CERTOS = (n: string) =>
+  `${n} associados responderam "não fui eu": o alerta estava certo.`;
+export const ALERTAS_DESNECESSARIOS = (n: string) =>
+  `${n} responderam "fui eu": alerta desnecessário.`;
 export const ALERTAS_SEM_RESPOSTA = (n: string) => `${n} ainda sem resposta.`;
 export const EXPLICA_ACERTO =
-  "O acerto vem da resposta do associado ao aviso: \"não fui eu\" confirma o alerta; \"fui eu\" mostra que o alerta não era necessário.";
+  'O acerto vem da resposta do associado ao aviso: "não fui eu" confirma o alerta; "fui eu" mostra que o alerta não era necessário.';
 export const TITULO_FRAUDES_APROVADAS = "Fraudes que o modelo aprovou";
 export const EXPLICA_FRAUDES_APROVADAS =
-  "Compras aprovadas que o associado contestou com \"Não reconheço esta compra\". Os cartões foram bloqueados.";
+  'Compras aprovadas que o associado contestou com "Não reconheço esta compra". Os cartões foram bloqueados.';
 export const NENHUMA_FRAUDE_APROVADA = "Nenhuma contestação até agora.";
 export const CARTAO_BLOQUEADO_ETIQUETA = "Cartão bloqueado";
 export const DURACAO_MIN = (min: string) => `${min} min`;
@@ -607,13 +649,16 @@ export const BLOQUEAR_EXPLICACAO =
   "A compra ainda espera o associado. Ao bloquear, ela não é cobrada e o seu nome fica registrado no bloqueio.";
 export const BLOQUEAR_AVISO_ASSOCIADO =
   "O associado verá que a compra foi bloqueada por um analista da agência, sem o seu nome.";
-export const NOTA_DO_AUDITOR = "Nota para o registro (opcional, até 300 caracteres)";
+export const NOTA_DO_AUDITOR =
+  "Nota para o registro (opcional, até 300 caracteres)";
 export const CONFIRMAR_BLOQUEIO = "Confirmar bloqueio";
 export const BLOQUEANDO = "Bloqueando…";
-export const ERRO_BLOQUEIO_409 = "Esta compra já não espera o associado e não pode mais ser bloqueada.";
-export const BLOQUEIO_FEITO = "Compra bloqueada. O associado já vê o bloqueio no app.";
+export const ERRO_BLOQUEIO_409 =
+  "Esta compra já não espera o associado e não pode mais ser bloqueada.";
+export const BLOQUEIO_FEITO =
+  "Compra bloqueada. O associado já vê o bloqueio no app.";
 export const LIBERACAO_AUTOMATICA =
-  "Se o associado responder \"fui eu\", a compra é liberada sozinha.";
+  'Se o associado responder "fui eu", a compra é liberada sozinha.';
 
 // --- Issue #104: bloqueios da equipe ---
 export const TITULO_BLOQUEIOS_EQUIPE = "Bloqueios da equipe";
@@ -624,12 +669,14 @@ export const COLUNAS_BLOQUEIOS = {
   liberados: "Liberados depois",
 };
 export const EXPLICA_BLOQUEIOS =
-  "\"Correto\" é quando o associado confirma que não fez a compra; \"liberado depois\" é quando ele responde \"fui eu\" e a compra é liberada sozinha.";
-export const SEM_BLOQUEIOS_EQUIPE = "Nenhum bloqueio feito pela equipe até agora.";
+  '"Correto" é quando o associado confirma que não fez a compra; "liberado depois" é quando ele responde "fui eu" e a compra é liberada sozinha.';
+export const SEM_BLOQUEIOS_EQUIPE =
+  "Nenhum bloqueio feito pela equipe até agora.";
 
 // --- Issue #106: chat do associado ---
 export const TITULO_CHAT = "Assistente Sicredi";
-export const SUBTITULO_CHAT = "Tire dúvidas sobre os seus gastos e as suas compras.";
+export const SUBTITULO_CHAT =
+  "Tire dúvidas sobre os seus gastos e as suas compras.";
 export const BOAS_VINDAS_CHAT =
   "Olá! Posso resumir os seus gastos, explicar uma compra bloqueada ou mostrar o que está esperando a sua confirmação. O que você quer saber?";
 export const SUGESTOES_CHAT = [
@@ -648,10 +695,12 @@ export const FONTE_CHAT: Record<string, string> = {
 };
 export const CONVERSAR_COM_GERENTE = "Conversar com gerente";
 export const CHAMANDO_GERENTE = "Chamando o gerente…";
-export const GERENTE_DA_AGENCIA = (nome: string) => `${nome} · gerente da agência`;
+export const GERENTE_DA_AGENCIA = (nome: string) =>
+  `${nome} · gerente da agência`;
 export const AVISO_GERENTE_SIMULADO =
   "Conversa simulada: neste protótipo, o gerente não responde depois do resumo.";
 export const ROTULO_CONVERSA = "Conversa";
-export const ERRO_CHAT = "Não consegui responder agora. Tente de novo em instantes.";
+export const ERRO_CHAT =
+  "Não consegui responder agora. Tente de novo em instantes.";
 export const VOCE = "Você";
 export const ASSISTENTE = "Assistente";

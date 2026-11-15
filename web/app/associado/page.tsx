@@ -1,39 +1,14 @@
 /**
- * Página /associado — simulação do app do associado.
- * Moldura de celular com a lista de notificações.
+ * Página /associado: início do app do associado (Issue #93).
  */
 
-import { Heading } from "@carbon/react";
-import ListaNotificacoes from "@/components/associado/ListaNotificacoes";
-import { TITULO_APP_ASSOCIADO } from "@/lib/textos";
+import PaginaInicio from "@/components/associado/PaginaInicio";
 
-export const metadata = {
-  title: "App do associado — Sentinela",
-};
+// A página depende da sessão no navegador (Issue #91): fora da validação de navegação instantânea.
+export const instant = false;
 
-export default function PaginaAssociado() {
-  return (
-    <div className="sentinela-pagina">
-      <Heading>{TITULO_APP_ASSOCIADO}</Heading>
-      {/* Moldura de celular — desaparece abaixo de 480 px (classe CSS) */}
-      <div
-        className="sentinela-moldura-celular"
-        aria-label="Simulação de celular do associado"
-      >
-        {/* Barra de status simulada */}
-        <div
-          style={{
-            textAlign: "center",
-            fontSize: "0.7rem",
-            color: "#525252",
-            marginBottom: "12px",
-          }}
-          aria-hidden="true"
-        >
-          Sicredi · App
-        </div>
-        <ListaNotificacoes />
-      </div>
-    </div>
-  );
+export const metadata = { title: "Início · Sicredi" };
+
+export default function Pagina() {
+  return <PaginaInicio />;
 }

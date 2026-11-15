@@ -1,8 +1,8 @@
 /**
- * Testes das páginas Desempenho e Como funciona (Issue #44), com a API simulada.
+ * Testes das páginas Desempenho e Como funciona da filial (Issues #44 e #100), com a API simulada.
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -12,6 +12,7 @@ import SecaoCustos from "@/components/desempenho/SecaoCustos";
 import * as api from "@/lib/api";
 import { mocks } from "@/lib/mocks/index";
 import {
+  PASSOS_CAMINHO,
   PRIVACIDADE_COMO,
   SINAIS_EXPLICADOS,
   TITULO_IA_CONTRA_MODELO,
@@ -28,15 +29,15 @@ beforeEach(() => {
 });
 
 describe("PaginaDesempenho", () => {
-  it("mostra os indicadores de março com a diferença para o sistema atual", async () => {
+  it("mostra os indicadores de março sem comparar com o sistema atual", async () => {
     render(<PaginaDesempenho />);
 
     expect(
-      await screen.findByText("+28 em relação ao sistema atual"),
+      await screen.findByText("Num mês que o modelo não viu no treino."),
     ).toBeInTheDocument();
     expect(screen.getAllByText("54 de 54").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("26 de 54").length).toBeGreaterThan(0);
-    expect(screen.getByText("48,1%")).toBeInTheDocument();
+    expect(screen.queryByText("26 de 54")).not.toBeInTheDocument();
+    expect(screen.queryByText(/sistema atual/i)).not.toBeInTheDocument();
   });
 
   it("mostra o modelo e a IA lado a lado quando o JSON da #46 existe", async () => {
@@ -54,7 +55,7 @@ describe("PaginaDesempenho", () => {
     });
 
     render(<PaginaDesempenho />);
-    await screen.findByText("+28 em relação ao sistema atual");
+    await screen.findByText("Num mês que o modelo não viu no treino.");
 
     expect(screen.queryByText(TITULO_IA_CONTRA_MODELO)).not.toBeInTheDocument();
   });
@@ -68,24 +69,52 @@ describe("PaginaDesempenho", () => {
   });
 });
 
+describe("Rotas das duas páginas", () => {
+  const app = (caminho: string) => resolve(__dirname, "../app", caminho);
+
+  it("ficam dentro da área da filial", () => {
+    expect(existsSync(app("filial/desempenho/page.tsx"))).toBe(true);
+    expect(existsSync(app("filial/como-funciona/page.tsx"))).toBe(true);
+  });
+
+  it("não existem mais fora da filial", () => {
+    expect(existsSync(app("desempenho"))).toBe(false);
+    expect(existsSync(app("como-funciona"))).toBe(false);
+  });
+
+  it("aparecem no menu da filial com os caminhos novos", () => {
+    const moldura = readFileSync(
+      resolve(__dirname, "../components/layout/MolduraFilial.tsx"),
+      "utf-8",
+    );
+
+    expect(moldura).toContain('"/filial/desempenho"');
+    expect(moldura).toContain('"/filial/como-funciona"');
+  });
+});
+
 describe("SecaoCustos", () => {
-  it("mostra o prejuízo evitado em reais", () => {
+  it("mostra o valor barrado, o custo das confirmações e o valor líquido", () => {
     render(
       <SecaoCustos
         custos={{
-          prejuizo_evitado: 1234.5,
-          sentinela: { custo_total: 159 },
-          sistema_atual: { custo_total: 1393.5 },
+          sentinela: {
+            valor_fraudes_bloqueadas: 13490.7,
+            custo_confirmacoes: 159,
+          },
+          valor_liquido_protegido: 13331.7,
         }}
       />,
     );
 
-    expect(screen.getByText("R$ 1.234,50")).toBeInTheDocument();
+    expect(screen.getByText("R$ 13.490,70")).toBeInTheDocument();
+    expect(screen.getByText("R$ 159,00")).toBeInTheDocument();
+    expect(screen.getByText("R$ 13.331,70")).toBeInTheDocument();
   });
 
   it("não aparece quando falta um campo", () => {
     const { container } = render(
-      <SecaoCustos custos={{ prejuizo_evitado: 10 }} />,
+      <SecaoCustos custos={{ valor_liquido_protegido: 10 }} />,
     );
 
     expect(container).toBeEmptyDOMElement();
@@ -93,6 +122,22 @@ describe("SecaoCustos", () => {
 });
 
 describe("PaginaComoFunciona", () => {
+  it("conta a história em quatro passos, do associado à filial", () => {
+    render(<PaginaComoFunciona />);
+
+    const passos = screen
+      .getAllByRole("listitem")
+      .slice(0, 4)
+      .map((li) => li.textContent);
+
+    expect(PASSOS_CAMINHO).toHaveLength(4);
+    expect(passos).toEqual(PASSOS_CAMINHO);
+    expect(passos[0]).toContain("associado faz a compra");
+    expect(passos[1]).toContain("decide na hora");
+    expect(passos[2]).toContain("IA audita");
+    expect(passos[3]).toContain("filial acompanha");
+  });
+
   it("lista os 9 sinais de alerta", () => {
     render(<PaginaComoFunciona />);
 

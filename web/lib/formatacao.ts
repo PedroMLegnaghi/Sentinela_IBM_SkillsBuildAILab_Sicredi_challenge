@@ -127,3 +127,48 @@ const ROTULOS_RESPOSTA: Record<string, string> = {
 export function formatarResposta(resposta: string): string {
   return ROTULOS_RESPOSTA[resposta] ?? resposta;
 }
+
+/**
+ * Data e hora curtas para o extrato do associado (Issue #93).
+ * @param dataHora - String ISO 8601 sem fuso, ou null.
+ * @returns "14/03, 18:42" ou "Sem data".
+ */
+export function formatarDiaHora(dataHora: string | null | undefined): string {
+  if (!dataHora) return "Sem data";
+  const d = new Date(dataHora);
+  if (isNaN(d.getTime())) return "Sem data";
+  const dia = String(d.getDate()).padStart(2, "0");
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const hora = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${dia}/${mes}, ${hora}:${min}`;
+}
+
+const MESES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+/**
+ * Mês e ano por extenso para agrupar o extrato (Issue #93).
+ * @param dataHora - String ISO 8601 sem fuso, ou null.
+ * @returns "Março de 2025" ou "Sem data".
+ */
+export function formatarMesAno(dataHora: string | null | undefined): string {
+  if (!dataHora) return "Sem data";
+  const d = new Date(dataHora);
+  if (isNaN(d.getTime())) return "Sem data";
+  return `${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+}
+
+/**
+ * Tempo curto em segundos ou minutos (Issue #99).
+ * @param segundos - Duração em segundos, ou null.
+ * @returns "45 s", "4 min" ou "—".
+ */
+export function formatarTempoCurto(segundos: number | null | undefined): string {
+  if (segundos === null || segundos === undefined) return "—";
+  if (segundos < 60) return `${Math.round(segundos)} s`;
+  if (segundos < 3600) return `${Math.round(segundos / 60)} min`;
+  return `${formatarDecimal(segundos / 3600, 1)} h`;
+}

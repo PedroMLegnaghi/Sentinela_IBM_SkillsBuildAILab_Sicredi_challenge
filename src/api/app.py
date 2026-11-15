@@ -15,13 +15,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import auditorias as auditoria_mem
 from src.api import respostas as resp_mod
-from src.api import servicos
+from src.api import rotas_associado, rotas_filial, rotas_matriz, servicos, sessao
 from src.api.esquemas import (
     EntradaAnalise,
     EntradaResposta,
     EntradaRespostaAssociado,
     NotificacaoSchema,
 )
+from src.aplicacao import associado as associado_app
 from src.associado import notificacoes as notificacao_mem
 from src.associado.mensagem import tipo_por_decisao
 from src.config import API_ORIGENS_PERMITIDAS
@@ -53,6 +54,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rotas da refatoração (ESPECIFICACAO, seção 17), em arquivos próprios
+app.include_router(sessao.router)
+app.include_router(rotas_associado.router)
+app.include_router(rotas_filial.router)
+app.include_router(rotas_matriz.router)
 
 
 def _auditoria_ativa() -> str:
@@ -393,7 +400,7 @@ def responder_notificacao(id_notificacao: str, entrada: EntradaRespostaAssociado
         Notificacao atualizada; já respondida → 409; desconhecida → 404; inválida → 422.
     """
     try:
-        return notificacao_mem.responder(id_notificacao, entrada.resposta)
+        notificacao = notificacao_mem.responder(id_notificacao, entrada.resposta)
     except KeyError as erro:
         raise HTTPException(
             status_code=404, detail=_mensagem_notificacao_desconhecida(id_notificacao)
@@ -402,6 +409,11 @@ def responder_notificacao(id_notificacao: str, entrada: EntradaRespostaAssociado
         raise HTTPException(status_code=409, detail=str(erro)) from erro
     except ValueError as erro:
         raise HTTPException(status_code=422, detail=str(erro)) from erro
+    # A resposta ao aviso também muda a compra do associado (seção 17.1), sem mudar o corpo.
+    associado_app.aplicar_resposta_do_aviso(
+        sessao.obter_repositorios(), id_notificacao, entrada.resposta
+    )
+    return notificacao
 
 
 def _mensagem_notificacao_desconhecida(id_notificacao: str) -> str:

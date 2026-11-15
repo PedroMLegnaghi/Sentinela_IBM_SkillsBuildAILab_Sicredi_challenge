@@ -30,8 +30,9 @@ de informação) ou porque são dados pessoais que não devem ser processados:
 
 - **Scores prontos:** `fraud_score`, `visa_fraud_score`, `mc_fraud_score` — dariam a resposta
   diretamente.
-- **Decisão do sistema atual:** `decision`, `transaction_status`, `action_code`, `reason_code` —
-  são o resultado, não a entrada.
+- **Decisões e status pós-compra:** `decision` (campo sintético não documentado como decisão de
+  um sistema real), `transaction_status`, `action_code`, `reason_code` — são resultado, não
+  entrada.
 - **Disputas e fraudes declaradas:** `fraud`, `alert_id`, `dispute_*`, `fdz_*`, `oob_*` — só
   existem depois do evento.
 - **Identificadores:** `id_cartao`, `id_cliente` e `id_estabelecimento` servem só para agrupar o
@@ -50,7 +51,7 @@ Quando a IA audita uma compra, ela recebe apenas:
 - O perfil do estabelecimento (quantidade de compras anteriores, mediana de valor e a nota de
   risco de 0 a 100 já presente na compra — sem razão social nem id)
 
-Nenhuma ferramenta devolve o rótulo de fraude nem a decisão do sistema atual.
+Nenhuma ferramenta devolve o rótulo de fraude nem a coluna `decision`.
 
 Nenhum identificador de cartão, cliente ou estabelecimento é enviado ao watsonx.ai.
 

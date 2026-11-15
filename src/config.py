@@ -76,6 +76,8 @@ CAMINHO_AVALIACAO_RIGOROSA = RAIZ / "modelos" / "avaliacao_rigorosa.json"
 CAMINHO_EDA = RAIZ / "modelos" / "eda.json"
 CAMINHO_IA_CONTRA_MODELO = RAIZ / "modelos" / "ia_contra_modelo.json"
 CAMINHO_NOTIFICACOES = RAIZ / "data" / "notificacoes.csv"
+# Rótulos de retorno para o retreino (Issue #127): CSV só de acréscimo, fora do Git
+CAMINHO_ROTULOS = RAIZ / "data" / "rotulos_retreino.csv"
 
 # Custo por pedido de confirmação em reais (premissa do time; não é cobrado pelo Sicredi)
 CUSTO_PEDIDO_CONFIRMACAO = 1.0

@@ -1,15 +1,15 @@
 "use client";
 
 /**
- * Página "Desempenho": números de março do Sentinela contra o sistema atual, detalhes do
- * modelo e, quando existirem, as análises extras (IA contra modelo, custos).
+ * Página "Desempenho": números de março do Sentinela, valor protegido, detalhes do modelo e a
+ * comparação entre o modelo e a IA. Não compara com a coluna `decision` da base, que a Sicredi
+ * não documenta como a decisão de um sistema real.
  */
 
 import { useEffect, useState } from "react";
 import { Heading, InlineNotification } from "@carbon/react";
 import EstadoCarregando from "@/components/comuns/EstadoCarregando";
 import EstadoErro from "@/components/comuns/EstadoErro";
-import ComparacaoSistemas from "@/components/desempenho/ComparacaoSistemas";
 import DetalhesModelo from "@/components/desempenho/DetalhesModelo";
 import IndicadoresDesempenho from "@/components/desempenho/IndicadoresDesempenho";
 import SecaoCustos from "@/components/desempenho/SecaoCustos";
@@ -55,7 +55,6 @@ export default function PaginaDesempenho() {
         {LEGENDA_DESEMPENHO(formatarInteiro(avaliacao.transacoes))}
       </p>
       <IndicadoresDesempenho avaliacao={avaliacao} />
-      <ComparacaoSistemas avaliacao={avaliacao} />
       {extras.ia_contra_modelo && (
         <SecaoIaContraModelo dados={extras.ia_contra_modelo} />
       )}

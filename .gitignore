@@ -4,6 +4,9 @@ data/*
 !data/dicionario_dados_case_prevencao_sicredi.xlsx
 !data/Orientacoes_case_prevencao_sicredi.txt
 !data/transacoes_preparadas.parquet
+# Gerados na hora pelos rótulos de retorno (Issue #127)
+data/rotulos_retreino.csv
+data/retreino.parquet
 .venv/
 __pycache__/
 *.pyc

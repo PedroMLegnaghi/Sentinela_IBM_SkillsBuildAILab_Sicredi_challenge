@@ -51,10 +51,10 @@ export default function BarraNota({ nota }: PropsBarraNota) {
             width: `${percentual}%`,
             backgroundColor:
               percentual >= 80
-                ? "var(--sicredi-magenta, #E60050)"
+                ? "#da1e28"
                 : percentual >= 50
-                  ? "var(--sicredi-amarelo, #FFCD00)"
-                  : "var(--sicredi-verde, #3FA110)",
+                  ? "#f1c21b"
+                  : "#24a148",
             borderRadius: "4px",
             transition: "width 0.3s ease",
           }}

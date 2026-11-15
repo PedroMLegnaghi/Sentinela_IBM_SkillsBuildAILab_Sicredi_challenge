@@ -138,13 +138,7 @@ as respostas do chat.
 
 ```mermaid
 flowchart TB
-    subgraph Pessoas["Quem usa, pelo navegador"]
-        direction LR
-        ASS["👤 Associado"]
-        AUD["🔎 Auditor"]
-        GER["📊 Gerente"]
-        MAT["🏢 Matriz"]
-    end
+    PES["👤 Associado · 🔎 Auditor<br/>📊 Gerente · 🏢 Matriz<br/>pelo navegador"]
     AUT["💳 Autorizador de cartões<br/>simulado"]
 
     subgraph Local["💻 Na máquina (localhost)"]
@@ -165,11 +159,12 @@ flowchart TB
 
     WX["☁️ IBM watsonx.ai<br/>Granite"]
 
-    Pessoas --> SITE
+    PES --> SITE
     SITE -->|"HTTP + X-Sessao"| API
     AUT -->|"POST /api/analisar"| API
     API --> NUC
-    NUC -->|"depois, em paralelo"| AUDI & CAN
+    NUC -->|"em segundo plano"| AUDI
+    NUC -->|"se pedir confirmação<br/>ou bloquear"| CAN
     API --> REG
     NUC -->|lê| MOD
     REG -->|guarda| MEM

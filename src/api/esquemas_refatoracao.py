@@ -340,12 +340,11 @@ class SentinelaModeloSchema(BaseModel):
     fraudes_aprovadas: int | None
 
 
-class SistemaAtualModeloSchema(BaseModel):
-    """Resultado do sistema atual na mesma base."""
+class TreinoModeloSchema(BaseModel):
+    """Tamanho da base de treino do modelo (janeiro e fevereiro)."""
 
-    fraudes_bloqueadas: int | None
-    bloqueadas: int | None
-    fraudes_nao_bloqueadas: int | None
+    linhas: int | None
+    fraudes: int | None
 
 
 class ModeloMatrizSchema(BaseModel):
@@ -355,7 +354,7 @@ class ModeloMatrizSchema(BaseModel):
     transacoes: int | None
     fraudes: int | None
     sentinela: SentinelaModeloSchema
-    sistema_atual: SistemaAtualModeloSchema
+    treino: TreinoModeloSchema
     pr_auc: float | None
     roc_auc: float | None
 

@@ -714,13 +714,13 @@ export const LEGENDA_PAINEL_MATRIZ = (periodo: string, compras: string, agencias
   `${periodo} · ${compras} compras em ${agencias} agências.`;
 export const TITULO_MODELO_BASE = "O modelo em toda a base de teste";
 export const LEGENDA_MODELO_BASE = (transacoes: string) =>
-  `${transacoes} compras de março, que o modelo não viu no treino. Janeiro e fevereiro ficam de fora porque foram usados para treinar o modelo.`;
+  `${transacoes} compras de março, que o modelo não viu no treino. A base é sintética e muito separável, e o treino teve poucas fraudes: com dados reais, os números seriam menores.`;
 export const FRAUDES_BLOQUEADAS_SENTINELA = "Fraudes bloqueadas pelo Sentinela";
-export const FRAUDES_BLOQUEADAS_ATUAL = "Fraudes bloqueadas pelo sistema atual";
+export const FRAUDES_NO_TREINO = "Fraudes usadas no treino";
+export const TREINO_DETALHE = (linhas: string) => `em ${linhas} compras de janeiro e fevereiro`;
 export const LEGITIMAS_BLOQUEADAS = "Compras legítimas bloqueadas";
 export const PEDIDOS_CONFIRMACAO = "Pedidos de confirmação";
 export const DE_N = (parte: string, total: string) => `${parte} de ${total}`;
-export const FRAUDES_QUE_PASSARAM = (n: string) => `${n} fraudes passaram`;
 export const SEPARACAO_MODELO = (pr: string, roc: string) => `PR-AUC ${pr} · ROC-AUC ${roc}`;
 export const TITULO_COMPARACAO_AGENCIAS = "Comparação entre agências";
 export const ROTULO_TABELA_AGENCIAS = "Indicadores de cada agência e o total da cooperativa";

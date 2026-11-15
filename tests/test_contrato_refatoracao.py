@@ -411,5 +411,6 @@ def test_metricas_da_matriz(cliente):
         assert totais[campo] == sum(p["totais"][campo] for p in corpo["por_filial"])
     assert corpo["modelo"]["transacoes"] == 13608
     assert corpo["modelo"]["sentinela"]["fraudes_bloqueadas"] == 54
-    assert corpo["modelo"]["sistema_atual"]["fraudes_bloqueadas"] == 26
+    assert corpo["modelo"]["treino"]["fraudes"] == 92
+    assert "sistema_atual" not in corpo["modelo"]
     _sem_proibidas(corpo)

@@ -16,7 +16,6 @@ AVALIACAO = {
         "confirmacoes": 1,
         "fraudes_aprovadas": 0,
     },
-    "sistema_atual": {"bloqueadas": 1, "fraudes_bloqueadas": 1, "fraudes_nao_bloqueadas": 1},
 }
 
 
@@ -69,7 +68,9 @@ def test_bloqueios_por_auditor_trazem_a_filial():
 
 
 def test_modelo_vem_da_avaliacao_e_some_sem_ela():
-    assert _painel(avaliacao=AVALIACAO, metricas_modelo={"pr_auc": 0.99})["modelo"] == {
+    assert _painel(
+        avaliacao=AVALIACAO, metricas_modelo={"pr_auc": 0.99, "treino": {"linhas": 8, "fraudes": 3}}
+    )["modelo"] == {
         "periodo": "2025-03",
         "transacoes": 10,
         "fraudes": 2,
@@ -79,7 +80,7 @@ def test_modelo_vem_da_avaliacao_e_some_sem_ela():
             "confirmacoes": 1,
             "fraudes_aprovadas": 0,
         },
-        "sistema_atual": {"fraudes_bloqueadas": 1, "bloqueadas": 1, "fraudes_nao_bloqueadas": 1},
+        "treino": {"linhas": 8, "fraudes": 3},
         "pr_auc": 0.99,
         "roc_auc": None,
     }

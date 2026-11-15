@@ -4,7 +4,9 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
-import PaginaPainelMatriz, { consolidadoComoFilial } from "@/components/matriz/PaginaPainelMatriz";
+import PaginaPainelMatriz, {
+  consolidadoComoFilial,
+} from "@/components/matriz/PaginaPainelMatriz";
 import SoPapeis from "@/components/layout/SoPapeis";
 import { linksDoPapel } from "@/components/layout/MolduraFilial";
 import * as api from "@/lib/api";
@@ -24,14 +26,16 @@ beforeEach(() => {
 });
 
 describe("PaginaPainelMatriz", () => {
-  it("mostra o consolidado, o modelo na base de teste e a comparação entre agências", async () => {
+  it("mostra o consolidado, o modelo na base de teste (sem o sistema atual) e as agências", async () => {
     apiFalsa.obterMetricasMatriz.mockResolvedValue(m.metricasMatriz);
     render(<PaginaPainelMatriz />);
 
-    expect(await screen.findByText(/13.608 compras em 2 agências/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/13.608 compras em 2 agências/),
+    ).toBeInTheDocument();
     expect(screen.getByText("54 de 54")).toBeInTheDocument();
-    expect(screen.getByText("26 de 54")).toBeInTheDocument();
-    expect(screen.getByText("28 fraudes passaram")).toBeInTheDocument();
+    expect(screen.getByText("92")).toBeInTheDocument();
+    expect(screen.queryByText(/sistema atual/i)).not.toBeInTheDocument();
 
     const tabela = screen.getByRole("table", { name: ROTULO_TABELA_AGENCIAS });
     const linhas = within(tabela).getAllByRole("row");
@@ -49,7 +53,10 @@ describe("PaginaPainelMatriz", () => {
   });
 
   it("sem os arquivos do modelo, o bloco do modelo não aparece", async () => {
-    apiFalsa.obterMetricasMatriz.mockResolvedValue({ ...m.metricasMatriz, modelo: null });
+    apiFalsa.obterMetricasMatriz.mockResolvedValue({
+      ...m.metricasMatriz,
+      modelo: null,
+    });
     render(<PaginaPainelMatriz />);
     await screen.findByText(/compras em 2 agências/);
     expect(screen.queryByText("54 de 54")).not.toBeInTheDocument();
@@ -67,13 +74,20 @@ describe("papel matriz", () => {
   });
 
   it("a matriz não abre a fila de uma agência", async () => {
-    act(() => guardarSessao({ token: "t", perfil: m.perfis.perfis.find((p) => p.papel === "matriz")! }));
+    act(() =>
+      guardarSessao({
+        token: "t",
+        perfil: m.perfis.perfis.find((p) => p.papel === "matriz")!,
+      }),
+    );
     render(
       <SoPapeis papeis={["auditor", "gerente"]}>
         <p>fila</p>
       </SoPapeis>,
     );
-    await waitFor(() => expect(navegar.replace).toHaveBeenCalledWith("/matriz"));
+    await waitFor(() =>
+      expect(navegar.replace).toHaveBeenCalledWith("/matriz"),
+    );
     expect(screen.queryByText("fila")).not.toBeInTheDocument();
   });
 

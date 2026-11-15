@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -177,3 +178,54 @@ class ContestacaoSchema(BaseModel):
 
     compra: CompraExtratoSchema
     cartao: CartaoSchema
+
+
+class ItemFilaFilialSchema(BaseModel):
+    """ItemFilaFilial do contrato."""
+
+    id_compra: str
+    nota: float | None
+    decisao: str | None
+    associado: str
+    final_cartao: str
+    data_hora: str | None
+    valor: float | None
+    tipo_transacao: str
+    modalidade_transacao: str
+    situacao: str
+    veredito_ia: str | None
+
+
+class FilaFilialSchema(BaseModel):
+    """Saída de ``GET /api/filial/fila``."""
+
+    filial: FilialSchema
+    total: int
+    itens: list[ItemFilaFilialSchema]
+
+
+class HistoricoAssociadoSchema(BaseModel):
+    """Histórico agregado que a filial pode ver."""
+
+    compras_90d: int
+    valor_mediano: float | None
+    contestacoes: int
+
+
+class AssociadoNaFilialSchema(BaseModel):
+    """O associado como a filial vê: abreviado, final do cartão e histórico agregado."""
+
+    nome_abreviado: str
+    final_cartao: str
+    historico: HistoricoAssociadoSchema
+
+
+class DetalheFilialSchema(BaseModel):
+    """Saída de ``GET /api/filial/compras/{id_compra}``."""
+
+    compra: ItemFilaFilialSchema
+    analise: dict[str, Any]
+    auditoria: dict[str, Any] | None
+    associado: AssociadoNaFilialSchema
+    resposta_associado: RespostaAssociadoSchema | None
+    bloqueio: BloqueioSchema | None

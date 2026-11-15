@@ -10,6 +10,7 @@ from typing import Annotated, Any
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from src.api import auditorias as auditoria_mem
 from src.api import servicos
@@ -23,6 +24,7 @@ from src.api.esquemas_refatoracao import (
 )
 from src.api.sessao import obter_repositorios, sessao_com_papel
 from src.aplicacao import associado as associado_app
+from src.associado import chat
 from src.dominio.entidades import Perfil
 
 router = APIRouter(prefix="/api/associado", tags=["associado"])
@@ -118,4 +120,88 @@ def contestar(id_compra: str, perfil: Sessao) -> dict[str, Any]:
     return {
         "compra": associado_app.compra_para_extrato(repos, compra),
         "cartao": associado_app.cartao_para_dict(cartao),
+    }
+
+
+# --- Chat do associado (seção 17.6; Issue #105) -----------------------------------------------
+
+
+class MensagemChat(BaseModel):
+    """Uma fala da conversa guardada pelo site."""
+
+    autor: str = Field(pattern="^(associado|ia)$")
+    texto: str = Field(max_length=2000)
+
+
+class EntradaChat(BaseModel):
+    """Entrada de ``POST /api/associado/chat``."""
+
+    mensagem: str = Field(min_length=1, max_length=500)
+    historico: list[MensagemChat] = Field(default_factory=list, max_length=chat.MAX_HISTORICO)
+
+
+class EntradaChatGerente(BaseModel):
+    """Entrada de ``POST /api/associado/chat/gerente``."""
+
+    historico: list[MensagemChat] = Field(default_factory=list, max_length=chat.MAX_HISTORICO)
+
+
+class RespostaChat(BaseModel):
+    """Saída de ``POST /api/associado/chat``."""
+
+    resposta: str
+    fonte: str
+
+
+class GerenteSchema(BaseModel):
+    """Gerente da agência do associado."""
+
+    nome: str
+
+
+class RespostaChatGerente(BaseModel):
+    """Saída de ``POST /api/associado/chat/gerente``."""
+
+    gerente: GerenteSchema
+    resumo: str
+
+
+def _contexto_do_chat(id_associado: str) -> dict[str, Any]:
+    """Só dados do próprio associado: saldo, limite e as compras do extrato."""
+    repos = obter_repositorios()
+    try:
+        inicio = associado_app.ver_inicio(repos, id_associado)
+        extrato = associado_app.ver_extrato(repos, id_associado, None)
+    except associado_app.NaoEncontrado as erro:
+        raise _erro_http(erro) from erro
+    return {
+        "saldo": inicio["saldo"],
+        "limite_disponivel": inicio["limite_disponivel"],
+        "compras": extrato["itens"],
+    }
+
+
+@router.post("/chat", response_model=RespostaChat)
+def conversar(entrada: EntradaChat, perfil: Sessao) -> dict[str, str]:
+    """A IA responde sobre os gastos e as compras do associado; só informa."""
+    historico = [m.model_dump() for m in entrada.historico]
+    return chat.responder(entrada.mensagem, historico, _contexto_do_chat(perfil.id_perfil))
+
+
+@router.post("/chat/gerente", response_model=RespostaChatGerente)
+def conversar_com_gerente(entrada: EntradaChatGerente, perfil: Sessao) -> dict[str, Any]:
+    """Abre a conversa (simulada) com o gerente da agência, com o resumo até ali."""
+    repos = obter_repositorios()
+    gerente = next(
+        (
+            p
+            for p in repos.perfis.listar()
+            if p.papel == "gerente" and p.id_filial == perfil.id_filial
+        ),
+        None,
+    )
+    historico = [m.model_dump() for m in entrada.historico]
+    return {
+        "gerente": {"nome": gerente.nome if gerente else "Gerente da agência"},
+        "resumo": chat.resumir_para_gerente(historico, _contexto_do_chat(perfil.id_perfil)),
     }

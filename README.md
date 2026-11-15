@@ -94,10 +94,10 @@ associado, que também se frustra quando uma compra legítima é negada. O desaf
 
 ```mermaid
 flowchart LR
-    ASS(["👤 Associado<br/><small>faz a compra, responde ao aviso,<br/>contesta e conversa no chat</small>"])
-    AUD(["🔎 Auditor da agência<br/><small>revisa a fila da agência<br/>e pode bloquear</small>"])
-    GER(["📊 Gerente da agência<br/><small>acompanha o acerto do modelo<br/>e a equipe</small>"])
-    MAT(["🏢 Matriz<br/><small>compara as agências e vê o<br/>modelo em toda a base</small>"])
+    ASS(["👤 Associado<br/>faz a compra, responde ao aviso,<br/>contesta e conversa no chat"])
+    AUD(["🔎 Auditor da agência<br/>revisa a fila da agência<br/>e pode bloquear"])
+    GER(["📊 Gerente da agência<br/>acompanha o acerto do modelo<br/>e a equipe"])
+    MAT(["🏢 Matriz<br/>compara as agências e vê o<br/>modelo em toda a base"])
     S{{"Sentinela"}}
     ASS <--> S
     AUD <--> S
@@ -112,8 +112,8 @@ Cada perfil entra pela mesma tela de login simulado e vê só o que precisa:
 ### O ciclo completo de uma compra
 
 ```mermaid
-flowchart LR
-    C["🛒 Compra"] --> D["⚡ Decisão na hora<br/><small>9 sinais + nota 0–100</small>"]
+flowchart TD
+    C["🛒 Compra"] --> D["⚡ Decisão na hora<br/>9 sinais + nota 0–100"]
     D -->|aprovar| OK["✅ Aprovada"]
     D -->|pedir confirmação<br/>ou bloquear| AV["📱 Aviso 'Foi você?'"]
     D -. em paralelo .-> IA["🤖 Auditoria no watsonx.ai"]
@@ -138,22 +138,22 @@ as respostas do chat.
 
 ```mermaid
 graph TB
-    USU["Associado, auditor, gerente e matriz<br/><small>navegador</small>"]
-    AUT["Autorizador de cartões<br/><small>simulado pela API</small>"]
+    USU["Associado, auditor, gerente e matriz<br/>navegador"]
+    AUT["Autorizador de cartões<br/>simulado pela API"]
 
     subgraph Sentinela["Sentinela (localhost)"]
-        SITE["<b>Site</b> · Next.js + React · web/<br/><small>/entrar · /associado · /filial · /matriz</small>"]
-        API["<b>API</b> · FastAPI · src/api/<br/><small>sessão, rotas do associado, da filial e da matriz,<br/>decisão, auditoria, notificações</small>"]
-        APL["<b>Aplicação e domínio</b><br/><small>src/aplicacao/ · src/dominio/</small>"]
-        POR["<b>Portas</b> · src/portas/"]
-        MEM["<b>Adaptadores</b> · src/adaptadores/<br/><small>memória e arquivo de rótulos</small>"]
-        NUC["<b>Núcleo de decisão</b><br/><small>src/agente.py · explicabilidade.py</small>"]
-        AUDI["<b>Auditoria</b> · src/auditoria/<br/><small>5 ferramentas · modo local</small>"]
-        CAN["<b>Canal do associado</b> · src/associado/<br/><small>avisos · mensagem · chat</small>"]
+        SITE["Site · Next.js + React · web/<br/>/entrar · /associado · /filial · /matriz"]
+        API["API · FastAPI · src/api/<br/>sessão, rotas do associado, da filial e da matriz,<br/>decisão, auditoria, notificações"]
+        APL["Aplicação e domínio<br/>src/aplicacao/ · src/dominio/"]
+        POR["Portas · src/portas/"]
+        MEM["Adaptadores · src/adaptadores/<br/>memória e arquivo de rótulos"]
+        NUC["Núcleo de decisão<br/>src/agente.py · explicabilidade.py"]
+        AUDI["Auditoria · src/auditoria/<br/>5 ferramentas · modo local"]
+        CAN["Canal do associado · src/associado/<br/>avisos · mensagem · chat"]
         ARQ[("data/ · modelos/")]
     end
 
-    WX["☁️ IBM watsonx.ai<br/><small>Granite ibm/granite-4-h-small</small>"]
+    WX["☁️ IBM watsonx.ai<br/>Granite ibm/granite-4-h-small"]
 
     USU -->|"localhost:3000"| SITE
     SITE -->|"HTTP + X-Sessao<br/>localhost:8000"| API
@@ -184,16 +184,16 @@ flowchart LR
         SS["src/api/sessao.py"]
     end
     subgraph Nucleo["Regras (sem FastAPI, sem pandas)"]
-        AP["src/aplicacao/<br/><small>casos de uso: associado, filial,<br/>métricas da filial e da matriz</small>"]
-        DO["src/dominio/<br/><small>entidades, regras puras, rótulos</small>"]
-        PO["src/portas/repositorios.py<br/><small>interfaces (Protocol)</small>"]
+        AP["src/aplicacao/<br/>casos de uso: associado, filial,<br/>métricas da filial e da matriz"]
+        DO["src/dominio/<br/>entidades, regras puras, rótulos"]
+        PO["src/portas/repositorios.py<br/>interfaces (Protocol)"]
     end
     subgraph Saida["Adaptadores"]
-        ME["memoria/<br/><small>dicionários + lock</small>"]
-        AR["arquivo/rotulos.py<br/><small>data/rotulos_retreino.csv</small>"]
-        PG["postgres/<br/><small>futuro · #107</small>"]
+        ME["memoria/<br/>dicionários + lock"]
+        AR["arquivo/rotulos.py<br/>data/rotulos_retreino.csv"]
+        PG["postgres/<br/>futuro · #107"]
     end
-    CO["src/composicao.py<br/><small>único lugar que escolhe<br/>os adaptadores</small>"]
+    CO["src/composicao.py<br/>único lugar que escolhe<br/>os adaptadores"]
     Entrada --> AP --> DO
     AP --> PO
     ME -.-> PO
@@ -331,7 +331,8 @@ sequenceDiagram
 flowchart TD
     A["Compra pede confirmação ou é bloqueada"] --> B["Aviso nasce com o<br/>modelo fixo (na hora)"]
     B --> C["Granite redige um texto melhor<br/>em segundo plano"]
-    C --> D{"Passa nas regras?<br/><small>começa com 'Sicredi:' · até 160 caracteres<br/>sem link · não pede senha nem código<br/>só o valor, a data e a hora reais</small>"}
+    C --> D{"Passa nas<br/>regras?"}
+    REG["Regras contra golpe:<br/>começa com 'Sicredi:'<br/>até 160 caracteres<br/>sem link<br/>não pede senha nem código<br/>só o valor, a data e a hora reais"] -.- D
     D -->|sim| E["Texto do Granite substitui o fixo<br/>(se o aviso ainda espera resposta)"]
     D -->|não| F["Fica o modelo fixo"]
 ```
@@ -342,10 +343,10 @@ flowchart TD
 flowchart LR
     R1["'Não fui eu'"] --> F["rótulo: fraude"]
     R2["'Fui eu'"] --> L["rótulo: legítima"]
-    R3["'Não reconheço'<br/><small>compra aprovada</small>"] --> F2["rótulo: fraude<br/><small>que o modelo deixou passar</small>"]
+    R3["'Não reconheço'<br/>compra aprovada"] --> F2["rótulo: fraude<br/>que o modelo deixou passar"]
     R4["bloqueio do auditor<br/>sem resposta"] --> N["sem rótulo"]
-    F & L & F2 & N --> CSV[("data/rotulos_retreino.csv<br/><small>só acréscimo · sem identificadores<br/>com as 11 variáveis que o modelo viu</small>")]
-    CSV --> EXP["python -m src.exportar_retreino"] --> PQ[("data/retreino.parquet<br/><small>pronto para treinar</small>")]
+    F & L & F2 & N --> CSV[("data/rotulos_retreino.csv<br/>só acréscimo · sem identificadores<br/>com as 11 variáveis que o modelo viu")]
+    CSV --> EXP["python -m src.exportar_retreino"] --> PQ[("data/retreino.parquet<br/>pronto para treinar")]
 ```
 
 O retreino em si fica fora desta entrega: o modelo campeão não muda.
@@ -415,10 +416,10 @@ sistemáticos e não é usada. A base recebida difere da descrita nas orientaç�
 ### 5.2 O que entra e o que nunca entra
 
 ```mermaid
-flowchart LR
+flowchart TD
     CSV[("CSV da Sicredi<br/>297 colunas")] --> P["src/preparar_dados.py"]
     P --> PQ[("transacoes_preparadas.parquet<br/>16 colunas")]
-    P -. descarta .-> X["🚫 Vazamento<br/><small>fraud_score, visa/mc_fraud_score,<br/>decision, transaction_status,<br/>action_code, reason_code, alert_id,<br/>dispute_*, fdz_*, oob_*, fraud</small>"]
+    P -. descarta .-> X["🚫 Vazamento<br/>fraud_score, visa/mc_fraud_score,<br/>decision, transaction_status,<br/>action_code, reason_code, alert_id,<br/>dispute_*, fdz_*, oob_*, fraud"]
 ```
 
 As colunas descartadas entregariam a resposta ou só existem depois da decisão. A coluna
@@ -432,13 +433,13 @@ um sistema real, e todo "deny" nela é fraude; por isso ela não é usada nem co
 ### 6.1 O pipeline
 
 ```mermaid
-flowchart LR
-    A[("CSV")] --> B["preparar_dados.py<br/><small>16 colunas, variáveis derivadas</small>"]
+flowchart TD
+    A[("CSV")] --> B["preparar_dados.py<br/>16 colunas, variáveis derivadas"]
     B --> C[("parquet")]
-    C --> D["treinar_modelo.py<br/><small>treino: jan–fev (25.923 compras, 92 fraudes)</small>"]
-    D --> E[("modelos/sentinela.joblib<br/><small>imputer → scaler → regressão logística</small>")]
-    E --> F["agente.py<br/><small>sinais + nota + decisão</small>"]
-    C --> G["avaliar_agente.py<br/><small>teste: março (13.608, 54 fraudes)</small>"]
+    C --> D["treinar_modelo.py<br/>treino: jan–fev (25.923 compras, 92 fraudes)"]
+    D --> E[("modelos/sentinela.joblib<br/>imputer → scaler → regressão logística")]
+    E --> F["agente.py<br/>sinais + nota + decisão"]
+    C --> G["avaliar_agente.py<br/>teste: março (13.608, 54 fraudes)"]
     F --> G
     G --> H[("modelos/*.json")]
     E --> I["avaliar_rigor.py · analisar_custos.py<br/>analisar_dados.py · avaliar_ia.py"]
@@ -499,9 +500,9 @@ As variáveis de velocidade e a distância entre terminais são as que mais aume
 ```mermaid
 flowchart TD
     N["Nota de 0 a 100<br/>+ sinais disparados"] --> B{"nota ≥ 70<br/>ou IP de país desconhecido?"}
-    B -->|sim| BL["⛔ BLOQUEAR<br/><small>e avisar o associado</small>"]
+    B -->|sim| BL["⛔ BLOQUEAR<br/>e avisar o associado"]
     B -->|não| C{"nota ≥ 30<br/>ou 3 sinais ou mais?"}
-    C -->|sim| PC["⚠️ PEDIR CONFIRMAÇÃO<br/><small>'Foi você?'</small>"]
+    C -->|sim| PC["⚠️ PEDIR CONFIRMAÇÃO<br/>'Foi você?'"]
     C -->|não| AP["✅ APROVAR"]
 ```
 
@@ -719,7 +720,7 @@ cd web && npm run lint && npm run typecheck && npm test && npm run build
   (`tests/test_contrato_refatoracao.py`).
 
 ```mermaid
-flowchart LR
+flowchart TD
     I["Issue"] --> B["branch"] --> C["código + testes"] --> P["portão local"] --> PR["Pull Request"] --> CI{"CI 'Qualidade'"}
     CI -->|verde| M["merge"]
     CI -->|vermelho| C

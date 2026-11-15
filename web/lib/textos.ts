@@ -395,6 +395,21 @@ export const TEXTOS_CENARIOS = {
   },
 } as const;
 
+<<<<<<< HEAD
 // --- Issue #109 — Selo do IBM Granite ---
 export const ETIQUETA_REDIGIDA_GRANITE = "Redigida pelo IBM Granite";
 export const ETIQUETA_MENSAGEM_PADRAO = "Mensagem padrão";
+=======
+// --- Issue #66 — Pergunte à IA ---
+export const TITULO_PERGUNTE_IA = "Pergunte à IA sobre este caso";
+export const ROTULO_PERGUNTA = "Sua pergunta";
+export const AJUDA_PERGUNTA =
+  "Até 300 caracteres. A IA consulta as mesmas ferramentas da auditoria e não muda a decisão do modelo.";
+export const BOTAO_PERGUNTAR = "Perguntar";
+export const PERGUNTA_PENDENTE = "A IA está consultando as ferramentas…";
+export const TITULO_RESPOSTA_IA = "Resposta da IA";
+export const FONTE_PERGUNTA = (fonte: string, ms: string) =>
+  fonte === "watsonx"
+    ? `Respondido pelo IBM watsonx.ai em ${ms} ms.`
+    : `Respondido em modo local (watsonx.ai indisponível) em ${ms} ms.`;
+>>>>>>> 1fbfcc0 (feat: adiciona o Pergunte à IA sobre este caso)

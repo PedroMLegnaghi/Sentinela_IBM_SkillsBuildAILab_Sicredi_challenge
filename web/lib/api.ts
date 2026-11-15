@@ -19,6 +19,7 @@ import type {
   Notificacao,
   RespostaNotificacoes,
   EntradaRespostaNotificacao,
+  RespostaPergunta,
 } from "@/lib/tipos";
 
 const URL_BASE =
@@ -264,4 +265,22 @@ export async function responderNotificacao(
       body: JSON.stringify(entrada),
     },
   );
+}
+
+/**
+ * POST /api/transacoes/{id_transacao}/perguntas
+ */
+export async function perguntarIA(
+  idTransacao: number,
+  pergunta: string,
+): Promise<RespostaPergunta> {
+  if (USAR_MOCK) {
+    const m = await obterMocks();
+    return m.pergunta;
+  }
+  return buscar<RespostaPergunta>(`/api/transacoes/${idTransacao}/perguntas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pergunta }),
+  });
 }

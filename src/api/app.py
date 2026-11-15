@@ -18,12 +18,15 @@ from src.api import respostas as resp_mod
 from src.api import servicos
 from src.api.esquemas import (
     EntradaAnalise,
+    EntradaPergunta,
     EntradaResposta,
     EntradaRespostaAssociado,
     NotificacaoSchema,
+    RespostaPerguntaSchema,
 )
 from src.associado import notificacoes as notificacao_mem
 from src.associado.mensagem import tipo_por_decisao
+from src.auditoria.perguntas import responder_pergunta
 from src.config import API_ORIGENS_PERMITIDAS
 
 DECISOES_VALIDAS = {"APROVAR", "PEDIR_CONFIRMACAO", "BLOQUEAR"}
@@ -258,6 +261,37 @@ def obter_auditoria(id_auditoria: str) -> dict[str, Any]:
             detail=f"Auditoria '{id_auditoria}' não encontrada.",
         )
     return aud
+
+
+# --- POST /api/transacoes/{id_transacao}/perguntas (ESPECIFICACAO, seção 16) -------------------
+
+
+@app.post("/api/transacoes/{id_transacao}/perguntas", response_model=RespostaPerguntaSchema)
+def perguntar_a_ia(id_transacao: int, entrada: EntradaPergunta) -> dict[str, Any]:
+    """Responde a uma pergunta livre do analista sobre uma transação da fila.
+
+    Args:
+        id_transacao: Identificador da transação.
+        entrada: Corpo com ``pergunta`` (1 a 300 caracteres).
+
+    Returns:
+        resposta, ferramentas_usadas, fonte e latencia_ms; fora da fila → 404.
+    """
+    if not servicos.dados_carregados():
+        raise HTTPException(status_code=503, detail=MENSAGEM_503)
+    try:
+        dados = servicos.obter_transacao(id_transacao)
+        transacao_dict = servicos.transacao_para_auditoria(id_transacao)
+    except KeyError as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+    except RuntimeError as erro:
+        raise HTTPException(status_code=503, detail=str(erro)) from erro
+    return responder_pergunta(
+        entrada.pergunta,
+        transacao_dict,
+        dados["analise"],
+        servicos._estado.base,  # noqa: SLF001
+    )
 
 
 # --- POST /api/respostas ----------------------------------------------------------------------

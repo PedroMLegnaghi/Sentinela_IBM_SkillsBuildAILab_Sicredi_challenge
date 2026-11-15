@@ -12,6 +12,7 @@ import EstadoErro from "@/components/comuns/EstadoErro";
 import FaixaDecisao from "@/components/comuns/FaixaDecisao";
 import CartaoAssociado from "@/components/associado/CartaoAssociado";
 import CartaoAuditoria from "@/components/painel/CartaoAuditoria";
+import PergunteIA from "@/components/painel/PergunteIA";
 import PerfilAssociado from "@/components/painel/PerfilAssociado";
 import GraficoContribuicoes from "@/components/painel/GraficoContribuicoes";
 import HistoricoCartao from "@/components/painel/HistoricoCartao";
@@ -121,6 +122,10 @@ export default function PainelTransacao({ idTransacao }: PropsPainelTransacao) {
         notificacaoInicial={notificacao ?? null}
       />
       <CartaoAuditoria idTransacao={transacao.id_transacao} />
+      <PergunteIA
+        key={`pergunta-${transacao.id_transacao}`}
+        idTransacao={transacao.id_transacao}
+      />
       <RespostaAnalista
         key={transacao.id_transacao}
         idTransacao={transacao.id_transacao}

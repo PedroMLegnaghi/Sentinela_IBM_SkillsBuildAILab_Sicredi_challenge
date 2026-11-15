@@ -15,6 +15,7 @@ import type {
   Notificacao,
   RespostaNotificacoes,
   PerfilAssociado,
+  RespostaPergunta,
 } from "@/lib/tipos";
 
 const saude: RespostaSaude = {
@@ -303,6 +304,17 @@ const metricas: RespostaMetricas = {
   },
 };
 
+const pergunta: RespostaPergunta = {
+  resposta:
+    "A compra foi feita na madrugada, com IP de país desconhecido, e o valor é bem acima da mediana do associado. Esses pontos explicam a decisão do modelo.",
+  ferramentas_usadas: [
+    { nome: "sinais_da_transacao", resumo: "5 sinal(is) de alerta" },
+    { nome: "perfil_do_cliente", resumo: "8 compras anteriores do cliente" },
+  ],
+  fonte: "local",
+  latencia_ms: 1800.0,
+};
+
 export const mocks = {
   saude,
   fila,
@@ -317,4 +329,5 @@ export const mocks = {
   notificacaoNegada,
   notificacaoGranite,
   notificacoes,
+  pergunta,
 };

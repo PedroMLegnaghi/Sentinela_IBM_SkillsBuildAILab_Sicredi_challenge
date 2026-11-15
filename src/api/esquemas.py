@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from src.associado.notificacoes import RESPOSTAS_VALIDAS
 
@@ -160,3 +160,34 @@ class EntradaRespostaAssociado(BaseModel):
         if v not in RESPOSTAS_VALIDAS:
             raise ValueError("Resposta deve ser 'sim' ou 'nao'.")
         return v
+
+
+class EntradaPergunta(BaseModel):
+    """Entrada do endpoint POST /api/transacoes/{id_transacao}/perguntas."""
+
+    pergunta: str = Field(min_length=1, max_length=300)
+
+    @field_validator("pergunta")
+    @classmethod
+    def validar_pergunta(cls, v: str) -> str:
+        """Tira os espaços das pontas e recusa pergunta vazia."""
+        texto = v.strip()
+        if not texto:
+            raise ValueError("A pergunta não pode ser vazia.")
+        return texto
+
+
+class FerramentaUsadaSchema(BaseModel):
+    """Ferramenta que a IA usou ao responder."""
+
+    nome: str
+    resumo: str
+
+
+class RespostaPerguntaSchema(BaseModel):
+    """Resposta do "Pergunte à IA" (ESPECIFICACAO, seção 16)."""
+
+    resposta: str
+    ferramentas_usadas: list[FerramentaUsadaSchema]
+    fonte: str
+    latencia_ms: float

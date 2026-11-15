@@ -289,3 +289,12 @@ export interface EntradaResposta {
   id_transacao: number;
   resposta: "fraude" | "legitima";
 }
+
+// --- Issue #66: Pergunte à IA (seção 16) ---
+
+export interface RespostaPergunta {
+  resposta: string;
+  ferramentas_usadas: Ferramenta[];
+  fonte: FonteIA;
+  latencia_ms: number;
+}

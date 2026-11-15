@@ -13,6 +13,7 @@ from typing import Annotated, Any
 
 import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from src.api import auditorias as auditoria_mem
 from src.api import servicos
@@ -34,6 +35,8 @@ from src.portas.repositorios import Repositorios
 router = APIRouter(prefix="/api/filial", tags=["filial"])
 Equipe = Annotated[Perfil, Depends(sessao_com_papel("auditor", "gerente"))]
 Gerente = Annotated[Perfil, Depends(sessao_com_papel("gerente"))]
+Auditor = Annotated[Perfil, Depends(sessao_com_papel("auditor"))]
+MAXIMO_NOTA = 300
 DIAS_DO_HISTORICO = 90
 _lock = threading.Lock()
 _ids_fila: set[int] | None = None
@@ -225,3 +228,31 @@ def metricas(perfil: Gerente) -> dict[str, Any]:
     repos, _ = _repositorios_com_fila()
     resumo = _resumos_de_marco(repos).get(perfil.id_filial, metricas_filial.ResumoFilial())
     return metricas_filial.calcular_metricas(repos, perfil.id_filial, resumo, notificacoes.obter)
+
+
+class EntradaBloqueio(BaseModel):
+    """Entrada de ``POST /api/filial/compras/{id_compra}/bloqueio`` (seção 17.5)."""
+
+    nota: str | None = Field(default=None, max_length=MAXIMO_NOTA)
+
+
+@router.post("/compras/{id_compra}/bloqueio", status_code=201, response_model=DetalheFilialSchema)
+def bloquear(id_compra: str, entrada: EntradaBloqueio, perfil: Auditor) -> dict[str, Any]:
+    """Auditor bloqueia uma compra que aguarda o associado; devolve o detalhe atualizado."""
+    repos, _ = _repositorios_com_fila()
+    try:
+        filial_app.bloquear_compra(
+            repos,
+            perfil,
+            id_compra,
+            entrada.nota,
+            _analise_de,
+            _auditoria_de,
+        )
+    except associado_app.NaoEncontrado as erro:
+        raise HTTPException(status_code=404, detail=str(erro)) from erro
+    except filial_app.AcessoNegado as erro:
+        raise HTTPException(status_code=403, detail=str(erro)) from erro
+    except associado_app.Conflito as erro:
+        raise HTTPException(status_code=409, detail=str(erro)) from erro
+    return compra(id_compra, perfil)

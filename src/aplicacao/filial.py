@@ -9,11 +9,12 @@ from __future__ import annotations
 
 import zlib
 from collections.abc import Callable, Iterable, Mapping
+from datetime import datetime
 from typing import Any
 
-from src.aplicacao.associado import NaoEncontrado, situacoes_do_filtro
+from src.aplicacao.associado import Conflito, NaoEncontrado, situacoes_do_filtro
 from src.dominio import regras
-from src.dominio.entidades import Associado, Bloqueio, Cartao, Compra
+from src.dominio.entidades import Associado, Bloqueio, Cartao, Compra, Perfil
 from src.portas.repositorios import Repositorios
 
 SITUACOES_PADRAO_FILA = ("BLOQUEADA", "AGUARDANDO", "CONTESTADA")
@@ -195,7 +196,7 @@ def _bloqueio_para_filial(
         por = auditor.nome if auditor else "Analista"
         motivo = bloqueio.motivo
     if bloqueio.nota_auditor:
-        motivo = f"{motivo} Nota do auditor: {bloqueio.nota_auditor}"
+        motivo = f"{motivo} Nota do analista: {bloqueio.nota_auditor}"
     return {"por": por, "em": bloqueio.em, "motivo": motivo}
 
 
@@ -251,3 +252,53 @@ def ver_compra(
         ),
         "bloqueio": _bloqueio_para_filial(repos, compra, analise),
     }
+
+
+def _motivo_do_bloqueio(analise: dict[str, Any], auditoria: dict[str, Any] | None) -> str:
+    """Explicação da IA se a auditoria terminou; senão, a explicação do modelo."""
+    relatorio = (auditoria or {}).get("relatorio") or {}
+    if (auditoria or {}).get("status") == "concluida" and relatorio.get("explicacao"):
+        return str(relatorio["explicacao"])
+    return str(analise.get("explicacao") or "")
+
+
+def bloquear_compra(
+    repos: Repositorios,
+    auditor: Perfil,
+    id_compra: str,
+    nota: str | None,
+    analise_de: Callable[[Compra], dict[str, Any]],
+    auditoria_de: Callable[[Compra], dict | None],
+) -> Compra:
+    """Auditor bloqueia uma compra AGUARDANDO da própria filial (seção 17.5).
+
+    Args:
+        repos: Repositórios da aplicação.
+        auditor: Perfil do auditor da sessão (dá o id e a filial).
+        id_compra: Compra a bloquear.
+        nota: Nota livre do auditor (até 300 caracteres), ou None.
+        analise_de: Devolve a Analise da compra.
+        auditoria_de: Devolve a Auditoria da compra, ou None.
+
+    Returns:
+        A compra já BLOQUEADA.
+
+    Raises:
+        NaoEncontrado: Se a compra não existe.
+        AcessoNegado: Se a compra é de outra filial.
+        Conflito: Se a compra não está AGUARDANDO.
+    """
+    compra = repos.compras.obter(id_compra)
+    if compra is None:
+        raise NaoEncontrado("Compra não encontrada.")
+    if compra.id_filial != auditor.id_filial:
+        raise AcessoNegado("Esta compra é da carteira de outra filial.")
+    if compra.situacao != "AGUARDANDO":
+        raise Conflito("Só uma compra que aguarda o associado pode ser bloqueada pelo auditor.")
+    motivo = _motivo_do_bloqueio(analise_de(compra), auditoria_de(compra))
+    em = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    regras.bloquear_pelo_auditor(
+        compra, auditor.id_perfil, em, motivo, (nota or "").strip() or None
+    )
+    repos.compras.salvar(compra)
+    return compra
